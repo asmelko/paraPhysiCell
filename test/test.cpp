@@ -27,7 +27,7 @@ microenvironment default_microenv(cartesian_mesh mesh)
 	m.diffustion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 
-	m.agents = std::make_unique<cell_container>(m);
+	m.agents = std::make_unique<cell_container>(m, 3);
 
 	return m;
 }

@@ -5,16 +5,126 @@
 using namespace biofvm;
 using namespace physicell;
 
-cell_data::cell_data(microenvironment& m) : agent_data(m), agents_count(agent_data.agents_count), m(m) {}
+template <typename T>
+void move_scalar(T* dst, const T* src)
+{
+	dst[0] = src[0];
+}
+
+template <typename T>
+void move_vector(T* dst, const T* src, biofvm::index_t size)
+{
+	std::memcpy(dst, src, size * sizeof(T));
+}
+
+void volume_data::add(index_t size)
+{
+	solid.resize(size, 0);
+	fluid.resize(size, 0);
+	fluid_fraction.resize(size, 0);
+
+	nuclear.resize(size, 0);
+	nuclear_fluid.resize(size, 0);
+	nuclear_solid.resize(size, 0);
+
+	cytoplasmic.resize(size, 0);
+	cytoplasmic_fluid.resize(size, 0);
+	cytoplasmic_solid.resize(size, 0);
+
+	calcified_fraction.resize(size, 0);
+
+	cytoplasmic_to_nuclear_ratio.resize(size, 0);
+
+	rupture_volume.resize(size, 0);
+}
+
+void volume_data::remove(index_t index, index_t size)
+{
+	move_scalar(solid.data() + index, solid.data() + size);
+	move_scalar(fluid.data() + index, fluid.data() + size);
+	move_scalar(fluid_fraction.data() + index, fluid_fraction.data() + size);
+
+	move_scalar(nuclear.data() + index, nuclear.data() + size);
+	move_scalar(nuclear_fluid.data() + index, nuclear_fluid.data() + size);
+	move_scalar(nuclear_solid.data() + index, nuclear_solid.data() + size);
+
+	move_scalar(cytoplasmic.data() + index, cytoplasmic.data() + size);
+	move_scalar(cytoplasmic_fluid.data() + index, cytoplasmic_fluid.data() + size);
+	move_scalar(cytoplasmic_solid.data() + index, cytoplasmic_solid.data() + size);
+
+	move_scalar(calcified_fraction.data() + index, calcified_fraction.data() + size);
+
+	move_scalar(cytoplasmic_to_nuclear_ratio.data() + index, cytoplasmic_to_nuclear_ratio.data() + size);
+
+	move_scalar(rupture_volume.data() + index, rupture_volume.data() + size);
+}
+
+void geometry_data::add(index_t size)
+{
+	radius.resize(size, 0);
+	nuclear_radius.resize(size, 0);
+	surface_area.resize(size, 0);
+	polarity.resize(size, 0);
+}
+
+void geometry_data::remove(index_t index, index_t size)
+{
+	move_scalar(radius.data() + index, radius.data() + size);
+	move_scalar(nuclear_radius.data() + index, nuclear_radius.data() + size);
+	move_scalar(surface_area.data() + index, surface_area.data() + size);
+	move_scalar(polarity.data() + index, polarity.data() + size);
+}
+
+mechanics_data::mechanics_data(index_t cell_definitions_count) : cell_definitions_count(cell_definitions_count) {}
+
+void mechanics_data::add(index_t size)
+{
+	cell_cell_adhesion_strength.resize(size, 0);
+	cell_BM_adhesion_strength.resize(size, 0);
+
+	cell_cell_repulsion_strength.resize(size, 0);
+	cell_BM_repulsion_strength.resize(size, 0);
+
+	cell_adhesion_affinities.resize(size * cell_definitions_count, 0);
+
+	maximum_number_of_attachments.resize(size, 0);
+	attachment_elastic_constant.resize(size, 0);
+
+	attachment_rate.resize(size, 0);
+	detachment_rate.resize(size, 0);
+}
+
+void mechanics_data::remove(index_t index, index_t size)
+{
+	move_scalar(cell_cell_adhesion_strength.data() + index, cell_cell_adhesion_strength.data() + size);
+	move_scalar(cell_BM_adhesion_strength.data() + index, cell_BM_adhesion_strength.data() + size);
+
+	move_scalar(cell_cell_repulsion_strength.data() + index, cell_cell_repulsion_strength.data() + size);
+	move_scalar(cell_BM_repulsion_strength.data() + index, cell_BM_repulsion_strength.data() + size);
+
+	move_vector(cell_adhesion_affinities.data() + index * cell_definitions_count,
+				cell_adhesion_affinities.data() + size * cell_definitions_count, cell_definitions_count);
+
+	move_scalar(maximum_number_of_attachments.data() + index, maximum_number_of_attachments.data() + size);
+	move_scalar(attachment_elastic_constant.data() + index, attachment_elastic_constant.data() + size);
+
+	move_scalar(attachment_rate.data() + index, attachment_rate.data() + size);
+	move_scalar(detachment_rate.data() + index, detachment_rate.data() + size);
+}
+
+cell_data::cell_data(microenvironment& m, index_t cell_definitions_count)
+	: agent_data(m), mechanics(cell_definitions_count), agents_count(agent_data.agents_count), m(m)
+{}
 
 void cell_data::add()
 {
 	agent_data.add();
 
-	for (index_t i = 0; i < m.mesh.dims; i++)
-	{
-		velocities.push_back(0);
-	}
+	volume.add(agents_count);
+	geometry.add(agents_count);
+	mechanics.add(agents_count);
+
+	velocities.resize(agents_count * m.mesh.dims, 0);
 }
 
 void cell_data::remove(index_t index)
@@ -26,8 +136,9 @@ void cell_data::remove(index_t index)
 		return;
 	}
 
-	for (index_t i = 0; i < m.mesh.dims; i++)
-	{
-		velocities[index * m.mesh.dims + i] = velocities[agents_count * m.mesh.dims + i];
-	}
+	volume.remove(index, agents_count);
+	geometry.remove(index, agents_count);
+	mechanics.remove(index, agents_count);
+
+	move_vector(velocities.data() + index * m.mesh.dims, velocities.data() + agents_count * m.mesh.dims, m.mesh.dims);
 }

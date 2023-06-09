@@ -7,12 +7,12 @@
 
 namespace physicell {
 
-class cell_container : public biofvm::agent_container_templated<cell, cell_data>
+class cell_container : public biofvm::agent_container_common<cell, cell_data>
 {
 	virtual biofvm::agent_data& get_agent_data() override;
 
 public:
-	cell_container(biofvm::microenvironment& m);
+	cell_container(biofvm::microenvironment& m, biofvm::index_t cell_definitions_count);
 
 	cell* add_cell();
 };
