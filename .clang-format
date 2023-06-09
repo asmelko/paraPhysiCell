@@ -1,0 +1,64 @@
+BasedOnStyle: Microsoft   
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AllowAllConstructorInitializersOnNextLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BinPackArguments: true
+BinPackParameters: true
+
+ColumnLimit: 120
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: true
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     true
+  AfterUnion:      true
+  AfterExternBlock: true
+  BeforeCatch:     true
+  BeforeElse:      true
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+BreakBeforeBinaryOperators: NonAssignment
+FixNamespaceComments: true
+
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '<[[:alnum:]._]+>'
+    Priority:        1
+  - Regex:           '\".*\"'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        2
+
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 3
+NamespaceIndentation: None
+
+PointerAlignment: Left
+
+SpaceAfterTemplateKeyword: true
+SpaceBeforeCpp11BracedList: true
+SpaceInEmptyBlock: false
+Standard: Latest
+
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
