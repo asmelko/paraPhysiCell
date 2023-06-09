@@ -87,6 +87,8 @@ void mechanics_data::add(index_t size)
 
 	cell_adhesion_affinities.resize(size * cell_definitions_count, 0);
 
+	relative_maximum_adhesion_distance.resize(size, 0);
+
 	maximum_number_of_attachments.resize(size, 0);
 	attachment_elastic_constant.resize(size, 0);
 
@@ -104,6 +106,8 @@ void mechanics_data::remove(index_t index, index_t size)
 
 	move_vector(cell_adhesion_affinities.data() + index * cell_definitions_count,
 				cell_adhesion_affinities.data() + size * cell_definitions_count, cell_definitions_count);
+
+	move_scalar(relative_maximum_adhesion_distance.data() + index, relative_maximum_adhesion_distance.data() + size);
 
 	move_scalar(maximum_number_of_attachments.data() + index, maximum_number_of_attachments.data() + size);
 	move_scalar(attachment_elastic_constant.data() + index, attachment_elastic_constant.data() + size);
@@ -125,6 +129,8 @@ void cell_data::add()
 	mechanics.add(agents_count);
 
 	velocities.resize(agents_count * m.mesh.dims, 0);
+	cell_definition_index.resize(agents_count, 0);
+	simple_pressure.resize(agents_count, 0);
 }
 
 void cell_data::remove(index_t index)
@@ -141,4 +147,6 @@ void cell_data::remove(index_t index)
 	mechanics.remove(index, agents_count);
 
 	move_vector(velocities.data() + index * m.mesh.dims, velocities.data() + agents_count * m.mesh.dims, m.mesh.dims);
+	move_scalar(cell_definition_index.data() + index, cell_definition_index.data() + agents_count);
+	move_scalar(simple_pressure.data() + index, simple_pressure.data() + agents_count);
 }

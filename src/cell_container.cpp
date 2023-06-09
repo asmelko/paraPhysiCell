@@ -11,6 +11,8 @@ cell_container::cell_container(microenvironment& m, index_t cell_definitions_cou
 
 biofvm::agent_data& cell_container::get_agent_data() { return data_.agent_data; }
 
+cell_data& physicell::cell_container::get_cell_data() { return data_; }
+
 cell* cell_container::add_cell()
 {
 	agent_container_common<cell, cell_data>::add_agent();

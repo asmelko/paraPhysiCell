@@ -57,6 +57,8 @@ struct mechanics_data
 
 	std::vector<biofvm::real_t> cell_adhesion_affinities;
 
+	std::vector<biofvm::real_t> relative_maximum_adhesion_distance;
+
 	std::vector<biofvm::index_t> maximum_number_of_attachments;
 	std::vector<biofvm::real_t> attachment_elastic_constant;
 
@@ -78,7 +80,10 @@ struct cell_data
 	volume_data volume;
 	geometry_data geometry;
 	mechanics_data mechanics;
+
 	std::vector<biofvm::real_t> velocities;
+	std::vector<biofvm::index_t> cell_definition_index;
+	std::vector<biofvm::real_t> simple_pressure;
 
 
 	// references agent_data.agents_count
