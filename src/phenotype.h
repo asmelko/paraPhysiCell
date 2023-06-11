@@ -1,0 +1,88 @@
+#pragma once
+
+#include <BioFVM/types.h>
+
+namespace physicell {
+
+class cell;
+struct cell_data;
+
+struct phenotype_data_storage
+{
+protected:
+	cell_data& data_;
+	biofvm::index_t index_;
+
+public:
+	phenotype_data_storage(cell_data& data, biofvm::index_t index);
+};
+
+struct phenotype_implicit_storage
+{};
+
+struct volume_t : public phenotype_data_storage
+{
+	volume_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t& total();
+
+	biofvm::real_t& solid();
+	biofvm::real_t& fluid();
+	biofvm::real_t& fluid_fraction();
+
+	biofvm::real_t& nuclear();
+	biofvm::real_t& nuclear_fluid();
+	biofvm::real_t& nuclear_solid();
+
+	biofvm::real_t& cytoplasmic();
+	biofvm::real_t& cytoplasmic_fluid();
+	biofvm::real_t& cytoplasmic_solid();
+
+	biofvm::real_t& calcified_fraction();
+
+	biofvm::real_t& cytoplasmic_to_nuclear_ratio();
+
+	biofvm::real_t& rupture_volume();
+};
+
+struct geometry_t : public phenotype_data_storage
+{
+	geometry_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t& radius();
+	biofvm::real_t& nuclear_radius();
+	biofvm::real_t& surface_area();
+	biofvm::real_t& polarity();
+};
+
+struct mechanics_t : public phenotype_data_storage
+{
+	mechanics_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t& cell_cell_adhesion_strength();
+	biofvm::real_t& cell_BM_adhesion_strength();
+
+	biofvm::real_t& cell_cell_repulsion_strength();
+	biofvm::real_t& cell_BM_repulsion_strength();
+
+	biofvm::real_t* cell_adhesion_affinities();
+
+	biofvm::real_t& relative_maximum_adhesion_distance();
+
+	biofvm::index_t& maximum_number_of_attachments();
+	biofvm::real_t& attachment_elastic_constant();
+
+	biofvm::real_t& attachment_rate();
+	biofvm::real_t& detachment_rate();
+};
+
+struct phenotype_t
+{
+	volume_t volume;
+	geometry_t geometry;
+	mechanics_t mechanics;
+
+	phenotype_t(cell_data& data, biofvm::index_t index);
+};
+
+} // namespace physicell

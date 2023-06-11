@@ -4,11 +4,9 @@
 
 #include <BioFVM/agent_data.h>
 
-namespace biofvm {
-struct microenvironment;
-}
-
 namespace physicell {
+
+struct environment;
 
 struct volume_data
 {
@@ -47,8 +45,6 @@ struct geometry_data
 
 struct mechanics_data
 {
-	biofvm::index_t cell_definitions_count;
-
 	std::vector<biofvm::real_t> cell_cell_adhesion_strength;
 	std::vector<biofvm::real_t> cell_BM_adhesion_strength;
 
@@ -65,10 +61,8 @@ struct mechanics_data
 	std::vector<biofvm::real_t> attachment_rate;
 	std::vector<biofvm::real_t> detachment_rate;
 
-	mechanics_data(biofvm::index_t cell_definitions_count);
-
-	void add(biofvm::index_t size);
-	void remove(biofvm::index_t index, biofvm::index_t size);
+	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
 struct cell_data
@@ -77,21 +71,21 @@ struct cell_data
 	biofvm::agent_data agent_data;
 
 	// PhysiCell phenotype data
-	volume_data volume;
-	geometry_data geometry;
+	volume_data volumes;
+	geometry_data geometries;
 	mechanics_data mechanics;
 
 	std::vector<biofvm::real_t> velocities;
-	std::vector<biofvm::index_t> cell_definition_index;
-	std::vector<biofvm::real_t> simple_pressure;
+	std::vector<biofvm::index_t> cell_definition_indices;
+	std::vector<biofvm::real_t> simple_pressures;
 
 
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;
 
-	biofvm::microenvironment& m;
+	environment& e;
 
-	cell_data(biofvm::microenvironment& m, biofvm::index_t cell_definitions_count);
+	cell_data(environment& e);
 
 	void add();
 	void remove(biofvm::index_t index);

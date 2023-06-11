@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../../cell_data.h"
+#include "../../environment.h"
 
 namespace physicell {
 
 class velocity_solver
 {
 public:
-	static void solve(cell_data& data);
+	static void solve(environment& e);
 };
 
 } // namespace physicell

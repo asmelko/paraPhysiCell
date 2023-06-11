@@ -8,20 +8,28 @@
 namespace physicell {
 
 class velocity_solver;
+struct environment;
 
-class cell_container : public biofvm::agent_container_common<cell, cell_data>
+class cell_container_base
 {
 	friend velocity_solver;
 
-	virtual biofvm::agent_data& get_agent_data() override;
-	cell_data& get_cell_data();
-
-	std::unique_ptr<std::vector<biofvm::index_t>[]> voxel_indices_;
+protected:
+	virtual cell_data& get_cell_data() = 0;
 
 public:
-	cell_container(biofvm::microenvironment& m, biofvm::index_t cell_definitions_count);
+	virtual std::vector<std::unique_ptr<cell>>& cells() = 0;
+};
 
-	cell* add_cell();
+class cell_container : public biofvm::agent_container_common<cell, cell_data>, public cell_container_base
+{
+	virtual biofvm::agent_data& get_agent_data() override;
+	virtual cell_data& get_cell_data() override;
+
+public:
+	cell_container(environment& e);
+	
+	virtual std::vector<std::unique_ptr<cell>>& cells() override;
 };
 
 } // namespace physicell

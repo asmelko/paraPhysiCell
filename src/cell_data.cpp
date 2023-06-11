@@ -1,6 +1,10 @@
 #include "cell_data.h"
 
+#include <cstring>
+
 #include <BioFVM/microenvironment.h>
+
+#include "environment.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -75,9 +79,7 @@ void geometry_data::remove(index_t index, index_t size)
 	move_scalar(polarity.data() + index, polarity.data() + size);
 }
 
-mechanics_data::mechanics_data(index_t cell_definitions_count) : cell_definitions_count(cell_definitions_count) {}
-
-void mechanics_data::add(index_t size)
+void mechanics_data::add(index_t size, index_t cell_definitions_count)
 {
 	cell_cell_adhesion_strength.resize(size, 0);
 	cell_BM_adhesion_strength.resize(size, 0);
@@ -96,7 +98,7 @@ void mechanics_data::add(index_t size)
 	detachment_rate.resize(size, 0);
 }
 
-void mechanics_data::remove(index_t index, index_t size)
+void mechanics_data::remove(index_t index, index_t size, index_t cell_definitions_count)
 {
 	move_scalar(cell_cell_adhesion_strength.data() + index, cell_cell_adhesion_strength.data() + size);
 	move_scalar(cell_BM_adhesion_strength.data() + index, cell_BM_adhesion_strength.data() + size);
@@ -116,21 +118,19 @@ void mechanics_data::remove(index_t index, index_t size)
 	move_scalar(detachment_rate.data() + index, detachment_rate.data() + size);
 }
 
-cell_data::cell_data(microenvironment& m, index_t cell_definitions_count)
-	: agent_data(m), mechanics(cell_definitions_count), agents_count(agent_data.agents_count), m(m)
-{}
+cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
 
 void cell_data::add()
 {
 	agent_data.add();
 
-	volume.add(agents_count);
-	geometry.add(agents_count);
-	mechanics.add(agents_count);
+	volumes.add(agents_count);
+	geometries.add(agents_count);
+	mechanics.add(agents_count, e.cell_definitions_count);
 
-	velocities.resize(agents_count * m.mesh.dims, 0);
-	cell_definition_index.resize(agents_count, 0);
-	simple_pressure.resize(agents_count, 0);
+	velocities.resize(agents_count * e.m.mesh.dims, 0);
+	cell_definition_indices.resize(agents_count, 0);
+	simple_pressures.resize(agents_count, 0);
 }
 
 void cell_data::remove(index_t index)
@@ -142,11 +142,12 @@ void cell_data::remove(index_t index)
 		return;
 	}
 
-	volume.remove(index, agents_count);
-	geometry.remove(index, agents_count);
-	mechanics.remove(index, agents_count);
+	volumes.remove(index, agents_count);
+	geometries.remove(index, agents_count);
+	mechanics.remove(index, agents_count, e.cell_definitions_count);
 
-	move_vector(velocities.data() + index * m.mesh.dims, velocities.data() + agents_count * m.mesh.dims, m.mesh.dims);
-	move_scalar(cell_definition_index.data() + index, cell_definition_index.data() + agents_count);
-	move_scalar(simple_pressure.data() + index, simple_pressure.data() + agents_count);
+	move_vector(velocities.data() + index * e.m.mesh.dims, velocities.data() + agents_count * e.m.mesh.dims,
+				e.m.mesh.dims);
+	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);
+	move_scalar(simple_pressures.data() + index, simple_pressures.data() + agents_count);
 }

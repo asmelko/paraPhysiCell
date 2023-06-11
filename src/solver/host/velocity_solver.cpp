@@ -92,43 +92,42 @@ void solve_internal(index_t agents_count, index_t cell_def_count, real_t* __rest
 	{
 		for (index_t j = i + 1; j < agents_count; j++)
 		{
-			if (cell_definition_index[i] == cell_definition_index[j])
-			{
-				const index_t i_cell_index = cell_definition_index[i];
-				const index_t j_cell_index = cell_definition_index[j];
+			const index_t i_cell_index = cell_definition_index[i];
+			const index_t j_cell_index = cell_definition_index[j];
 
-				solve_pair<dims>(i, j, velocity, simple_pressure, position, radius, cell_cell_repulsion_strength,
-								 cell_cell_adhesion_strength, relative_maximum_adhesion_distance,
-								 cell_adhesion_affinities[i * cell_def_count + j_cell_index],
-								 cell_adhesion_affinities[j * cell_def_count + i_cell_index]);
-			}
+			solve_pair<dims>(i, j, velocity, simple_pressure, position, radius, cell_cell_repulsion_strength,
+							 cell_cell_adhesion_strength, relative_maximum_adhesion_distance,
+							 cell_adhesion_affinities[i * cell_def_count + j_cell_index],
+							 cell_adhesion_affinities[j * cell_def_count + i_cell_index]);
 		}
 	}
 }
 
-void velocity_solver::solve(cell_data& data)
+void velocity_solver::solve(environment& e)
 {
-	clear_simple_pressure(data.simple_pressure.data(), data.agents_count);
+	auto& data = e.cells().get_cell_data();
 
-	if (data.m.mesh.dims == 1)
-		solve_internal<1>(data.agents_count, data.mechanics.cell_definitions_count, data.velocities.data(),
-						  data.simple_pressure.data(), data.agent_data.positions.data(), data.geometry.radius.data(),
+	clear_simple_pressure(data.simple_pressures.data(), data.agents_count);
+
+	if (e.m.mesh.dims == 1)
+		solve_internal<1>(data.agents_count, e.cell_definitions_count, data.velocities.data(),
+						  data.simple_pressures.data(), data.agent_data.positions.data(), data.geometries.radius.data(),
 						  data.mechanics.cell_cell_repulsion_strength.data(),
 						  data.mechanics.cell_cell_adhesion_strength.data(),
-						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_index.data(),
+						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
 						  data.mechanics.cell_adhesion_affinities.data());
-	else if (data.m.mesh.dims == 2)
-		solve_internal<2>(data.agents_count, data.mechanics.cell_definitions_count, data.velocities.data(),
-						  data.simple_pressure.data(), data.agent_data.positions.data(), data.geometry.radius.data(),
+	else if (e.m.mesh.dims == 2)
+		solve_internal<2>(data.agents_count, e.cell_definitions_count, data.velocities.data(),
+						  data.simple_pressures.data(), data.agent_data.positions.data(), data.geometries.radius.data(),
 						  data.mechanics.cell_cell_repulsion_strength.data(),
 						  data.mechanics.cell_cell_adhesion_strength.data(),
-						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_index.data(),
+						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
 						  data.mechanics.cell_adhesion_affinities.data());
-	else if (data.m.mesh.dims == 3)
-		solve_internal<3>(data.agents_count, data.mechanics.cell_definitions_count, data.velocities.data(),
-						  data.simple_pressure.data(), data.agent_data.positions.data(), data.geometry.radius.data(),
+	else if (e.m.mesh.dims == 3)
+		solve_internal<3>(data.agents_count, e.cell_definitions_count, data.velocities.data(),
+						  data.simple_pressures.data(), data.agent_data.positions.data(), data.geometries.radius.data(),
 						  data.mechanics.cell_cell_repulsion_strength.data(),
 						  data.mechanics.cell_cell_adhesion_strength.data(),
-						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_index.data(),
+						  data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
 						  data.mechanics.cell_adhesion_affinities.data());
 }
