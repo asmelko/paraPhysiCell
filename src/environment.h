@@ -9,7 +9,7 @@ namespace physicell {
 struct environment
 {
 public:
-	environment(biofvm::microenvironment& m);
+	environment(biofvm::microenvironment& m, biofvm::cartesian_mesh mechanics_mesh);
 
 	biofvm::microenvironment& m;
 
@@ -21,9 +21,9 @@ public:
 		return dynamic_cast<container_t&>(*m.agents);
 	}
 
-	// biofvm::cartesian_mesh mechanics_mesh;
+	biofvm::cartesian_mesh mechanics_mesh;
 
-	// std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
+	std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
 
 	// TODO: cell definitions
 	biofvm::index_t cell_definitions_count;

@@ -30,11 +30,11 @@ microenvironment default_microenv(cartesian_mesh mesh)
 	return m;
 }
 
-environment default_env(microenvironment& m)
+environment default_env(microenvironment& m, cartesian_mesh mesh)
 {
 	index_t cell_defs_count = 3;
 
-	environment e(m);
+	environment e(m, mesh);
 	e.cell_definitions_count = cell_defs_count;
 
 	m.agents = std::make_unique<cell_container>(e);
@@ -47,7 +47,7 @@ TEST(cell_container, add_and_remove)
 	cartesian_mesh mesh(1, { 0, 0, 0 }, { 80, 0, 0 }, { 20, 0, 0 });
 
 	auto m = default_microenv(mesh);
-	auto e = default_env(m);
+	auto e = default_env(m, mesh);
 
 	cell_container& cont = e.cast_container<cell_container>();
 

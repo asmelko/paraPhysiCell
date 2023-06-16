@@ -44,6 +44,7 @@ void make_agents(microenvironment& m, index_t count, bool conflict)
 int main()
 {
 	cartesian_mesh mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 20, 20, 20 });
+	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 40, 40, 40 });
 
 	real_t diffusion_time_step = 5;
 	index_t substrates_count = 4;
@@ -63,7 +64,7 @@ int main()
 	m.decay_rates = std::move(decay_rates);
 	m.compute_internalized_substrates = true;
 
-	environment e(m);
+	environment e(m, mechanics_mesh);
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 

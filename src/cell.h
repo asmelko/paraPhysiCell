@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <BioFVM/agent.h>
 
 #include "phenotype.h"
@@ -14,6 +16,8 @@ class cell : public biofvm::agent
 	friend cell_container;
 
 	cell_data& data_;
+
+	std::vector<cell*> neighbors_;
 
 public:
 	cell(biofvm::agent_id_t id, cell_data& data, biofvm::index_t index);
