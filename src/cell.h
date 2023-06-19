@@ -10,10 +10,12 @@ namespace physicell {
 
 struct cell_data;
 class cell_container;
+class velocity_solver;
 
 class cell : public biofvm::agent
 {
 	friend cell_container;
+	friend velocity_solver;
 
 	cell_data& data_;
 
@@ -27,6 +29,8 @@ public:
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
 	biofvm::real_t& simple_pressure();
+
+	std::vector<cell*>& neighbors();
 };
 
 } // namespace physicell

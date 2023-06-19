@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../environment.h"
+#include "common_solver.h"
 
 namespace physicell {
 
-class velocity_solver
+class velocity_solver : public common_solver
 {
 public:
 	static void solve(environment& e);

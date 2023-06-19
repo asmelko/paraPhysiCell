@@ -31,7 +31,7 @@ list(FILTER src_files EXCLUDE REGEX ".*main\\..*")
 
 add_library(PhysiCellCore ${src_files})
 
-target_include_directories(PhysiCellCore PUBLIC ${paraBioFVM_SOURCE_DIR}/include)
+target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include)
 
 target_link_libraries(PhysiCellCore PUBLIC BioFVMCore)
 

@@ -3,6 +3,7 @@
 
 #include "BioFVM/solver.h"
 #include "environment.h"
+#include "solver/host/mechanics_solver.h"
 #include "solver/host/velocity_solver.h"
 
 using namespace biofvm;
@@ -19,16 +20,16 @@ void make_agents(microenvironment& m, index_t count, bool conflict)
 		a->position()[1] = y;
 		a->position()[2] = z;
 
-		x += 20;
+		x += m.mesh.voxel_shape[0];
 		if (x >= m.mesh.bounding_box_maxs[0])
 		{
 			x -= m.mesh.bounding_box_maxs[0];
-			y += 20;
+			y += m.mesh.voxel_shape[1];
 		}
 		if (y >= m.mesh.bounding_box_maxs[1])
 		{
 			y -= m.mesh.bounding_box_maxs[1];
-			z += 20;
+			z += m.mesh.voxel_shape[2];
 		}
 	}
 
@@ -74,57 +75,59 @@ int main()
 
 	s.initialize(m);
 
-	for (index_t i = 0; i < 100; ++i)
-	{
-		std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_duration;
+	if (true)
+		for (index_t i = 0; i < 100; ++i)
 		{
-			auto start = std::chrono::high_resolution_clock::now();
+			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_duration;
+			{
+				auto start = std::chrono::high_resolution_clock::now();
 
-			s.diffusion.solve(m);
+				s.diffusion.solve(m);
 
-			auto end = std::chrono::high_resolution_clock::now();
+				auto end = std::chrono::high_resolution_clock::now();
 
-			diffusion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+				diffusion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			}
+
+			{
+				auto start = std::chrono::high_resolution_clock::now();
+
+				s.gradient.solve(m);
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				gradient_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			}
+
+			{
+				auto start = std::chrono::high_resolution_clock::now();
+
+				s.cell.simulate_secretion_and_uptake(m, i % 10 == 0);
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				secretion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			}
+
+			{
+				auto start = std::chrono::high_resolution_clock::now();
+
+				mechanics_solver::update_mechanics_mesh(e);
+				velocity_solver::solve(e);
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				velocity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			}
+
+			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
+					  << " ms,\t Secretion time: " << secretion_duration
+					  << " ms,\t Velocity time: " << velocity_duration << " ms" << std::endl;
 		}
-
-		{
-			auto start = std::chrono::high_resolution_clock::now();
-
-			s.gradient.solve(m);
-
-			auto end = std::chrono::high_resolution_clock::now();
-
-			gradient_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		}
-
-		{
-			auto start = std::chrono::high_resolution_clock::now();
-
-			s.cell.simulate_secretion_and_uptake(m, i % 10 == 0);
-
-			auto end = std::chrono::high_resolution_clock::now();
-
-			secretion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		}
-
-		{
-			auto start = std::chrono::high_resolution_clock::now();
-
-			velocity_solver::solve(e);
-
-			auto end = std::chrono::high_resolution_clock::now();
-
-			velocity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		}
-
-		std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
-				  << " ms,\t Secretion time: " << secretion_duration << " ms,\t Velocity time: " << velocity_duration
-				  << " ms" << std::endl;
-	}
 
 	for (int i = 0; i < 5; i++)
 	{
-		s.diffusion.solve(m);
-		s.gradient.solve(m);
+		mechanics_solver::update_mechanics_mesh(e);
+		velocity_solver::solve(e);
 	}
 }

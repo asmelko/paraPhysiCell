@@ -7,12 +7,12 @@
 
 namespace physicell {
 
-class velocity_solver;
+class common_solver;
 struct environment;
 
 class cell_container_base
 {
-	friend velocity_solver;
+	friend common_solver;
 
 protected:
 	virtual cell_data& get_cell_data() = 0;
@@ -28,7 +28,7 @@ class cell_container : public biofvm::agent_container_common<cell, cell_data>, p
 
 public:
 	cell_container(environment& e);
-	
+
 	virtual std::vector<std::unique_ptr<cell>>& cells() override;
 };
 
