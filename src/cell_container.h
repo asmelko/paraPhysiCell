@@ -16,9 +16,6 @@ class cell_container_base
 
 protected:
 	virtual cell_data& get_cell_data() = 0;
-
-public:
-	virtual std::vector<std::unique_ptr<cell>>& cells() = 0;
 };
 
 class cell_container : public biofvm::agent_container_common<cell, cell_data>, public cell_container_base
@@ -28,8 +25,6 @@ class cell_container : public biofvm::agent_container_common<cell, cell_data>, p
 
 public:
 	cell_container(environment& e);
-
-	virtual std::vector<std::unique_ptr<cell>>& cells() override;
 };
 
 } // namespace physicell

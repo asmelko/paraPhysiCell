@@ -128,5 +128,7 @@ int main()
 		position_solver::update_cell_velocities_and_neighbors(e);
 		position_solver::update_motility(e);
 		position_solver::update_basement_membrane_interactions(e);
+		position_solver::update_spring_attachments(e);
+		position_solver::update_positions(e);
 	}
 }

@@ -285,9 +285,9 @@ TEST_P(host_velocity_solver, complex)
 	mechanics_solver::update_mechanics_mesh(e);
 	position_solver::update_cell_velocities_and_neighbors(e);
 
-	EXPECT_EQ(c1->neighbors().size(), 1);
-	EXPECT_EQ(c2->neighbors().size(), 2);
-	EXPECT_EQ(c3->neighbors().size(), 1);
+	EXPECT_EQ(cont.data().neighbors[0].size(), 1);
+	EXPECT_EQ(cont.data().neighbors[1].size(), 2);
+	EXPECT_EQ(cont.data().neighbors[2].size(), 1);
 
 	auto expected_velocities = compute_expected_velocities(cont.cells(), dims);
 

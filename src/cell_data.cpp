@@ -166,6 +166,9 @@ void cell_data::add()
 	mechanics.add(agents_count, e.cell_definitions_count);
 	motility.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
 
+	neighbors.resize(agents_count);
+	springs.resize(agents_count);
+
 	previous_velocities.resize(agents_count * e.m.mesh.dims, 0);
 	velocities.resize(agents_count * e.m.mesh.dims, 0);
 	cell_definition_indices.resize(agents_count, 0);
@@ -186,6 +189,9 @@ void cell_data::remove(index_t index)
 	geometries.remove(index, agents_count);
 	mechanics.remove(index, agents_count, e.cell_definitions_count);
 	motility.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
+
+	neighbors[index] = std::move(neighbors[agents_count]);
+	springs[index] = std::move(springs[agents_count]);
 
 	move_vector(previous_velocities.data() + index * e.m.mesh.dims,
 				previous_velocities.data() + agents_count * e.m.mesh.dims, e.m.mesh.dims);

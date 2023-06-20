@@ -104,6 +104,9 @@ struct cell_data
 	std::vector<biofvm::real_t> simple_pressures;
 	std::vector<std::uint8_t> is_movable;
 
+	std::vector<std::vector<biofvm::index_t>> neighbors;
+	std::vector<std::vector<biofvm::index_t>> springs;
+
 
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;
