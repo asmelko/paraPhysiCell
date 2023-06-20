@@ -557,13 +557,14 @@ void update_spring_attachments_internal(
 
 				springs[this_cell_index][j] = springs[this_cell_index].back();
 				springs[this_cell_index].pop_back();
-				j--;
 
 				auto it =
 					std::find(springs[other_cell_index].begin(), springs[other_cell_index].end(), this_cell_index);
 
 				*it = springs[other_cell_index].back();
 				springs[other_cell_index].pop_back();
+				
+				j--;
 			}
 		}
 	}
@@ -573,7 +574,14 @@ void update_spring_attachments_internal(
 	{
 		for (std::size_t j = 0; j < neighbors[this_cell_index].size(); j++)
 		{
+			// if this cell has already reached the maximum number of attachments, skip
+			if ((index_t)springs[this_cell_index].size() >= maximum_number_of_attachments[this_cell_index])
+				break;
+
 			const index_t other_cell_index = neighbors[this_cell_index][j];
+
+			if ((index_t)springs[other_cell_index].size() >= maximum_number_of_attachments[other_cell_index])
+				continue;
 
 			const real_t affinity =
 				cell_adhesion_affinities[this_cell_index * cell_defs_count + cell_definition_index[other_cell_index]];
@@ -582,16 +590,6 @@ void update_spring_attachments_internal(
 
 			if (random::instance().uniform() <= attachment_prob)
 			{
-				// if the other cell is already attached to this cell, skip
-				if (std::find(springs[this_cell_index].begin(), springs[this_cell_index].end(), other_cell_index)
-					!= springs[this_cell_index].end())
-					continue;
-
-				// if either of the cells has reached the maximum number of attachments, skip
-				if ((index_t)springs[this_cell_index].size() >= maximum_number_of_attachments[this_cell_index]
-					|| (index_t)springs[other_cell_index].size() >= maximum_number_of_attachments[other_cell_index])
-					break;
-
 				springs[this_cell_index].push_back(other_cell_index);
 				springs[other_cell_index].push_back(this_cell_index);
 			}
