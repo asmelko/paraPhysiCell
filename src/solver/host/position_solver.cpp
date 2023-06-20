@@ -87,6 +87,12 @@ struct position_helper<1>
 	}
 
 	static constexpr void add(real_t* __restrict__ lhs, const real_t* __restrict__ rhs) { lhs[0] += rhs[0]; }
+
+	static constexpr void subtract(real_t* __restrict__ dst, const real_t* __restrict__ lhs,
+								   const real_t* __restrict__ rhs)
+	{
+		dst[0] = lhs[0] - rhs[0];
+	}
 };
 
 template <>
@@ -148,6 +154,13 @@ struct position_helper<2>
 	{
 		lhs[0] += rhs[0];
 		lhs[1] += rhs[1];
+	}
+
+	static constexpr void subtract(real_t* __restrict__ dst, const real_t* __restrict__ lhs,
+								   const real_t* __restrict__ rhs)
+	{
+		dst[0] = lhs[0] - rhs[0];
+		dst[1] = lhs[1] - rhs[1];
 	}
 };
 
@@ -230,6 +243,14 @@ struct position_helper<3>
 		lhs[0] += rhs[0];
 		lhs[1] += rhs[1];
 		lhs[2] += rhs[2];
+	}
+
+	static constexpr void subtract(real_t* __restrict__ dst, const real_t* __restrict__ lhs,
+								   const real_t* __restrict__ rhs)
+	{
+		dst[0] = lhs[0] - rhs[0];
+		dst[1] = lhs[1] - rhs[1];
+		dst[2] = lhs[2] - rhs[2];
 	}
 };
 
@@ -476,4 +497,139 @@ void position_solver::update_basement_membrane_interactions(environment& e)
 		update_basement_membrane_interactions_internal<3>(
 			data.agents_count, data.velocities.data(), data.agent_data.positions.data(), data.geometries.radius.data(),
 			data.mechanics.cell_BM_repulsion_strength.data(), data.is_movable.data(), e.m.mesh);
+}
+
+template <index_t dims>
+void spring_contract_function(index_t agents_count, index_t cell_defs_count, real_t* __restrict__ velocity,
+							  const index_t* __restrict__ cell_definition_index,
+							  const real_t* __restrict__ attachment_elastic_constant,
+							  const real_t* __restrict__ cell_adhesion_affinity, const real_t* __restrict__ position,
+							  const std::uint8_t* __restrict__ is_movable,
+							  const std::unique_ptr<cell>* __restrict__ cells)
+{
+	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
+	{
+		if (is_movable[this_cell_index] == 0)
+			continue;
+
+		for (index_t j = 0; j < (index_t)cells[this_cell_index]->spring_attached_cells().size(); j++)
+		{
+			const index_t other_cell_index = cells[this_cell_index]->spring_attached_cells()[j]->index();
+
+			if (other_cell_index < this_cell_index)
+				continue;
+
+			const index_t this_cell_def_index = cell_definition_index[this_cell_index];
+			const index_t other_cell_def_index = cell_definition_index[other_cell_index];
+
+			const real_t adhesion =
+				sqrt(attachment_elastic_constant[this_cell_index] * attachment_elastic_constant[other_cell_index]
+					 * cell_adhesion_affinity[this_cell_index * cell_defs_count + other_cell_def_index]
+					 * cell_adhesion_affinity[other_cell_index * cell_defs_count + this_cell_def_index]);
+
+			real_t difference[dims];
+
+			position_helper<dims>::subtract(difference, position + other_cell_index * dims,
+											position + this_cell_index * dims);
+
+			position_helper<dims>::update_velocities(velocity + this_cell_index * dims,
+													 velocity + other_cell_index * dims, difference, adhesion);
+		}
+	}
+}
+
+void update_spring_attachments_internal(index_t agents_count, real_t time_step, index_t cell_defs_count,
+										const real_t* __restrict__ detachment_rate,
+										const real_t* __restrict__ attachment_rate,
+										const real_t* __restrict__ cell_adhesion_affinities,
+										const index_t* __restrict__ maximum_number_of_attachments,
+										const index_t* __restrict__ cell_definition_index,
+										const std::unique_ptr<cell>* __restrict__ cells)
+{
+	// detach cells from springs
+	for (index_t i = 0; i < agents_count; i++)
+	{
+		auto this_cell = cells[i].get();
+
+		for (index_t j = 0; j < (index_t)this_cell->spring_attached_cells().size(); j++)
+		{
+			if (random::instance().uniform() <= detachment_rate[i] * time_step)
+			{
+				auto other_cell = this_cell->spring_attached_cells()[j];
+
+				this_cell->spring_attached_cells()[j] = this_cell->spring_attached_cells().back();
+				this_cell->spring_attached_cells().pop_back();
+				j--;
+
+				auto it = std::find(other_cell->spring_attached_cells().begin(),
+									other_cell->spring_attached_cells().end(), this_cell);
+
+				*it = other_cell->spring_attached_cells().back();
+				other_cell->spring_attached_cells().pop_back();
+			}
+		}
+	}
+
+	// attach cells to springs
+	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
+	{
+		auto this_cell = cells[this_cell_index].get();
+
+		for (std::size_t j = 0; j < this_cell->neighbors().size(); j++)
+		{
+			auto other_cell = this_cell->neighbors()[j];
+			const auto other_cell_index = other_cell->index();
+
+			const real_t affinity =
+				cell_adhesion_affinities[this_cell_index * cell_defs_count + cell_definition_index[other_cell_index]];
+
+			const real_t attachment_prob = attachment_rate[this_cell_index] * time_step * affinity;
+
+			if (random::instance().uniform() <= attachment_prob)
+			{
+				if (std::find(this_cell->spring_attached_cells().begin(), this_cell->spring_attached_cells().end(),
+							  other_cell)
+					!= this_cell->spring_attached_cells().end())
+					continue;
+
+				if ((index_t)this_cell->spring_attached_cells().size()
+					>= maximum_number_of_attachments[this_cell_index])
+					break;
+
+				if ((index_t)other_cell->spring_attached_cells().size()
+					>= maximum_number_of_attachments[other_cell_index])
+					continue;
+
+				this_cell->spring_attached_cells().push_back(other_cell);
+				other_cell->spring_attached_cells().push_back(this_cell);
+			}
+		}
+	}
+}
+
+void position_solver::update_spring_attachments(environment& e)
+{
+	auto& data = get_cell_data(e);
+	auto& cells = e.cells().cells();
+
+	update_spring_attachments_internal(
+		data.agents_count, e.mechanics_time_step, e.cell_definitions_count, data.mechanics.detachment_rate.data(),
+		data.mechanics.attachment_rate.data(), data.mechanics.cell_adhesion_affinities.data(),
+		data.mechanics.maximum_number_of_attachments.data(), data.cell_definition_indices.data(), cells.data());
+
+	if (e.mechanics_mesh.dims == 1)
+		spring_contract_function<1>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
+			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
+			data.agent_data.positions.data(), data.is_movable.data(), cells.data());
+	else if (e.mechanics_mesh.dims == 2)
+		spring_contract_function<2>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
+			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
+			data.agent_data.positions.data(), data.is_movable.data(), cells.data());
+	else if (e.mechanics_mesh.dims == 3)
+		spring_contract_function<3>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
+			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
+			data.agent_data.positions.data(), data.is_movable.data(), cells.data());
 }

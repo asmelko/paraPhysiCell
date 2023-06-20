@@ -19,8 +19,17 @@ void make_agents(environment& e, index_t count, bool conflict)
 		a->position()[0] = x;
 		a->position()[1] = y;
 		a->position()[2] = z;
+
+		a->phenotype.geometry.radius() = 15;
+		a->phenotype.mechanics.relative_maximum_adhesion_distance() = 1;
+
 		a->is_movable() = 1;
 		a->phenotype.motility.is_motile() = 1;
+
+		a->phenotype.mechanics.attachment_rate() = 100;
+		a->phenotype.mechanics.detachment_rate() = 100;
+		a->phenotype.mechanics.maximum_number_of_attachments() = 12;
+		a->phenotype.mechanics.cell_adhesion_affinities()[0] = 10;
 
 		x += e.m.mesh.voxel_shape[0];
 		if (x >= e.m.mesh.bounding_box_maxs[0])
@@ -49,7 +58,7 @@ int main()
 	cartesian_mesh mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 20, 20, 20 });
 	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 40, 40, 40 });
 
-	real_t diffusion_time_step = 5;
+	real_t diffusion_time_step = 0.01;
 	index_t substrates_count = 4;
 	index_t cell_defs_count = 3;
 
@@ -70,6 +79,7 @@ int main()
 	environment e(m, mechanics_mesh);
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
+	e.mechanics_time_step = 0.1;
 
 	make_agents(e, 2'000'000, true);
 
@@ -80,7 +90,8 @@ int main()
 	if (true)
 		for (index_t i = 0; i < 100; ++i)
 		{
-			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_duration;
+			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_duration,
+				attachments_duration;
 			{
 				auto start = std::chrono::high_resolution_clock::now();
 
@@ -124,9 +135,20 @@ int main()
 				velocity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 			}
 
+			{
+				auto start = std::chrono::high_resolution_clock::now();
+
+				position_solver::update_spring_attachments(e);
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				attachments_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			}
+
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
-					  << " ms,\t Velocity time: " << velocity_duration << " ms" << std::endl;
+					  << " ms,\t Velocity time: " << velocity_duration
+					  << " ms,\t Attachments time: " << attachments_duration << " ms" << std::endl;
 		}
 
 	for (int i = 0; i < 5; i++)

@@ -22,3 +22,5 @@ real_t& cell::simple_pressure() { return data_.simple_pressures[index_]; }
 uint8_t& cell::is_movable() { return data_.is_movable[index_]; }
 
 std::vector<cell*>& cell::neighbors() { return neighbors_; }
+
+std::vector<cell*>& cell::spring_attached_cells() { return spring_attached_cells_; }

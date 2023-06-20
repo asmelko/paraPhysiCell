@@ -21,6 +21,7 @@ class cell : public biofvm::agent
 	cell_data& data_;
 
 	std::vector<cell*> neighbors_;
+	std::vector<cell*> spring_attached_cells_;
 
 public:
 	cell(biofvm::agent_id_t id, cell_data& data, biofvm::index_t index);
@@ -33,6 +34,9 @@ public:
 	std::uint8_t& is_movable();
 
 	std::vector<cell*>& neighbors();
+	std::vector<cell*>& spring_attached_cells();
+
+	biofvm::index_t index() const { return index_; }
 };
 
 } // namespace physicell
