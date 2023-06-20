@@ -98,6 +98,7 @@ struct cell_data
 	mechanics_data mechanics;
 	motility_data motility;
 
+	std::vector<biofvm::real_t> previous_velocities;
 	std::vector<biofvm::real_t> velocities;
 	std::vector<biofvm::index_t> cell_definition_indices;
 	std::vector<biofvm::real_t> simple_pressures;

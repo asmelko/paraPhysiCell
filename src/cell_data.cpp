@@ -166,6 +166,7 @@ void cell_data::add()
 	mechanics.add(agents_count, e.cell_definitions_count);
 	motility.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
 
+	previous_velocities.resize(agents_count * e.m.mesh.dims, 0);
 	velocities.resize(agents_count * e.m.mesh.dims, 0);
 	cell_definition_indices.resize(agents_count, 0);
 	simple_pressures.resize(agents_count, 0);
@@ -186,6 +187,8 @@ void cell_data::remove(index_t index)
 	mechanics.remove(index, agents_count, e.cell_definitions_count);
 	motility.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
 
+	move_vector(previous_velocities.data() + index * e.m.mesh.dims,
+				previous_velocities.data() + agents_count * e.m.mesh.dims, e.m.mesh.dims);
 	move_vector(velocities.data() + index * e.m.mesh.dims, velocities.data() + agents_count * e.m.mesh.dims,
 				e.m.mesh.dims);
 	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);

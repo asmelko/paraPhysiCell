@@ -26,14 +26,16 @@ void clear_simple_pressure(real_t* __restrict__ simple_pressure, index_t count)
 constexpr void update_membrane_velocity(real_t position, real_t bounding_box, real_t sign, real_t radius,
 										real_t repulsion_strength, real_t& velocity)
 {
-	const real_t dist = std::abs(bounding_box - position);
+	real_t distance = std::abs(bounding_box - position);
 
-	real_t repulsion = 1 - dist / radius;
+	distance = std::max<real_t>(distance, 0.00001);
+
+	real_t repulsion = 1 - distance / radius;
 	repulsion = repulsion < 0 ? repulsion : 0;
 
 	repulsion *= repulsion * repulsion_strength * sign;
 
-	velocity += repulsion * dist;
+	velocity += repulsion * distance;
 }
 
 template <index_t dims>
@@ -92,6 +94,13 @@ struct position_helper<1>
 								   const real_t* __restrict__ rhs)
 	{
 		dst[0] = lhs[0] - rhs[0];
+	}
+
+	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
+										  const real_t factor, const real_t* __restrict__ previous_velocity,
+										  const real_t previous_factor)
+	{
+		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
 	}
 };
 
@@ -161,6 +170,14 @@ struct position_helper<2>
 	{
 		dst[0] = lhs[0] - rhs[0];
 		dst[1] = lhs[1] - rhs[1];
+	}
+
+	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
+										  const real_t factor, const real_t* __restrict__ previous_velocity,
+										  const real_t previous_factor)
+	{
+		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
+		position[1] += velocity[1] * factor + previous_velocity[1] * previous_factor;
 	}
 };
 
@@ -252,6 +269,15 @@ struct position_helper<3>
 		dst[1] = lhs[1] - rhs[1];
 		dst[2] = lhs[2] - rhs[2];
 	}
+
+	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
+										  const real_t factor, const real_t* __restrict__ previous_velocity,
+										  const real_t previous_factor)
+	{
+		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
+		position[1] += velocity[1] * factor + previous_velocity[1] * previous_factor;
+		position[2] += velocity[2] * factor + previous_velocity[2] * previous_factor;
+	}
 };
 
 template <index_t dims>
@@ -275,6 +301,8 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 	{
 		return;
 	}
+
+	distance = std::max<real_t>(distance, 0.00001);
 
 	cells[lhs]->neighbors().push_back(cells[rhs].get());
 	cells[rhs]->neighbors().push_back(cells[lhs].get());
@@ -632,4 +660,41 @@ void position_solver::update_spring_attachments(environment& e)
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
 			data.agent_data.positions.data(), data.is_movable.data(), cells.data());
+}
+
+template <index_t dims>
+void update_positions_internal(index_t agents_count, index_t time_step, real_t* __restrict__ position,
+							   real_t* __restrict__ velocity, real_t* __restrict__ previous_velocity,
+							   const std::uint8_t* __restrict__ is_movable)
+{
+	for (index_t i = 0; i < agents_count; i++)
+	{
+		if (!is_movable[i])
+			continue;
+
+		position_helper<dims>::update_position(position + i * dims, velocity + i * dims, time_step * 1.5,
+											   previous_velocity + i * dims, time_step * -0.5);
+
+		for (index_t d = 0; d < dims; d++)
+		{
+			previous_velocity[i * dims + d] = velocity[i * dims + d];
+			velocity[i * dims + d] = 0;
+		}
+	}
+}
+
+void position_solver::update_positions(environment& e)
+{
+	if (e.mechanics_mesh.dims == 1)
+		update_positions_internal<1>(get_cell_data(e).agents_count, e.mechanics_time_step,
+									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
+									 get_cell_data(e).previous_velocities.data(), get_cell_data(e).is_movable.data());
+	else if (e.mechanics_mesh.dims == 2)
+		update_positions_internal<2>(get_cell_data(e).agents_count, e.mechanics_time_step,
+									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
+									 get_cell_data(e).previous_velocities.data(), get_cell_data(e).is_movable.data());
+	else if (e.mechanics_mesh.dims == 3)
+		update_positions_internal<3>(get_cell_data(e).agents_count, e.mechanics_time_step,
+									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
+									 get_cell_data(e).previous_velocities.data(), get_cell_data(e).is_movable.data());
 }

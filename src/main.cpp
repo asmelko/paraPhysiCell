@@ -9,6 +9,14 @@
 using namespace biofvm;
 using namespace physicell;
 
+#define measure(F, D)                                                                                                  \
+	{                                                                                                                  \
+		auto start = std::chrono::high_resolution_clock::now();                                                        \
+		F;                                                                                                             \
+		auto end = std::chrono::high_resolution_clock::now();                                                          \
+		D = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();                                \
+	}
+
 void make_agents(environment& e, index_t count, bool conflict)
 {
 	index_t x = 0, y = 0, z = 0;
@@ -16,9 +24,9 @@ void make_agents(environment& e, index_t count, bool conflict)
 	for (index_t i = 0; i < count; i++)
 	{
 		auto a = e.cast_container<cell_container>().create();
-		a->position()[0] = x;
-		a->position()[1] = y;
-		a->position()[2] = z;
+		a->position()[0] = x + 10;
+		a->position()[1] = y + 10;
+		a->position()[2] = z + 10;
 
 		a->phenotype.geometry.radius() = 15;
 		a->phenotype.mechanics.relative_maximum_adhesion_distance() = 1;
@@ -30,6 +38,8 @@ void make_agents(environment& e, index_t count, bool conflict)
 		a->phenotype.mechanics.detachment_rate() = 100;
 		a->phenotype.mechanics.maximum_number_of_attachments() = 12;
 		a->phenotype.mechanics.cell_adhesion_affinities()[0] = 10;
+
+		a->phenotype.mechanics.cell_BM_repulsion_strength() = 100;
 
 		x += e.m.mesh.voxel_shape[0];
 		if (x >= e.m.mesh.bounding_box_maxs[0])
@@ -47,9 +57,9 @@ void make_agents(environment& e, index_t count, bool conflict)
 	if (conflict)
 	{
 		auto a = e.m.agents->create_agent();
-		a->position()[0] = 0;
-		a->position()[1] = 0;
-		a->position()[2] = 0;
+		a->position()[0] = 10;
+		a->position()[1] = 10;
+		a->position()[2] = 10;
 	}
 }
 
@@ -90,65 +100,26 @@ int main()
 	if (true)
 		for (index_t i = 0; i < 100; ++i)
 		{
-			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_duration,
-				attachments_duration;
-			{
-				auto start = std::chrono::high_resolution_clock::now();
+			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_update_mesh,
+				velocity_interactions_duration, velocity_motility_duration, velocity_membrane_duration,
+				velocity_attachments_duration, position_duration;
 
-				s.diffusion.solve(m);
-
-				auto end = std::chrono::high_resolution_clock::now();
-
-				diffusion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			}
-
-			{
-				auto start = std::chrono::high_resolution_clock::now();
-
-				s.gradient.solve(m);
-
-				auto end = std::chrono::high_resolution_clock::now();
-
-				gradient_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			}
-
-			{
-				auto start = std::chrono::high_resolution_clock::now();
-
-				s.cell.simulate_secretion_and_uptake(m, i % 10 == 0);
-
-				auto end = std::chrono::high_resolution_clock::now();
-
-				secretion_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			}
-
-			{
-				auto start = std::chrono::high_resolution_clock::now();
-
-				mechanics_solver::update_mechanics_mesh(e);
-				position_solver::update_cell_velocities_and_neighbors(e);
-				position_solver::update_motility(e);
-				position_solver::update_basement_membrane_interactions(e);
-
-				auto end = std::chrono::high_resolution_clock::now();
-
-				velocity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			}
-
-			{
-				auto start = std::chrono::high_resolution_clock::now();
-
-				position_solver::update_spring_attachments(e);
-
-				auto end = std::chrono::high_resolution_clock::now();
-
-				attachments_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			}
+			measure(s.diffusion.solve(m), diffusion_duration);
+			measure(s.gradient.solve(m), gradient_duration);
+			measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
+			measure(mechanics_solver::update_mechanics_mesh(e), velocity_update_mesh);
+			measure(position_solver::update_cell_velocities_and_neighbors(e), velocity_interactions_duration);
+			measure(position_solver::update_motility(e), velocity_motility_duration);
+			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
+			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
+			measure(position_solver::update_positions(e), position_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
-					  << " ms,\t Velocity time: " << velocity_duration
-					  << " ms,\t Attachments time: " << attachments_duration << " ms" << std::endl;
+					  << " ms,\t Positions[mech,cells,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
+					  << velocity_interactions_duration << "," << velocity_motility_duration << ","
+					  << velocity_membrane_duration << "," << velocity_attachments_duration << "," << position_duration
+					  << " ms" << std::endl;
 		}
 
 	for (int i = 0; i < 5; i++)
