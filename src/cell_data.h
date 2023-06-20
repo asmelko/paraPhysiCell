@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include <BioFVM/agent_data.h>
@@ -65,6 +66,27 @@ struct mechanics_data
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
+struct motility_data
+{
+	std::vector<std::uint8_t> is_motile;
+	std::vector<biofvm::real_t> persistence_time;
+	std::vector<biofvm::real_t> migration_speed;
+
+	std::vector<biofvm::real_t> migration_bias_direction;
+	std::vector<biofvm::real_t> migration_bias;
+
+	std::vector<biofvm::real_t> motility_vector;
+
+	std::vector<std::uint8_t> restrict_to_2d;
+
+	std::vector<biofvm::index_t> chemotaxis_index;
+	std::vector<biofvm::index_t> chemotaxis_direction;
+	std::vector<biofvm::real_t> chemotactic_sensitivities;
+
+	void add(biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
+};
+
 struct cell_data
 {
 	// BioFVM phenotype data: secretion + total volume + molecular
@@ -74,10 +96,12 @@ struct cell_data
 	volume_data volumes;
 	geometry_data geometries;
 	mechanics_data mechanics;
+	motility_data motility;
 
 	std::vector<biofvm::real_t> velocities;
 	std::vector<biofvm::index_t> cell_definition_indices;
 	std::vector<biofvm::real_t> simple_pressures;
+	std::vector<std::uint8_t> is_movable;
 
 
 	// references agent_data.agents_count

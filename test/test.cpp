@@ -5,7 +5,7 @@
 #include "cell.h"
 #include "environment.h"
 #include "solver/host/mechanics_solver.h"
-#include "solver/host/velocity_solver.h"
+#include "solver/host/position_solver.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -113,6 +113,7 @@ TEST(cell_container, add_and_remove)
 void update_cell_for_velocity(cell* c, index_t offset, index_t dims, index_t cell_def_index)
 {
 	c->cell_definition_index() = cell_def_index;
+	c->is_movable() = true;
 
 	for (index_t i = 0; i < dims; ++i)
 	{
@@ -155,7 +156,7 @@ TEST_P(host_velocity_solver, simple)
 		c3->position()[i] = 70;
 
 	mechanics_solver::update_mechanics_mesh(e);
-	velocity_solver::solve(e);
+	position_solver::update_cell_velocities_and_neighbors(e);
 
 	real_t expected;
 
@@ -282,7 +283,7 @@ TEST_P(host_velocity_solver, complex)
 		c3->position()[i] = 7;
 
 	mechanics_solver::update_mechanics_mesh(e);
-	velocity_solver::solve(e);
+	position_solver::update_cell_velocities_and_neighbors(e);
 
 	EXPECT_EQ(c1->neighbors().size(), 1);
 	EXPECT_EQ(c2->neighbors().size(), 2);

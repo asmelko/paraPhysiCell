@@ -23,6 +23,8 @@ public:
 
 	biofvm::cartesian_mesh mechanics_mesh;
 
+	biofvm::real_t mechanics_time_step;
+
 	std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
 
 	// TODO: cell definitions

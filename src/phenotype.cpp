@@ -75,6 +75,35 @@ real_t& mechanics_t::attachment_rate() { return data_.mechanics.attachment_rate[
 
 real_t& mechanics_t::detachment_rate() { return data_.mechanics.detachment_rate[index_]; }
 
+motility_t::motility_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+
+std::uint8_t& motility_t::is_motile() { return data_.motility.is_motile[index_]; }
+
+real_t& motility_t::persistence_time() { return data_.motility.persistence_time[index_]; }
+
+real_t& motility_t::migration_speed() { return data_.motility.migration_speed[index_]; }
+
+real_t* motility_t::migration_bias_direction()
+{
+	return data_.motility.migration_bias_direction.data() + index_ * data_.e.mechanics_mesh.dims;
+}
+
+real_t& motility_t::migration_bias() { return data_.motility.migration_bias[index_]; }
+
+real_t* motility_t::motility_vector()
+{
+	return data_.motility.motility_vector.data() + index_ * data_.e.mechanics_mesh.dims;
+}
+
+index_t& motility_t::chemotaxis_index() { return data_.motility.chemotaxis_index[index_]; }
+
+index_t& motility_t::chemotaxis_direction() { return data_.motility.chemotaxis_direction[index_]; }
+
+real_t* motility_t::chemotactic_sensitivities()
+{
+	return data_.motility.chemotactic_sensitivities.data() + index_ * data_.e.m.substrates_count;
+}
+
 phenotype_t::phenotype_t(cell_data& data, index_t index)
-	: volume(data, index), geometry(data, index), mechanics(data, index)
+	: volume(data, index), geometry(data, index), mechanics(data, index), motility(data, index)
 {}

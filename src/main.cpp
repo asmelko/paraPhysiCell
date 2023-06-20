@@ -4,38 +4,40 @@
 #include "BioFVM/solver.h"
 #include "environment.h"
 #include "solver/host/mechanics_solver.h"
-#include "solver/host/velocity_solver.h"
+#include "solver/host/position_solver.h"
 
 using namespace biofvm;
 using namespace physicell;
 
-void make_agents(microenvironment& m, index_t count, bool conflict)
+void make_agents(environment& e, index_t count, bool conflict)
 {
 	index_t x = 0, y = 0, z = 0;
 
 	for (index_t i = 0; i < count; i++)
 	{
-		auto a = m.agents->create_agent();
+		auto a = e.cast_container<cell_container>().create();
 		a->position()[0] = x;
 		a->position()[1] = y;
 		a->position()[2] = z;
+		a->is_movable() = 1;
+		a->phenotype.motility.is_motile() = 1;
 
-		x += m.mesh.voxel_shape[0];
-		if (x >= m.mesh.bounding_box_maxs[0])
+		x += e.m.mesh.voxel_shape[0];
+		if (x >= e.m.mesh.bounding_box_maxs[0])
 		{
-			x -= m.mesh.bounding_box_maxs[0];
-			y += m.mesh.voxel_shape[1];
+			x -= e.m.mesh.bounding_box_maxs[0];
+			y += e.m.mesh.voxel_shape[1];
 		}
-		if (y >= m.mesh.bounding_box_maxs[1])
+		if (y >= e.m.mesh.bounding_box_maxs[1])
 		{
-			y -= m.mesh.bounding_box_maxs[1];
-			z += m.mesh.voxel_shape[2];
+			y -= e.m.mesh.bounding_box_maxs[1];
+			z += e.m.mesh.voxel_shape[2];
 		}
 	}
 
 	if (conflict)
 	{
-		auto a = m.agents->create_agent();
+		auto a = e.m.agents->create_agent();
 		a->position()[0] = 0;
 		a->position()[1] = 0;
 		a->position()[2] = 0;
@@ -69,7 +71,7 @@ int main()
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 
-	make_agents(m, 2'000'000, true);
+	make_agents(e, 2'000'000, true);
 
 	solver s;
 
@@ -113,7 +115,9 @@ int main()
 				auto start = std::chrono::high_resolution_clock::now();
 
 				mechanics_solver::update_mechanics_mesh(e);
-				velocity_solver::solve(e);
+				position_solver::update_cell_velocities_and_neighbors(e);
+				position_solver::update_motility(e);
+				position_solver::update_basement_membrane_interactions(e);
 
 				auto end = std::chrono::high_resolution_clock::now();
 
@@ -128,6 +132,8 @@ int main()
 	for (int i = 0; i < 5; i++)
 	{
 		mechanics_solver::update_mechanics_mesh(e);
-		velocity_solver::solve(e);
+		position_solver::update_cell_velocities_and_neighbors(e);
+		position_solver::update_motility(e);
+		position_solver::update_basement_membrane_interactions(e);
 	}
 }

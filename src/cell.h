@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include <BioFVM/agent.h>
@@ -10,12 +11,12 @@ namespace physicell {
 
 struct cell_data;
 class cell_container;
-class velocity_solver;
+class position_solver;
 
 class cell : public biofvm::agent
 {
 	friend cell_container;
-	friend velocity_solver;
+	friend position_solver;
 
 	cell_data& data_;
 
@@ -29,6 +30,7 @@ public:
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
 	biofvm::real_t& simple_pressure();
+	std::uint8_t& is_movable();
 
 	std::vector<cell*>& neighbors();
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <BioFVM/types.h>
 
 namespace physicell {
@@ -76,11 +78,30 @@ struct mechanics_t : public phenotype_data_storage
 	biofvm::real_t& detachment_rate();
 };
 
+struct motility_t : public phenotype_data_storage
+{
+	motility_t(cell_data& data, biofvm::index_t index);
+
+	std::uint8_t& is_motile();
+	biofvm::real_t& persistence_time();
+	biofvm::real_t& migration_speed();
+
+	biofvm::real_t* migration_bias_direction();
+	biofvm::real_t& migration_bias();
+
+	biofvm::real_t* motility_vector();
+
+	biofvm::index_t& chemotaxis_index();
+	biofvm::index_t& chemotaxis_direction();
+	biofvm::real_t* chemotactic_sensitivities();
+};
+
 struct phenotype_t
 {
 	volume_t volume;
 	geometry_t geometry;
 	mechanics_t mechanics;
+	motility_t motility;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 };

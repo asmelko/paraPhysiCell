@@ -118,6 +118,43 @@ void mechanics_data::remove(index_t index, index_t size, index_t cell_definition
 	move_scalar(detachment_rate.data() + index, detachment_rate.data() + size);
 }
 
+void motility_data::add(index_t index, index_t dims, index_t substrates_count)
+{
+	is_motile.resize(index, 0);
+	persistence_time.resize(index, 0);
+	migration_speed.resize(index, 0);
+
+	migration_bias_direction.resize(index * dims, 0);
+	migration_bias.resize(index, 0);
+
+	motility_vector.resize(index * dims, 0);
+
+	restrict_to_2d.resize(index, 0);
+
+	chemotaxis_index.resize(index, 0);
+	chemotaxis_direction.resize(index, 0);
+	chemotactic_sensitivities.resize(index * substrates_count, 0);
+}
+
+void motility_data::remove(index_t index, index_t size, index_t dims, index_t substrates_count)
+{
+	move_scalar(is_motile.data() + index, is_motile.data() + size);
+	move_scalar(persistence_time.data() + index, persistence_time.data() + size);
+	move_scalar(migration_speed.data() + index, migration_speed.data() + size);
+
+	move_vector(migration_bias_direction.data() + index * dims, migration_bias_direction.data() + size * dims, dims);
+	move_scalar(migration_bias.data() + index, migration_bias.data() + size);
+
+	move_vector(motility_vector.data() + index * dims, motility_vector.data() + size * dims, dims);
+
+	move_scalar(restrict_to_2d.data() + index, restrict_to_2d.data() + size);
+
+	move_scalar(chemotaxis_index.data() + index, chemotaxis_index.data() + size);
+	move_scalar(chemotaxis_direction.data() + index, chemotaxis_direction.data() + size);
+	move_vector(chemotactic_sensitivities.data() + index * substrates_count,
+				chemotactic_sensitivities.data() + size * substrates_count, substrates_count);
+}
+
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
 
 void cell_data::add()
@@ -127,10 +164,12 @@ void cell_data::add()
 	volumes.add(agents_count);
 	geometries.add(agents_count);
 	mechanics.add(agents_count, e.cell_definitions_count);
+	motility.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
 
 	velocities.resize(agents_count * e.m.mesh.dims, 0);
 	cell_definition_indices.resize(agents_count, 0);
 	simple_pressures.resize(agents_count, 0);
+	is_movable.resize(agents_count, 0);
 }
 
 void cell_data::remove(index_t index)
@@ -145,9 +184,11 @@ void cell_data::remove(index_t index)
 	volumes.remove(index, agents_count);
 	geometries.remove(index, agents_count);
 	mechanics.remove(index, agents_count, e.cell_definitions_count);
+	motility.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
 
 	move_vector(velocities.data() + index * e.m.mesh.dims, velocities.data() + agents_count * e.m.mesh.dims,
 				e.m.mesh.dims);
 	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);
 	move_scalar(simple_pressures.data() + index, simple_pressures.data() + agents_count);
+	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
 }
