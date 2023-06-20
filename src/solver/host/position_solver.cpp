@@ -95,13 +95,6 @@ struct position_helper<1>
 	{
 		dst[0] = lhs[0] - rhs[0];
 	}
-
-	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
-										  const real_t factor, const real_t* __restrict__ previous_velocity,
-										  const real_t previous_factor)
-	{
-		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
-	}
 };
 
 template <>
@@ -170,14 +163,6 @@ struct position_helper<2>
 	{
 		dst[0] = lhs[0] - rhs[0];
 		dst[1] = lhs[1] - rhs[1];
-	}
-
-	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
-										  const real_t factor, const real_t* __restrict__ previous_velocity,
-										  const real_t previous_factor)
-	{
-		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
-		position[1] += velocity[1] * factor + previous_velocity[1] * previous_factor;
 	}
 };
 
@@ -268,15 +253,6 @@ struct position_helper<3>
 		dst[0] = lhs[0] - rhs[0];
 		dst[1] = lhs[1] - rhs[1];
 		dst[2] = lhs[2] - rhs[2];
-	}
-
-	static constexpr void update_position(real_t* __restrict__ position, const real_t* __restrict__ velocity,
-										  const real_t factor, const real_t* __restrict__ previous_velocity,
-										  const real_t previous_factor)
-	{
-		position[0] += velocity[0] * factor + previous_velocity[0] * previous_factor;
-		position[1] += velocity[1] * factor + previous_velocity[1] * previous_factor;
-		position[2] += velocity[2] * factor + previous_velocity[2] * previous_factor;
 	}
 };
 
@@ -660,11 +636,14 @@ void update_positions_internal(index_t agents_count, index_t time_step, real_t* 
 		if (!is_movable[i])
 			continue;
 
-		position_helper<dims>::update_position(position + i * dims, velocity + i * dims, time_step * 1.5,
-											   previous_velocity + i * dims, time_step * -0.5);
+		const real_t factor = time_step * 0.5;
+		const real_t previous_factor = time_step * -0.5;
 
 		for (index_t d = 0; d < dims; d++)
 		{
+			position[i * dims + d] +=
+				velocity[i * dims + d] * factor + previous_velocity[i * dims + d] * previous_factor;
+
 			previous_velocity[i * dims + d] = velocity[i * dims + d];
 			velocity[i * dims + d] = 0;
 		}
