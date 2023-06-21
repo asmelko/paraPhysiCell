@@ -289,7 +289,7 @@ TEST_P(host_velocity_solver, complex)
 	EXPECT_EQ(cont.data().neighbors[1].size(), 2);
 	EXPECT_EQ(cont.data().neighbors[2].size(), 1);
 
-	auto expected_velocities = compute_expected_velocities(cont.cells(), dims);
+	auto expected_velocities = compute_expected_velocities(cont.agents(), dims);
 
 	for (index_t i = 0; i < dims; i++)
 		EXPECT_FLOAT_EQ(c1->velocity()[i], expected_velocities[i]);
