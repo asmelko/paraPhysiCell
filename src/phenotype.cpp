@@ -104,6 +104,23 @@ real_t* motility_t::chemotactic_sensitivities()
 	return data_.motility.chemotactic_sensitivities.data() + index_ * data_.e.m.substrates_count;
 }
 
+molecular_t::molecular_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+
+real_t* molecular_t::internalized_total_substrates()
+{
+	return data_.agent_data.internalized_substrates.data() + index_ * data_.e.m.substrates_count;
+}
+
+real_t* molecular_t::fraction_released_at_death()
+{
+	return data_.agent_data.fraction_released_at_death.data() + index_ * data_.e.m.substrates_count;
+}
+
+real_t* molecular_t::fraction_transferred_when_ingested()
+{
+	return data_.agent_data.fraction_transferred_when_ingested.data() + index_ * data_.e.m.substrates_count;
+}
+
 phenotype_t::phenotype_t(cell_data& data, index_t index)
-	: volume(data, index), geometry(data, index), mechanics(data, index), motility(data, index)
+	: volume(data, index), geometry(data, index), mechanics(data, index), motility(data, index), molecular(data, index)
 {}

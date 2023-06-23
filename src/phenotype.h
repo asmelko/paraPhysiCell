@@ -96,12 +96,22 @@ struct motility_t : public phenotype_data_storage
 	biofvm::real_t* chemotactic_sensitivities();
 };
 
+struct molecular_t : public phenotype_data_storage
+{
+	molecular_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t* internalized_total_substrates();
+	biofvm::real_t* fraction_released_at_death();
+	biofvm::real_t* fraction_transferred_when_ingested();
+};
+
 struct phenotype_t
 {
 	volume_t volume;
 	geometry_t geometry;
 	mechanics_t mechanics;
 	motility_t motility;
+	molecular_t molecular;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 };
