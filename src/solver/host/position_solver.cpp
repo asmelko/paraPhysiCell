@@ -1,7 +1,6 @@
 #include "position_solver.h"
 
 #include <cmath>
-#include <cstdint>
 
 #include <BioFVM/microenvironment.h>
 
@@ -563,7 +562,7 @@ void update_spring_attachments_internal(
 
 				*it = springs[other_cell_index].back();
 				springs[other_cell_index].pop_back();
-				
+
 				j--;
 			}
 		}

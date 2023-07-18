@@ -1,5 +1,7 @@
 #include "interactions_solver.h"
 
+#include <cmath>
+
 #include "../../random.h"
 
 using namespace biofvm;
@@ -86,6 +88,15 @@ void fuse_position(index_t lhs, index_t rhs, index_t dims, real_t* __restrict__ 
 	}
 }
 
+void update_geometry(index_t i, real_t* __restrict__ radius, real_t* __restrict__ nuclear_radius,
+					 real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
+					 const real_t* __restrict__ nuclear_volume)
+{
+	radius[i] = std::cbrt(total_volume[i] / (M_PI * 4.0 / 3.0));
+	nuclear_radius[i] = std::cbrt(nuclear_volume[i] / (M_PI * 4.0 / 3.0));
+	surface_area[i] = 4.0 * M_PI * radius[i] * radius[i];
+}
+
 void ingest(index_t lhs, index_t rhs, cell_data& data)
 {
 	ingest_volume(lhs, rhs, data.agent_data.volumes.data(), data.volumes.fluid.data(), data.volumes.solid.data(),
@@ -95,6 +106,9 @@ void ingest(index_t lhs, index_t rhs, cell_data& data)
 
 	ingest_internalized(lhs, rhs, data.e.m.substrates_count, data.agent_data.internalized_substrates.data(),
 						data.agent_data.fraction_transferred_when_ingested.data());
+
+	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
+					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
 	data.to_remove[rhs] = 1;
 }
@@ -112,6 +126,9 @@ void fuse(index_t lhs, index_t rhs, cell_data& data)
 				data.volumes.target_solid_nuclear.data());
 
 	fuse_internalized(lhs, rhs, data.e.m.substrates_count, data.agent_data.internalized_substrates.data());
+
+	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
+					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
 	data.number_of_nuclei[lhs] += data.number_of_nuclei[rhs];
 
