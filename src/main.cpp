@@ -3,6 +3,7 @@
 
 #include "BioFVM/solver.h"
 #include "environment.h"
+#include "solver/host/interactions_solver.h"
 #include "solver/host/mechanics_solver.h"
 #include "solver/host/position_solver.h"
 
@@ -30,16 +31,27 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 		a->phenotype.geometry.radius() = 15;
 		a->phenotype.mechanics.relative_maximum_adhesion_distance() = 1;
+		a->phenotype.volume.nuclear_fluid() = 100;
+		a->phenotype.volume.nuclear_solid() = 100;
+		a->phenotype.volume.cytoplasmic_fluid() = 100;
+		a->phenotype.volume.cytoplasmic_solid() = 100;
+		a->phenotype.volume.fluid() = 200;
+		a->phenotype.volume.solid() = 200;
+		a->phenotype.volume.total() = 400;
 
 		a->is_movable() = 1;
 		a->phenotype.motility.is_motile() = 1;
 
-		a->phenotype.mechanics.attachment_rate() = 100;
-		a->phenotype.mechanics.detachment_rate() = 100;
+		a->phenotype.mechanics.attachment_rate() = .1;
+		a->phenotype.mechanics.detachment_rate() = .1;
 		a->phenotype.mechanics.maximum_number_of_attachments() = 12;
-		a->phenotype.mechanics.cell_adhesion_affinities()[0] = 10;
+		a->phenotype.mechanics.cell_adhesion_affinities()[0] = .1;
 
 		a->phenotype.mechanics.cell_BM_repulsion_strength() = 100;
+
+		a->phenotype.interactions.attack_rates()[0] = .01;
+		a->phenotype.interactions.fussion_rates()[0] = .01;
+		a->phenotype.interactions.live_phagocytosis_rates()[0] = .01;
 
 		x += e.m.mesh.voxel_shape[0];
 		if (x >= e.m.mesh.bounding_box_maxs[0])
@@ -56,20 +68,27 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 	if (conflict)
 	{
-		auto a = e.m.agents->create_agent();
+		auto a = e.cast_container<cell_container>().create();
 		a->position()[0] = 10;
 		a->position()[1] = 10;
 		a->position()[2] = 10;
+		a->phenotype.volume.nuclear_fluid() = 100;
+		a->phenotype.volume.nuclear_solid() = 100;
+		a->phenotype.volume.cytoplasmic_fluid() = 100;
+		a->phenotype.volume.cytoplasmic_solid() = 100;
+		a->phenotype.volume.fluid() = 200;
+		a->phenotype.volume.solid() = 200;
+		a->phenotype.volume.total() = 400;
 	}
 }
 
 int main()
 {
-	cartesian_mesh mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 20, 20, 20 });
-	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 5000, 5000, 5000 }, { 40, 40, 40 });
+	cartesian_mesh mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 20, 20, 20 });
+	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 40, 40, 40 });
 
 	real_t diffusion_time_step = 0.01;
-	index_t substrates_count = 4;
+	index_t substrates_count = 2;
 	index_t cell_defs_count = 3;
 
 	auto diff_coefs = std::make_unique<real_t[]>(substrates_count);
@@ -102,7 +121,7 @@ int main()
 		{
 			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_update_mesh,
 				velocity_interactions_duration, velocity_motility_duration, velocity_membrane_duration,
-				velocity_attachments_duration, position_duration;
+				velocity_attachments_duration, position_duration, interactions_duration, delete_duration;
 
 			measure(s.diffusion.solve(m), diffusion_duration);
 			measure(s.gradient.solve(m), gradient_duration);
@@ -113,13 +132,18 @@ int main()
 			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
 			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
 			measure(position_solver::update_positions(e), position_duration);
+			measure(interactions_solver::update_cell_cell_interactions(e), interactions_duration);
+			measure(mechanics_solver::update_cell_container(e), delete_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
 					  << " ms,\t Positions[mech,cells,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
 					  << velocity_interactions_duration << "," << velocity_motility_duration << ","
 					  << velocity_membrane_duration << "," << velocity_attachments_duration << "," << position_duration
-					  << " ms" << std::endl;
+					  << " ms,\t Interactions time: " << interactions_duration
+					  << " ms,\t Delete time: " << delete_duration << " ms" << std::endl;
+
+			std::cout << "Number of cells: " << e.cast_container<cell_container>().data().agents_count << std::endl;
 		}
 
 	for (int i = 0; i < 5; i++)

@@ -105,6 +105,20 @@ struct molecular_t : public phenotype_data_storage
 	biofvm::real_t* fraction_transferred_when_ingested();
 };
 
+struct interactions_t : public phenotype_data_storage
+{
+	interactions_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t& dead_phagocytosis_rate();
+	biofvm::real_t* live_phagocytosis_rates();
+
+	biofvm::real_t& damage_rate();
+	biofvm::real_t* attack_rates();
+	biofvm::real_t* immunogenicities();
+
+	biofvm::real_t* fussion_rates();
+};
+
 struct phenotype_t
 {
 	volume_t volume;
@@ -112,6 +126,7 @@ struct phenotype_t
 	mechanics_t mechanics;
 	motility_t motility;
 	molecular_t molecular;
+	interactions_t interactions;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 };

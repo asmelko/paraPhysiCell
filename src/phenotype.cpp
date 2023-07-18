@@ -121,6 +121,37 @@ real_t* molecular_t::fraction_transferred_when_ingested()
 	return data_.agent_data.fraction_transferred_when_ingested.data() + index_ * data_.e.m.substrates_count;
 }
 
+interactions_t::interactions_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+
+real_t& interactions_t::dead_phagocytosis_rate() { return data_.interactions.dead_phagocytosis_rate[index_]; }
+
+real_t* interactions_t::live_phagocytosis_rates()
+{
+	return data_.interactions.live_phagocytosis_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
+real_t& interactions_t::damage_rate() { return data_.interactions.damage_rate[index_]; }
+
+real_t* interactions_t::attack_rates()
+{
+	return data_.interactions.attack_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
+real_t* interactions_t::immunogenicities()
+{
+	return data_.interactions.immunogenicities.data() + index_ * data_.e.cell_definitions_count;
+}
+
+real_t* interactions_t::fussion_rates()
+{
+	return data_.interactions.fussion_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
 phenotype_t::phenotype_t(cell_data& data, index_t index)
-	: volume(data, index), geometry(data, index), mechanics(data, index), motility(data, index), molecular(data, index)
+	: volume(data, index),
+	  geometry(data, index),
+	  mechanics(data, index),
+	  motility(data, index),
+	  molecular(data, index),
+	  interactions(data, index)
 {}
