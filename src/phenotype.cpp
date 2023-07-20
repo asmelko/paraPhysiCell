@@ -147,11 +147,34 @@ real_t* interactions_t::fussion_rates()
 	return data_.interactions.fussion_rates.data() + index_ * data_.e.cell_definitions_count;
 }
 
+secretion_t::secretion_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+
+real_t* secretion_t::secretion_rates()
+{
+	return data_.agent_data.secretion_rates.data() + index_ * data_.e.m.substrates_count;
+}
+
+real_t* secretion_t::uptake_rates()
+{
+	return data_.agent_data.uptake_rates.data() + index_ * data_.e.m.substrates_count;
+}
+
+real_t* secretion_t::saturation_densities()
+{
+	return data_.agent_data.saturation_densities.data() + index_ * data_.e.m.substrates_count;
+}
+
+real_t* secretion_t::net_export_rates()
+{
+	return data_.agent_data.net_export_rates.data() + index_ * data_.e.m.substrates_count;
+}
+
 phenotype_t::phenotype_t(cell_data& data, index_t index)
 	: volume(data, index),
 	  geometry(data, index),
 	  mechanics(data, index),
 	  motility(data, index),
+	  secretion(data, index),
 	  molecular(data, index),
 	  interactions(data, index)
 {}

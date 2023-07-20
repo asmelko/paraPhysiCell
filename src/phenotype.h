@@ -96,6 +96,16 @@ struct motility_t : public phenotype_data_storage
 	biofvm::real_t* chemotactic_sensitivities();
 };
 
+struct secretion_t : public phenotype_data_storage
+{
+	secretion_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t* secretion_rates();
+	biofvm::real_t* uptake_rates();
+	biofvm::real_t* saturation_densities();
+	biofvm::real_t* net_export_rates();
+};
+
 struct molecular_t : public phenotype_data_storage
 {
 	molecular_t(cell_data& data, biofvm::index_t index);
@@ -125,7 +135,10 @@ struct phenotype_t
 	geometry_t geometry;
 	mechanics_t mechanics;
 	motility_t motility;
+	secretion_t secretion;
+	
 	molecular_t molecular;
+
 	interactions_t interactions;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);

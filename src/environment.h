@@ -8,7 +8,6 @@ namespace physicell {
 
 struct environment
 {
-public:
 	environment(biofvm::microenvironment& m, biofvm::cartesian_mesh mechanics_mesh);
 
 	biofvm::microenvironment& m;
