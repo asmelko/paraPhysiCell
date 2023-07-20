@@ -122,6 +122,24 @@ struct death_data
 	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
+struct cell_state_data
+{
+	std::vector<std::vector<biofvm::index_t>> neighbors;
+
+	std::vector<std::vector<biofvm::index_t>> springs;
+	std::vector<std::vector<biofvm::index_t>> attached_cells;
+
+	std::vector<biofvm::real_t> orientation;
+	std::vector<biofvm::real_t> simple_pressure;
+	std::vector<biofvm::index_t> number_of_nuclei;
+
+	std::vector<biofvm::real_t> damage;
+	std::vector<biofvm::real_t> total_attack_time;
+
+	void add(biofvm::index_t size, biofvm::index_t dims);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims);
+};
+
 struct cell_data
 {
 	// BioFVM phenotype data: secretion + total volume + molecular
@@ -131,23 +149,18 @@ struct cell_data
 	volume_data volumes;
 	geometry_data geometries;
 	mechanics_data mechanics;
-	motility_data motility;
-	death_data death;
+	motility_data motilities;
+	death_data deaths;
 
 	interactions_data interactions;
 	transformations_data transformations;
 
+	cell_state_data states;
+
 	std::vector<biofvm::real_t> previous_velocities;
 	std::vector<biofvm::real_t> velocities;
 	std::vector<biofvm::index_t> cell_definition_indices;
-	std::vector<biofvm::real_t> simple_pressures;
 	std::vector<std::uint8_t> is_movable;
-	std::vector<biofvm::index_t> number_of_nuclei;
-	std::vector<biofvm::real_t> damage;
-	std::vector<biofvm::real_t> total_attack_time;
-
-	std::vector<std::vector<biofvm::index_t>> neighbors;
-	std::vector<std::vector<biofvm::index_t>> springs;
 
 	std::vector<std::uint8_t> to_remove;
 

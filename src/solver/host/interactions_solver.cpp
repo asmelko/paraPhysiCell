@@ -130,7 +130,7 @@ void fuse(index_t lhs, index_t rhs, cell_data& data)
 	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
 					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
-	data.number_of_nuclei[lhs] += data.number_of_nuclei[rhs];
+	data.states.number_of_nuclei[lhs] += data.states.number_of_nuclei[rhs];
 
 	data.to_remove[rhs] = 1;
 }
@@ -201,8 +201,8 @@ void update_cell_cell_interactions_internal(
 
 				if (!attacked_once && random_number < attack_r * immuno_r * time_step)
 				{
-					attack(cell_index, neighbor_index, time_step, data.damage.data(),
-						   data.interactions.damage_rate.data(), data.total_attack_time.data());
+					attack(cell_index, neighbor_index, time_step, data.states.damage.data(),
+						   data.interactions.damage_rate.data(), data.states.total_attack_time.data());
 
 					attacked_once = true;
 
@@ -228,9 +228,9 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 	auto& data = get_cell_data(e);
 
 	update_cell_cell_interactions_internal(
-		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.death.dead.data(),
+		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.deaths.dead.data(),
 		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
-		data.interactions.fussion_rates.data(), data.interactions.immunogenicities.data(), data.neighbors.data(),
+		data.interactions.fussion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
 		data.to_remove.data(), data);
 }

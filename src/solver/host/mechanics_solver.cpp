@@ -80,8 +80,8 @@ void mechanics_solver::update_cell_container(environment& e)
 		if (data.to_remove[i] == 0)
 			continue;
 
-		remove_springs(i, data.springs.data());
-		rename_springs(data.agents_count - 1, i, data.springs.data());
+		remove_springs(i, data.states.springs.data());
+		rename_springs(data.agents_count - 1, i, data.states.springs.data());
 
 		data.remove(i);
 	}

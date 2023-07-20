@@ -327,7 +327,7 @@ Death::Death(cell_data& data, index_t index) : phenotype_data_storage(data, inde
 	return;
 }
 
-std::uint8_t& Death::dead() { return data_.death.dead[index_]; }
+std::uint8_t& Death::dead() { return data_.deaths.dead[index_]; }
 
 biofvm::index_t Death::add_death_model(biofvm::real_t rate, Cycle_Model* pModel)
 {

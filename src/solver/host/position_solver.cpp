@@ -430,33 +430,33 @@ void position_solver::update_cell_velocities_and_neighbors(environment& e)
 {
 	auto& data = get_cell_data(e);
 
-	clear_simple_pressure(data.simple_pressures.data(), data.agents_count);
+	clear_simple_pressure(data.states.simple_pressure.data(), data.agents_count);
 
 	// clear neighbors
 	for (index_t i = 0; i < data.agents_count; i++)
-		data.neighbors[i].clear();
+		data.states.neighbors[i].clear();
 
 	if (e.m.mesh.dims == 1)
 		update_cell_velocities_and_neighbors_internal<1>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.simple_pressures.data(),
+			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
 			data.agent_data.positions.data(), data.geometries.radius.data(),
 			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
 			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.neighbors.data());
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
 	else if (e.m.mesh.dims == 2)
 		update_cell_velocities_and_neighbors_internal<2>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.simple_pressures.data(),
+			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
 			data.agent_data.positions.data(), data.geometries.radius.data(),
 			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
 			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.neighbors.data());
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
 	else if (e.m.mesh.dims == 3)
 		update_cell_velocities_and_neighbors_internal<3>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.simple_pressures.data(),
+			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
 			data.agent_data.positions.data(), data.geometries.radius.data(),
 			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
 			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.neighbors.data());
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
 }
 
 void position_solver::update_motility(environment& e)
@@ -464,23 +464,23 @@ void position_solver::update_motility(environment& e)
 	auto& data = get_cell_data(e);
 
 	if (e.m.mesh.dims == 1)
-		update_motility_internal<1>(data.agents_count, data.motility.motility_vector.data(), data.velocities.data(),
-									data.motility.persistence_time.data(), data.motility.migration_bias.data(),
-									data.motility.migration_bias_direction.data(), data.motility.restrict_to_2d.data(),
-									data.motility.is_motile.data(), data.motility.migration_speed.data(),
-									e.mechanics_time_step);
+		update_motility_internal<1>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+									data.motilities.migration_bias_direction.data(),
+									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), e.mechanics_time_step);
 	else if (e.m.mesh.dims == 2)
-		update_motility_internal<2>(data.agents_count, data.motility.motility_vector.data(), data.velocities.data(),
-									data.motility.persistence_time.data(), data.motility.migration_bias.data(),
-									data.motility.migration_bias_direction.data(), data.motility.restrict_to_2d.data(),
-									data.motility.is_motile.data(), data.motility.migration_speed.data(),
-									e.mechanics_time_step);
+		update_motility_internal<2>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+									data.motilities.migration_bias_direction.data(),
+									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), e.mechanics_time_step);
 	else if (e.m.mesh.dims == 3)
-		update_motility_internal<3>(data.agents_count, data.motility.motility_vector.data(), data.velocities.data(),
-									data.motility.persistence_time.data(), data.motility.migration_bias.data(),
-									data.motility.migration_bias_direction.data(), data.motility.restrict_to_2d.data(),
-									data.motility.is_motile.data(), data.motility.migration_speed.data(),
-									e.mechanics_time_step);
+		update_motility_internal<3>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+									data.motilities.migration_bias_direction.data(),
+									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), e.mechanics_time_step);
 }
 
 void position_solver::update_basement_membrane_interactions(environment& e)
@@ -600,27 +600,27 @@ void position_solver::update_spring_attachments(environment& e)
 {
 	auto& data = get_cell_data(e);
 
-	update_spring_attachments_internal(data.agents_count, e.mechanics_time_step, e.cell_definitions_count,
-									   data.mechanics.detachment_rate.data(), data.mechanics.attachment_rate.data(),
-									   data.mechanics.cell_adhesion_affinities.data(),
-									   data.mechanics.maximum_number_of_attachments.data(),
-									   data.cell_definition_indices.data(), data.neighbors.data(), data.springs.data());
+	update_spring_attachments_internal(
+		data.agents_count, e.mechanics_time_step, e.cell_definitions_count, data.mechanics.detachment_rate.data(),
+		data.mechanics.attachment_rate.data(), data.mechanics.cell_adhesion_affinities.data(),
+		data.mechanics.maximum_number_of_attachments.data(), data.cell_definition_indices.data(),
+		data.states.neighbors.data(), data.states.springs.data());
 
 	if (e.mechanics_mesh.dims == 1)
 		spring_contract_function<1>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
 	else if (e.mechanics_mesh.dims == 2)
 		spring_contract_function<2>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
 	else if (e.mechanics_mesh.dims == 3)
 		spring_contract_function<3>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
 }
 
 template <index_t dims>

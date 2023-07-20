@@ -206,6 +206,35 @@ void transformations_data::remove(index_t index, index_t size, index_t cell_defi
 				transformation_rates.data() + size * cell_definitions_count, cell_definitions_count);
 }
 
+void cell_state_data::add(index_t size, index_t dims)
+{
+	neighbors.resize(size);
+
+	springs.resize(size);
+	attached_cells.resize(size);
+
+	orientation.resize(size * dims, 0);
+	simple_pressure.resize(size, 0);
+	number_of_nuclei.resize(size, 0);
+
+	damage.resize(size, 0);
+	total_attack_time.resize(size, 0);
+}
+
+void cell_state_data::remove(index_t index, index_t size, index_t dims)
+{
+	neighbors[index] = std::move(neighbors[size]);
+	springs[index] = std::move(springs[size]);
+	attached_cells[index] = std::move(attached_cells[size]);
+
+	move_vector(orientation.data() + index * dims, orientation.data() + size * dims, dims);
+	move_scalar(simple_pressure.data() + index, simple_pressure.data() + size);
+	move_scalar(number_of_nuclei.data() + index, number_of_nuclei.data() + size);
+
+	move_scalar(damage.data() + index, damage.data() + size);
+	move_scalar(total_attack_time.data() + index, total_attack_time.data() + size);
+}
+
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
 
 void cell_data::add()
@@ -215,23 +244,18 @@ void cell_data::add()
 	volumes.add(agents_count);
 	geometries.add(agents_count);
 	mechanics.add(agents_count, e.cell_definitions_count);
-	motility.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
-	death.add(agents_count);
+	motilities.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
+	deaths.add(agents_count);
+
+	states.add(agents_count, e.m.mesh.dims);
 
 	interactions.add(agents_count, e.cell_definitions_count);
 	transformations.add(agents_count, e.cell_definitions_count);
 
-	neighbors.resize(agents_count);
-	springs.resize(agents_count);
-
 	previous_velocities.resize(agents_count * e.m.mesh.dims, 0);
 	velocities.resize(agents_count * e.m.mesh.dims, 0);
 	cell_definition_indices.resize(agents_count, 0);
-	simple_pressures.resize(agents_count, 0);
 	is_movable.resize(agents_count, 0);
-	number_of_nuclei.resize(agents_count, 0);
-	damage.resize(agents_count, 0);
-	total_attack_time.resize(agents_count, 0);
 
 	to_remove.resize(agents_count, 0);
 }
@@ -248,25 +272,20 @@ void cell_data::remove(index_t index)
 	volumes.remove(index, agents_count);
 	geometries.remove(index, agents_count);
 	mechanics.remove(index, agents_count, e.cell_definitions_count);
-	motility.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
-	death.remove(index, agents_count);
+	motilities.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
+	deaths.remove(index, agents_count);
+
+	states.remove(index, agents_count, e.mechanics_mesh.dims);
 
 	interactions.remove(index, agents_count, e.cell_definitions_count);
 	transformations.remove(index, agents_count, e.cell_definitions_count);
-
-	neighbors[index] = std::move(neighbors[agents_count]);
-	springs[index] = std::move(springs[agents_count]);
 
 	move_vector(previous_velocities.data() + index * e.m.mesh.dims,
 				previous_velocities.data() + agents_count * e.m.mesh.dims, e.m.mesh.dims);
 	move_vector(velocities.data() + index * e.m.mesh.dims, velocities.data() + agents_count * e.m.mesh.dims,
 				e.m.mesh.dims);
 	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);
-	move_scalar(simple_pressures.data() + index, simple_pressures.data() + agents_count);
 	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
-	move_scalar(number_of_nuclei.data() + index, number_of_nuclei.data() + agents_count);
-	move_scalar(damage.data() + index, damage.data() + agents_count);
-	move_scalar(total_attack_time.data() + index, total_attack_time.data() + agents_count);
 
 	move_scalar(to_remove.data() + index, to_remove.data() + agents_count);
 }
