@@ -24,6 +24,10 @@ public:
 	biofvm::index_t& cell_definition_index();
 	biofvm::real_t& simple_pressure();
 	std::uint8_t& is_movable();
+
+	// TODO:
+	void remove();
+	void divide();
 };
 
 } // namespace physicell

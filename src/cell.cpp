@@ -19,3 +19,6 @@ index_t& cell::cell_definition_index() { return data_.cell_definition_indices[in
 real_t& cell::simple_pressure() { return data_.simple_pressures[index_]; }
 
 uint8_t& cell::is_movable() { return data_.is_movable[index_]; }
+
+void cell::remove() {}
+void cell::divide() {}
