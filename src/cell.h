@@ -5,6 +5,7 @@
 
 #include <BioFVM/agent.h>
 
+#include "cell_functions.h"
 #include "original/cell_parameters.h"
 #include "original/custom_cell_data.h"
 #include "phenotype.h"
@@ -40,6 +41,8 @@ public:
 	Cell_Parameters parameters;
 
 	Custom_Cell_Data custom_data;
+
+	cell_functions functions;
 
 	phenotype_t phenotype;
 

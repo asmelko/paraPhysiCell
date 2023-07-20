@@ -5,14 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../cell_functions.h"
 #include "../data_storage_phenotype.h"
 
 namespace physicell {
-
-class cell;
-
-template <typename T>
-using cell_func_t = std::function<T(cell& cell, biofvm::real_t dt)>;
 
 class Phase
 {

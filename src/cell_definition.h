@@ -19,7 +19,7 @@ public:
 
 	Cell_Parameters parameters;
 	Custom_Cell_Data custom_data;
-	// Cell_Functions functions;
+	cell_functions functions;
 	phenotype_t phenotype;
 
 	Cell_Definition(environment& e);
