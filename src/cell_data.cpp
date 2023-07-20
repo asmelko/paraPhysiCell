@@ -195,6 +195,17 @@ void death_data::add(index_t size) { dead.resize(size, 0); }
 
 void death_data::remove(index_t index, index_t size) { move_scalar(dead.data() + index, dead.data() + size); }
 
+void transformations_data::add(index_t size, index_t cell_definitions_count)
+{
+	transformation_rates.resize(size * cell_definitions_count, 0);
+}
+
+void transformations_data::remove(index_t index, index_t size, index_t cell_definitions_count)
+{
+	move_vector(transformation_rates.data() + index * cell_definitions_count,
+				transformation_rates.data() + size * cell_definitions_count, cell_definitions_count);
+}
+
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
 
 void cell_data::add()
@@ -208,6 +219,7 @@ void cell_data::add()
 	death.add(agents_count);
 
 	interactions.add(agents_count, e.cell_definitions_count);
+	transformations.add(agents_count, e.cell_definitions_count);
 
 	neighbors.resize(agents_count);
 	springs.resize(agents_count);
@@ -240,6 +252,7 @@ void cell_data::remove(index_t index)
 	death.remove(index, agents_count);
 
 	interactions.remove(index, agents_count, e.cell_definitions_count);
+	transformations.remove(index, agents_count, e.cell_definitions_count);
 
 	neighbors[index] = std::move(neighbors[agents_count]);
 	springs[index] = std::move(springs[agents_count]);

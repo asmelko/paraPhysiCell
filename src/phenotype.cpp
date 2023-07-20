@@ -169,6 +169,13 @@ real_t* secretion_t::net_export_rates()
 	return data_.agent_data.net_export_rates.data() + index_ * data_.e.m.substrates_count;
 }
 
+transformations_t::transformations_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+
+real_t* transformations_t::transformation_rates()
+{
+	return data_.transformations.transformation_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
 phenotype_t::phenotype_t(cell_data& data, index_t index)
 	: volume(data, index),
 	  geometry(data, index),
@@ -176,5 +183,6 @@ phenotype_t::phenotype_t(cell_data& data, index_t index)
 	  motility(data, index),
 	  secretion(data, index),
 	  molecular(data, index),
-	  interactions(data, index)
+	  interactions(data, index),
+	  transformations(data, index)
 {}

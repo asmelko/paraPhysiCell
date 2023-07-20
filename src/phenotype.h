@@ -129,6 +129,13 @@ struct interactions_t : public phenotype_data_storage
 	biofvm::real_t* fussion_rates();
 };
 
+struct transformations_t : public phenotype_data_storage
+{
+	transformations_t(cell_data& data, biofvm::index_t index);
+
+	biofvm::real_t* transformation_rates();
+};
+
 struct phenotype_t
 {
 	volume_t volume;
@@ -136,10 +143,11 @@ struct phenotype_t
 	mechanics_t mechanics;
 	motility_t motility;
 	secretion_t secretion;
-	
+
 	molecular_t molecular;
 
 	interactions_t interactions;
+	transformations_t transformations;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 };

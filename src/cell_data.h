@@ -106,6 +106,14 @@ struct interactions_data
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
+struct transformations_data
+{
+	std::vector<biofvm::real_t> transformation_rates;
+
+	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
+};
+
 struct death_data
 {
 	std::vector<std::uint8_t> dead;
@@ -127,6 +135,7 @@ struct cell_data
 	death_data death;
 
 	interactions_data interactions;
+	transformations_data transformations;
 
 	std::vector<biofvm::real_t> previous_velocities;
 	std::vector<biofvm::real_t> velocities;
