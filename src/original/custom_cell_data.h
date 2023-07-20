@@ -61,7 +61,6 @@ public:
 
 
 	Custom_Cell_Data() = default; // done
-	Custom_Cell_Data(const Custom_Cell_Data& ccd);
 };
 
 }; // namespace physicell

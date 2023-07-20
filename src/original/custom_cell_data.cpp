@@ -54,17 +54,6 @@ std::ostream& operator<<(std::ostream& os, const Vector_Variable& v)
 	return os;
 }
 
-Custom_Cell_Data::Custom_Cell_Data(const Custom_Cell_Data& ccd)
-{
-	//	std::cout << __FUNCTION__ << "(copy)" << std::endl;
-	variables = ccd.variables;
-	vector_variables = ccd.vector_variables;
-
-	name_to_index_map = ccd.name_to_index_map;
-
-	return;
-}
-
 index_t Custom_Cell_Data::add_variable(Variable& v)
 {
 	index_t n = variables.size();

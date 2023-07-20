@@ -5,6 +5,9 @@
 namespace physicell {
 namespace constants {
 
+constexpr int deterministic_necrosis = 0;
+constexpr int stochastic_necrosis = 1;
+
 // currently recognized death models
 constexpr biofvm::index_t apoptosis_death_model = 100;
 constexpr biofvm::index_t necrosis_death_model = 101;

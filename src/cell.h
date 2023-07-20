@@ -5,6 +5,7 @@
 
 #include <BioFVM/agent.h>
 
+#include "original/cell_parameters.h"
 #include "original/custom_cell_data.h"
 #include "phenotype.h"
 
@@ -35,6 +36,8 @@ class cell : public biofvm::agent
 
 public:
 	cell(biofvm::agent_id_t id, cell_data& data, biofvm::index_t index);
+
+	Cell_Parameters parameters;
 
 	Custom_Cell_Data custom_data;
 
