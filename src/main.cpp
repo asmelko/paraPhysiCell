@@ -11,12 +11,10 @@ using namespace biofvm;
 using namespace physicell;
 
 #define measure(F, D)                                                                                                  \
-	{                                                                                                                  \
-		auto start = std::chrono::high_resolution_clock::now();                                                        \
-		F;                                                                                                             \
-		auto end = std::chrono::high_resolution_clock::now();                                                          \
-		D = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();                                \
-	}
+	auto D##start = std::chrono::high_resolution_clock::now();                                                         \
+	F;                                                                                                                 \
+	auto D##end = std::chrono::high_resolution_clock::now();                                                           \
+	D = std::chrono::duration_cast<std::chrono::milliseconds>(D##end - D##start).count();
 
 void make_agents(environment& e, index_t count, bool conflict)
 {
@@ -84,6 +82,8 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 int main()
 {
+	std::size_t microenv_init_duration, env_init_duration, cells_init_duration, solver_init_duration;
+
 	cartesian_mesh mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 20, 20, 20 });
 	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 40, 40, 40 });
 
@@ -99,22 +99,25 @@ int main()
 	auto initial_conds = std::make_unique<real_t[]>(substrates_count);
 	initial_conds[0] = 0;
 
-	microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get());
-
+	measure(microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get()),
+			microenv_init_duration);
 	m.diffustion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 	m.compute_internalized_substrates = true;
 
-	environment e(m, mechanics_mesh);
+	measure(environment e(m, mechanics_mesh), env_init_duration);
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 	e.mechanics_time_step = 0.1;
 
-	make_agents(e, 2'000'000, true);
+	measure(make_agents(e, 2'000'000, true), cells_init_duration);
 
 	solver s;
 
-	s.initialize(m);
+	measure(s.initialize(m), solver_init_duration);
+
+	std::cout << "Init time[m, e, c, s]: " << microenv_init_duration << "," << env_init_duration << ","
+			  << cells_init_duration << "," << solver_init_duration << " ms" << std::endl;
 
 	if (true)
 		for (index_t i = 0; i < 100; ++i)
