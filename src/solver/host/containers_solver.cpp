@@ -47,37 +47,39 @@ void rename_springs(index_t old_index, index_t new_index, std::vector<index_t>* 
 	}
 }
 
-template <index_t dims>
-void remove_single(index_t n, index_t i, const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
+void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
 				   std::vector<index_t>* __restrict__ springs, const cartesian_mesh& mesh, cell_container& container)
 {
-	bool out_of_bounds = false;
-
-	for (index_t d = 0; d < dims; d++)
+	while (true)
 	{
-		if (positions[i * dims + d] < mesh.bounding_box_mins[d] || positions[i * dims + d] > mesh.bounding_box_maxs[d])
+		bool out_of_bounds = false;
+
+		for (index_t d = 0; d < mesh.dims; d++)
 		{
-			out_of_bounds = true;
+			if (positions[i * mesh.dims + d] < mesh.bounding_box_mins[d]
+				|| positions[i * mesh.dims + d] > mesh.bounding_box_maxs[d])
+			{
+				out_of_bounds = true;
+			}
 		}
+
+		if (out_of_bounds == false && flag[i] == cell_state_flag::none)
+			return;
+
+		remove_springs(i, springs);
+		rename_springs(container.data().agents_count - 1, i, springs);
+
+		container.remove_at(i);
 	}
-
-	if (out_of_bounds == false && flag[i] == cell_state_flag::none)
-		return;
-
-	remove_springs(i, springs);
-	rename_springs(n - 1, i, springs);
-
-	container.remove_at(i);
 }
 
-template <index_t dims>
-void update_cell_container_internal(index_t n, const cell_state_flag* __restrict__ flag,
-									const real_t* __restrict__ positions, std::vector<index_t>* __restrict__ springs,
-									const cartesian_mesh& mesh, cell_container& container)
+void update_cell_container_internal(const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
+									std::vector<index_t>* __restrict__ springs, const cartesian_mesh& mesh,
+									cell_container& container)
 {
-	for (index_t i = 0; i < n; i++)
+	for (index_t i = 0; i < container.data().agents_count; i++)
 	{
-		remove_single<dims>(n, i, flag, positions, springs, mesh, container);
+		remove_single(i, flag, positions, springs, mesh, container);
 	}
 }
 
@@ -85,16 +87,8 @@ void containers_solver::update_cell_container_for_mechanics(environment& e)
 {
 	auto& data = get_cell_data(e);
 
-	for (index_t i = 0; i < data.agents_count; i++)
-	{
-		while (data.flags[i] == cell_state_flag::to_remove)
-		{
-			remove_springs(i, data.states.springs.data());
-			rename_springs(data.agents_count - 1, i, data.states.springs.data());
-
-			data.remove(i);
-		}
-	}
+	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+								   e.m.mesh, e.cast_container<cell_container>());
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
@@ -118,7 +112,6 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 	{
 		s.release_internalized_substrates(e.m, i);
 
-		remove_single<3>(n, i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-						 e.m.mesh, c);
+		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(), e.m.mesh, c);
 	}
 }
