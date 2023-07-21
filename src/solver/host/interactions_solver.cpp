@@ -1,8 +1,6 @@
 #include "interactions_solver.h"
 
-#include <cmath>
-
-#include "../../random.h"
+#include "solver_helper.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -24,8 +22,8 @@ void ingest_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t*
 	cytoplasmic[lhs] += fluid[rhs] + solid[rhs];
 	total[lhs] += fluid[rhs] + solid[rhs];
 
-	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + 1e-16);
-	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + 1e-16);
+	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + zero_threshold);
+	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + zero_threshold);
 }
 
 void fuse_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t* __restrict__ fluid,
@@ -52,8 +50,8 @@ void fuse_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t* _
 	cytoplasmic[lhs] = cytoplasmic_fluid[lhs] + cytoplasmic_solid[lhs];
 	total[lhs] = nuclear[lhs] + cytoplasmic[lhs];
 
-	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + 1e-16);
-	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + 1e-16);
+	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + zero_threshold);
+	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + zero_threshold);
 }
 
 void ingest_internalized(index_t lhs, index_t rhs, index_t substrates_count,
@@ -88,9 +86,9 @@ void fuse_position(index_t lhs, index_t rhs, index_t dims, real_t* __restrict__ 
 	}
 }
 
-void update_geometry(index_t i, real_t* __restrict__ radius, real_t* __restrict__ nuclear_radius,
-					 real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
-					 const real_t* __restrict__ nuclear_volume)
+void physicell::update_geometry(index_t i, real_t* __restrict__ radius, real_t* __restrict__ nuclear_radius,
+								real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
+								const real_t* __restrict__ nuclear_volume)
 {
 	radius[i] = std::cbrt(total_volume[i] / (M_PI * 4.0 / 3.0));
 	nuclear_radius[i] = std::cbrt(nuclear_volume[i] / (M_PI * 4.0 / 3.0));

@@ -42,6 +42,8 @@ struct volume_t : public phenotype_data_storage
 	biofvm::real_t& cytoplasmic_to_nuclear_ratio();
 
 	biofvm::real_t& rupture_volume();
+
+	void copy(volume_t& dest);
 };
 
 struct geometry_t : public phenotype_data_storage
@@ -52,6 +54,10 @@ struct geometry_t : public phenotype_data_storage
 	biofvm::real_t& nuclear_radius();
 	biofvm::real_t& surface_area();
 	biofvm::real_t& polarity();
+
+	void copy(geometry_t& dest);
+
+	void update();
 };
 
 struct mechanics_t : public phenotype_data_storage
@@ -73,6 +79,8 @@ struct mechanics_t : public phenotype_data_storage
 
 	biofvm::real_t& attachment_rate();
 	biofvm::real_t& detachment_rate();
+
+	void copy(mechanics_t& dest);
 };
 
 struct motility_t : public phenotype_data_storage
@@ -91,6 +99,8 @@ struct motility_t : public phenotype_data_storage
 	biofvm::index_t& chemotaxis_index();
 	biofvm::index_t& chemotaxis_direction();
 	biofvm::real_t* chemotactic_sensitivities();
+
+	void copy(motility_t& dest);
 };
 
 struct secretion_t : public phenotype_data_storage
@@ -101,6 +111,11 @@ struct secretion_t : public phenotype_data_storage
 	biofvm::real_t* uptake_rates();
 	biofvm::real_t* saturation_densities();
 	biofvm::real_t* net_export_rates();
+
+	void copy(secretion_t& dest);
+
+	void set_all_secretion_to_zero();
+	void scale_all_uptake_by_factor(biofvm::real_t factor);
 };
 
 struct molecular_t : public phenotype_data_storage
@@ -110,6 +125,8 @@ struct molecular_t : public phenotype_data_storage
 	biofvm::real_t* internalized_total_substrates();
 	biofvm::real_t* fraction_released_at_death();
 	biofvm::real_t* fraction_transferred_when_ingested();
+
+	void copy(molecular_t& dest);
 };
 
 struct interactions_t : public phenotype_data_storage
@@ -124,6 +141,8 @@ struct interactions_t : public phenotype_data_storage
 	biofvm::real_t* immunogenicities();
 
 	biofvm::real_t* fussion_rates();
+
+	void copy(interactions_t& dest);
 };
 
 struct transformations_t : public phenotype_data_storage
@@ -131,6 +150,8 @@ struct transformations_t : public phenotype_data_storage
 	transformations_t(cell_data& data, biofvm::index_t index);
 
 	biofvm::real_t* transformation_rates();
+
+	void copy(transformations_t& dest);
 };
 
 } // namespace physicell

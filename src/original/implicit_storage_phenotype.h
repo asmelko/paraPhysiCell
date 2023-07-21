@@ -123,7 +123,6 @@ public:
 
 class Cycle
 {
-private:
 public:
 	Cycle_Model* pCycle_Model;
 	Cycle_Data data;
@@ -137,6 +136,8 @@ public:
 	biofvm::index_t& current_phase_index(void); // done
 
 	void sync_to_cycle_model(Cycle_Model& cm); // done
+
+	void copy(Cycle& dest);
 };
 
 class Death_Parameters
@@ -159,7 +160,6 @@ public:
 
 class Death : public phenotype_data_storage
 {
-private:
 public:
 	std::vector<biofvm::real_t> rates;
 	std::vector<Cycle_Model*> models;
@@ -186,6 +186,8 @@ public:
 	// ease of access
 	biofvm::real_t& apoptosis_rate(void);
 	biofvm::real_t& necrosis_rate(void);
+
+	void copy(Death& dest);
 };
 
 } // namespace physicell

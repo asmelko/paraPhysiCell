@@ -4,6 +4,7 @@
 
 #include "cell_data.h"
 #include "environment.h"
+#include "solver/host/solver_helper.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -35,6 +36,50 @@ real_t* cell::velocity() { return data_.velocities.data() + index_ * data_.e.m.m
 index_t& cell::cell_definition_index() { return data_.cell_definition_indices[index_]; }
 
 uint8_t& cell::is_movable() { return data_.is_movable[index_]; }
+
+void cell::set_default(cell_definition& def)
+{
+	is_movable() = def.is_movable;
+
+	convert(def);
+}
+
+void cell::convert(cell_definition& def)
+{
+	type = def.type;
+	type_name = def.name;
+
+	custom_data = def.custom_data;
+	parameters = def.parameters;
+	functions = def.functions;
+
+	def.phenotype.copy(phenotype);
+
+	assign_orientation();
+}
+
+void cell::assign_orientation()
+{
+	if (functions.set_orientation)
+	{
+		functions.set_orientation(*this, 0);
+	}
+	else
+	{
+		if (data_.e.mechanics_mesh.dims == 1)
+		{
+			position_helper<1>::random_walk(false, state.orientation());
+		}
+		else if (data_.e.mechanics_mesh.dims == 2)
+		{
+			position_helper<2>::random_walk(false, state.orientation());
+		}
+		else if (data_.e.mechanics_mesh.dims == 3)
+		{
+			position_helper<3>::random_walk(false, state.orientation());
+		}
+	}
+}
 
 void cell::remove() {}
 void cell::divide() {}

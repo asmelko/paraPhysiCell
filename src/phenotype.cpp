@@ -14,3 +14,17 @@ phenotype_t::phenotype_t(cell_data& data, index_t index)
 	  interactions(data, index),
 	  transformations(data, index)
 {}
+
+void phenotype_t::copy(phenotype_t& dest)
+{
+	cycle.copy(dest.cycle);
+	death.copy(dest.death);
+	volume.copy(dest.volume);
+	geometry.copy(dest.geometry);
+	mechanics.copy(dest.mechanics);
+	motility.copy(dest.motility);
+	secretion.copy(dest.secretion);
+	molecular.copy(dest.molecular);
+	interactions.copy(dest.interactions);
+	transformations.copy(dest.transformations);
+}

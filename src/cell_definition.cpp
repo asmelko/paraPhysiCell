@@ -2,7 +2,7 @@
 
 using namespace physicell;
 
-Cell_Definition::Cell_Definition(environment& e)
+cell_definition::cell_definition(environment& e)
 	: data_(e), type(0), name("unnamed"), is_movable(true), e(e), phenotype(data_, 0)
 {
 	data_.add();

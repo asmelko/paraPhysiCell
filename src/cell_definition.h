@@ -1,10 +1,16 @@
 #pragma once
 
-#include "environment.h"
+#include "cell_data.h"
+#include "cell_functions.h"
+#include "original/cell_parameters.h"
+#include "original/custom_cell_data.h"
+#include "phenotype.h"
 
 namespace physicell {
 
-struct Cell_Definition
+struct environment;
+
+struct cell_definition
 {
 private:
 	cell_data data_;
@@ -22,7 +28,7 @@ public:
 	cell_functions functions;
 	phenotype_t phenotype;
 
-	Cell_Definition(environment& e);
+	cell_definition(environment& e);
 };
 
 } // namespace physicell

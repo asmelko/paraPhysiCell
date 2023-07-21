@@ -5,10 +5,7 @@
 
 #include <BioFVM/agent.h>
 
-#include "cell_functions.h"
-#include "original/cell_parameters.h"
-#include "original/custom_cell_data.h"
-#include "phenotype.h"
+#include "cell_definition.h"
 
 namespace physicell {
 
@@ -38,6 +35,9 @@ class cell : public biofvm::agent
 public:
 	cell(biofvm::agent_id_t id, cell_data& data, biofvm::index_t index);
 
+	biofvm::index_t type;
+	std::string type_name;
+
 	Cell_Parameters parameters;
 
 	Custom_Cell_Data custom_data;
@@ -51,6 +51,11 @@ public:
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
 	std::uint8_t& is_movable();
+
+	void set_default(cell_definition& def);
+	void convert(cell_definition& def);
+
+	void assign_orientation();
 
 	// TODO:
 	void remove();

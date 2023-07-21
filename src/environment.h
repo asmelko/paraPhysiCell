@@ -3,6 +3,7 @@
 #include <BioFVM/microenvironment.h>
 
 #include "cell_container.h"
+#include "cell_definition.h"
 
 namespace physicell {
 
@@ -23,11 +24,12 @@ struct environment
 	biofvm::cartesian_mesh mechanics_mesh;
 
 	biofvm::real_t mechanics_time_step;
+	biofvm::real_t phenotype_time_step;
 
 	std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
 
-	// TODO: cell definitions
 	biofvm::index_t cell_definitions_count;
+	std::unique_ptr<cell_definition[]> cell_definitions;
 };
 
 } // namespace physicell

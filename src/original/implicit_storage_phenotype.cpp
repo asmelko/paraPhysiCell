@@ -471,3 +471,14 @@ void Cycle::sync_to_cycle_model(Cycle_Model& cm)
 }
 
 Death_Parameters& Death::current_parameters(void) { return parameters[current_death_model_index]; }
+
+void Cycle::copy(Cycle& dest) { dest = *this; }
+
+void Death::copy(Death& dest)
+{
+	dest.rates = rates;
+	dest.models = models;
+	dest.parameters = parameters;
+	dest.dead() = dead();
+	dest.current_death_model_index = current_death_model_index;
+}

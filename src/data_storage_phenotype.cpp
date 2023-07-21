@@ -3,6 +3,7 @@
 #include "cell.h"
 #include "cell_data.h"
 #include "environment.h"
+#include "solver/host/interactions_solver.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -46,6 +47,13 @@ real_t& geometry_t::nuclear_radius() { return data_.geometries.nuclear_radius[in
 real_t& geometry_t::surface_area() { return data_.geometries.surface_area[index_]; }
 
 real_t& geometry_t::polarity() { return data_.geometries.polarity[index_]; }
+
+void geometry_t::update()
+{
+	update_geometry(index_, data_.geometries.radius.data(), data_.geometries.nuclear_radius.data(),
+					data_.geometries.surface_area.data(), data_.agent_data.volumes.data(),
+					data_.volumes.nuclear.data());
+}
 
 mechanics_t::mechanics_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
@@ -169,9 +177,155 @@ real_t* secretion_t::net_export_rates()
 	return data_.agent_data.net_export_rates.data() + index_ * data_.e.m.substrates_count;
 }
 
+void secretion_t::set_all_secretion_to_zero()
+{
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		secretion_rates()[i] = 0;
+	}
+}
+
+void secretion_t::scale_all_uptake_by_factor(real_t factor)
+{
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		uptake_rates()[i] *= factor;
+	}
+}
+
 transformations_t::transformations_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
 real_t* transformations_t::transformation_rates()
 {
 	return data_.transformations.transformation_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
+void volume_t::copy(volume_t& dest)
+{
+	dest.total() = total();
+	dest.solid() = solid();
+	dest.fluid() = fluid();
+	dest.fluid_fraction() = fluid_fraction();
+	dest.nuclear() = nuclear();
+	dest.nuclear_fluid() = nuclear_fluid();
+	dest.nuclear_solid() = nuclear_solid();
+	dest.cytoplasmic() = cytoplasmic();
+	dest.cytoplasmic_fluid() = cytoplasmic_fluid();
+	dest.cytoplasmic_solid() = cytoplasmic_solid();
+	dest.calcified_fraction() = calcified_fraction();
+	dest.cytoplasmic_to_nuclear_ratio() = cytoplasmic_to_nuclear_ratio();
+	dest.rupture_volume() = rupture_volume();
+}
+
+void geometry_t::copy(geometry_t& dest)
+{
+	dest.radius() = radius();
+	dest.nuclear_radius() = nuclear_radius();
+	dest.surface_area() = surface_area();
+	dest.polarity() = polarity();
+}
+
+void mechanics_t::copy(mechanics_t& dest)
+{
+	dest.cell_cell_adhesion_strength() = cell_cell_adhesion_strength();
+	dest.cell_BM_adhesion_strength() = cell_BM_adhesion_strength();
+	dest.cell_cell_repulsion_strength() = cell_cell_repulsion_strength();
+	dest.cell_BM_repulsion_strength() = cell_BM_repulsion_strength();
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.cell_adhesion_affinities()[i] = cell_adhesion_affinities()[i];
+	}
+	dest.relative_maximum_adhesion_distance() = relative_maximum_adhesion_distance();
+	dest.maximum_number_of_attachments() = maximum_number_of_attachments();
+	dest.attachment_elastic_constant() = attachment_elastic_constant();
+	dest.attachment_rate() = attachment_rate();
+	dest.detachment_rate() = detachment_rate();
+}
+
+void motility_t::copy(motility_t& dest)
+{
+	dest.is_motile() = is_motile();
+	dest.persistence_time() = persistence_time();
+	dest.migration_speed() = migration_speed();
+	for (index_t i = 0; i < data_.e.mechanics_mesh.dims; i++)
+	{
+		dest.migration_bias_direction()[i] = migration_bias_direction()[i];
+	}
+	dest.migration_bias() = migration_bias();
+	for (index_t i = 0; i < data_.e.mechanics_mesh.dims; i++)
+	{
+		dest.motility_vector()[i] = motility_vector()[i];
+	}
+	dest.chemotaxis_index() = chemotaxis_index();
+	dest.chemotaxis_direction() = chemotaxis_direction();
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.chemotactic_sensitivities()[i] = chemotactic_sensitivities()[i];
+	}
+}
+
+void molecular_t::copy(molecular_t& dest)
+{
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.internalized_total_substrates()[i] = internalized_total_substrates()[i];
+	}
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.fraction_released_at_death()[i] = fraction_released_at_death()[i];
+	}
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.fraction_transferred_when_ingested()[i] = fraction_transferred_when_ingested()[i];
+	}
+}
+
+void interactions_t::copy(interactions_t& dest)
+{
+	dest.dead_phagocytosis_rate() = dead_phagocytosis_rate();
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.live_phagocytosis_rates()[i] = live_phagocytosis_rates()[i];
+	}
+	dest.damage_rate() = damage_rate();
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.attack_rates()[i] = attack_rates()[i];
+	}
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.immunogenicities()[i] = immunogenicities()[i];
+	}
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.fussion_rates()[i] = fussion_rates()[i];
+	}
+}
+
+void secretion_t::copy(secretion_t& dest)
+{
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.secretion_rates()[i] = secretion_rates()[i];
+	}
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.uptake_rates()[i] = uptake_rates()[i];
+	}
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.saturation_densities()[i] = saturation_densities()[i];
+	}
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		dest.net_export_rates()[i] = net_export_rates()[i];
+	}
+}
+
+void transformations_t::copy(transformations_t& dest)
+{
+	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
+	{
+		dest.transformation_rates()[i] = transformation_rates()[i];
+	}
 }
