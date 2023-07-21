@@ -4,7 +4,7 @@
 
 #if impl == host
 #	include "host/position_solver.h"
-#	include "host/mechanics_solver.h"
+#	include "host/containers_solver.h"
 #	include "host/interactions_solver.h"
 #endif
 
@@ -14,7 +14,7 @@ class solver
 {
 public:
 	position_solver position;
-	mechanics_solver mechanics;
+	containers_solver containers;
 	interactions_solver interactions;
 
 	void initialize(environment& e);

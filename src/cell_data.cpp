@@ -257,7 +257,7 @@ void cell_data::add()
 	cell_definition_indices.resize(agents_count, 0);
 	is_movable.resize(agents_count, 0);
 
-	to_remove.resize(agents_count, 0);
+	flags.resize(agents_count, cell_state_flag::none);
 }
 
 void cell_data::remove(index_t index)
@@ -287,5 +287,5 @@ void cell_data::remove(index_t index)
 	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);
 	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
 
-	move_scalar(to_remove.data() + index, to_remove.data() + agents_count);
+	move_scalar(flags.data() + index, flags.data() + agents_count);
 }

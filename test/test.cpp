@@ -4,7 +4,7 @@
 
 #include "cell.h"
 #include "environment.h"
-#include "solver/host/mechanics_solver.h"
+#include "solver/host/containers_solver.h"
 #include "solver/host/position_solver.h"
 
 using namespace biofvm;
@@ -155,7 +155,7 @@ TEST_P(host_velocity_solver, simple)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 70;
 
-	mechanics_solver::update_mechanics_mesh(e);
+	containers_solver::update_mechanics_mesh(e);
 	position_solver::update_cell_velocities_and_neighbors(e);
 
 	real_t expected;
@@ -282,7 +282,7 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 7;
 
-	mechanics_solver::update_mechanics_mesh(e);
+	containers_solver::update_mechanics_mesh(e);
 	position_solver::update_cell_velocities_and_neighbors(e);
 
 	EXPECT_EQ(cont.data().neighbors[0].size(), 1);

@@ -20,7 +20,7 @@ void standard_cell_transformations(cell& cell, environment& e)
 		{
 			// std::cout << "Transforming from " << pCell->type_name << " to " << cell_definitions_by_index[i]->name <<
 			// std::endl;
-			cell.convert(e.cell_definitions[i]);
+			cell.convert(e.cell_definitions[i], i);
 			break;
 		}
 	}

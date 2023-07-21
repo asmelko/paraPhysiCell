@@ -3,8 +3,8 @@
 
 #include "BioFVM/solver.h"
 #include "environment.h"
+#include "solver/host/containers_solver.h"
 #include "solver/host/interactions_solver.h"
-#include "solver/host/mechanics_solver.h"
 #include "solver/host/position_solver.h"
 
 using namespace biofvm;
@@ -129,14 +129,14 @@ int main()
 			measure(s.diffusion.solve(m), diffusion_duration);
 			measure(s.gradient.solve(m), gradient_duration);
 			measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
-			measure(mechanics_solver::update_mechanics_mesh(e), velocity_update_mesh);
+			measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
 			measure(position_solver::update_cell_velocities_and_neighbors(e), velocity_interactions_duration);
 			measure(position_solver::update_motility(e), velocity_motility_duration);
 			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
 			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
 			measure(position_solver::update_positions(e), position_duration);
 			measure(interactions_solver::update_cell_cell_interactions(e), interactions_duration);
-			measure(mechanics_solver::update_cell_container(e), delete_duration);
+			measure(containers_solver::update_cell_container_for_mechanics(e), delete_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
@@ -151,7 +151,7 @@ int main()
 
 	for (int i = 0; i < 5; i++)
 	{
-		mechanics_solver::update_mechanics_mesh(e);
+		containers_solver::update_mechanics_mesh(e);
 		position_solver::update_cell_velocities_and_neighbors(e);
 		position_solver::update_motility(e);
 		position_solver::update_basement_membrane_interactions(e);

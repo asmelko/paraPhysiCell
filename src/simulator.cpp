@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "original/standard_models.h"
+
 using namespace biofvm;
 using namespace physicell;
 
@@ -12,12 +14,13 @@ void simulator::initialize(environment& e)
 
 	simulation_step_ = 0;
 	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.time_step);
+	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.time_step);
 	recompute_secretion_and_uptake_ = false;
 }
 
 void simulator::simulate_diffusion_and_mechanics(environment& e)
 {
-    ++simulation_step_;
+	++simulation_step_;
 
 	{
 		// Compute diffusion:
@@ -35,7 +38,7 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		diffusion_solver_.gradient.solve(e.m);
 
 		// Update mechanics mesh with new cell positions:
-		mechanics_solver_.mechanics.update_mechanics_mesh(e);
+		mechanics_solver_.containers.update_mechanics_mesh(e);
 
 		// Compute velocities and update the positions:
 		{
@@ -50,8 +53,17 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		mechanics_solver_.interactions.update_cell_cell_interactions(e);
 
 		// Removal of flagged cells from data structures:
-		mechanics_solver_.mechanics.update_cell_container(e);
+		mechanics_solver_.containers.update_cell_container_for_mechanics(e);
 
 		recompute_secretion_and_uptake_ = true;
+	}
+
+	if (simulation_step_ % phenotype_step_interval_ == 0)
+	{
+		// Update phenotype:
+		advance_bundled_phenotype_functions(e);
+
+		// Removal and division of flagged cells in data structures:
+		mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell);
 	}
 }

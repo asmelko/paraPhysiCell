@@ -140,6 +140,13 @@ struct cell_state_data
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims);
 };
 
+enum class cell_state_flag : std::uint8_t
+{
+	none = 0,
+	to_remove = 1,
+	to_divide = 2
+};
+
 struct cell_data
 {
 	// BioFVM phenotype data: secretion + total volume + molecular
@@ -162,7 +169,7 @@ struct cell_data
 	std::vector<biofvm::index_t> cell_definition_indices;
 	std::vector<std::uint8_t> is_movable;
 
-	std::vector<std::uint8_t> to_remove;
+	std::vector<cell_state_flag> flags;
 
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;

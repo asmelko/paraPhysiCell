@@ -167,3 +167,24 @@ std::ostream& operator<<(std::ostream& os, const Custom_Cell_Data& ccd)
 
 	return os;
 }
+
+void Custom_Cell_Data::divide_conserved_quantities()
+{
+	for (std::size_t nn = 0; nn < variables.size(); nn++)
+	{
+		if (variables[nn].conserved_quantity == true)
+		{
+			variables[nn].value *= 0.5;
+		}
+	}
+	for (std::size_t nn = 0; nn < vector_variables.size(); nn++)
+	{
+		if (vector_variables[nn].conserved_quantity == true)
+		{
+			for (auto& v : vector_variables[nn].value)
+			{
+				v *= 0.5;
+			}
+		}
+	}
+}

@@ -329,3 +329,30 @@ void transformations_t::copy(transformations_t& dest)
 		dest.transformation_rates()[i] = transformation_rates()[i];
 	}
 }
+
+void volume_t::multiply_by_factor(real_t factor)
+{
+	total() *= factor;
+	solid() *= factor;
+	fluid() *= factor;
+
+	nuclear() *= factor;
+	nuclear_fluid() *= factor;
+	nuclear_solid() *= factor;
+
+	cytoplasmic() *= factor;
+	cytoplasmic_fluid() *= factor;
+	cytoplasmic_solid() *= factor;
+
+	rupture_volume() *= factor;
+}
+
+void volume_t::divide() { multiply_by_factor(0.5); }
+
+void molecular_t::divide()
+{
+	for (index_t i = 0; i < data_.e.m.substrates_count; i++)
+	{
+		internalized_total_substrates()[i] *= 0.5;
+	}
+}

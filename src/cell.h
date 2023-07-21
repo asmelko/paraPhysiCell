@@ -5,6 +5,7 @@
 
 #include <BioFVM/agent.h>
 
+#include "cell_data.h"
 #include "cell_definition.h"
 
 namespace physicell {
@@ -51,15 +52,18 @@ public:
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
 	std::uint8_t& is_movable();
+	cell_state_flag& flag();
 
-	void set_default(cell_definition& def);
-	void convert(cell_definition& def);
+	void set_default(cell_definition& def, biofvm::index_t def_index);
+	void convert(cell_definition& def, biofvm::index_t def_index);
+	void copy_from(cell& source);
+
+	void divide(cell& new_cell);
 
 	void assign_orientation();
 
-	// TODO:
-	void remove();
-	void divide();
+	void flag_for_removal();
+	void flag_for_division();
 };
 
 } // namespace physicell

@@ -108,7 +108,7 @@ void ingest(index_t lhs, index_t rhs, cell_data& data)
 	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
 					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
-	data.to_remove[rhs] = 1;
+	data.flags[rhs] = cell_state_flag::to_remove;
 }
 
 void fuse(index_t lhs, index_t rhs, cell_data& data)
@@ -130,7 +130,7 @@ void fuse(index_t lhs, index_t rhs, cell_data& data)
 
 	data.states.number_of_nuclei[lhs] += data.states.number_of_nuclei[rhs];
 
-	data.to_remove[rhs] = 1;
+	data.flags[rhs] = cell_state_flag::to_remove;
 }
 
 void attack(index_t lhs, index_t rhs, real_t time_step, const real_t* __restrict__ damage_rate,
@@ -145,7 +145,7 @@ void update_cell_cell_interactions_internal(
 	const index_t* __restrict__ cell_definition_indices, const real_t* __restrict__ dead_phagocytosis_rate,
 	const real_t* __restrict__ live_phagocytosis_rate, const real_t* __restrict__ attack_rate,
 	const real_t* __restrict__ fusion_rate, const real_t* __restrict__ immunogenicity,
-	const std::vector<index_t>* __restrict__ neighbors, const std::uint8_t* __restrict__ to_remove, cell_data& data)
+	const std::vector<index_t>* __restrict__ neighbors, const cell_state_flag* __restrict__ flag, cell_data& data)
 {
 	for (index_t cell_index = 0; cell_index < n; cell_index++)
 	{
@@ -153,7 +153,7 @@ void update_cell_cell_interactions_internal(
 		bool phagocytosed_once = false;
 		bool fused_once = false;
 
-		if (dead[cell_index] == 1 || to_remove[cell_index] == 1)
+		if (dead[cell_index] == 1 || flag[cell_index] == cell_state_flag::to_remove)
 		{
 			continue;
 		}
@@ -162,7 +162,7 @@ void update_cell_cell_interactions_internal(
 		{
 			const index_t neighbor_index = neighbors[cell_index][i];
 
-			if (to_remove[neighbor_index] == 1)
+			if (flag[neighbor_index] == cell_state_flag::to_remove)
 			{
 				continue;
 			}
@@ -230,5 +230,5 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
 		data.interactions.fussion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
-		data.to_remove.data(), data);
+		data.flags.data(), data);
 }

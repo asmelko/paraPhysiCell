@@ -270,11 +270,11 @@ void Cycle_Model::advance_model(cell& cell, biofvm::real_t dt)
 				// check if division or removal are required
 				if (phases[i].division_at_phase_exit)
 				{
-					cell.divide();
+					cell.flag_for_division();
 				}
 				if (phases[i].removal_at_phase_exit)
 				{
-					cell.remove();
+					cell.flag_for_removal();
 					return;
 				}
 				// move to the next phase, and reset the elapsed time

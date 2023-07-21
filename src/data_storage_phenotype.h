@@ -43,6 +43,10 @@ struct volume_t : public phenotype_data_storage
 
 	biofvm::real_t& rupture_volume();
 
+	void divide();
+
+	void multiply_by_factor(biofvm::real_t factor);
+
 	void copy(volume_t& dest);
 };
 
@@ -125,6 +129,8 @@ struct molecular_t : public phenotype_data_storage
 	biofvm::real_t* internalized_total_substrates();
 	biofvm::real_t* fraction_released_at_death();
 	biofvm::real_t* fraction_transferred_when_ingested();
+
+	void divide();
 
 	void copy(molecular_t& dest);
 };
