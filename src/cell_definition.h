@@ -16,7 +16,7 @@ private:
 	cell_data data_;
 
 public:
-	int type;
+	biofvm::index_t type;
 	std::string name;
 
 	bool is_movable;

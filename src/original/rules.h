@@ -16,31 +16,31 @@ class cell;
 class Hypothesis_Rule
 {
 private:
-	std::unordered_map<std::string, int> signals_map;
+	std::unordered_map<std::string, biofvm::index_t> signals_map;
 
 public:
 	std::string cell_type;
 	cell_definition* pCell_Definition;
 
 	std::string behavior;
-	double base_value;
-	double max_value;
-	double min_value;
+	biofvm::real_t base_value;
+	biofvm::real_t max_value;
+	biofvm::real_t min_value;
 
 	std::vector<std::string> signals;
 	std::vector<bool> responses;
-	std::vector<double> half_maxes;
-	std::vector<double> hill_powers;
+	std::vector<biofvm::real_t> half_maxes;
+	std::vector<biofvm::real_t> hill_powers;
 	std::vector<bool> applies_to_dead_cells;
 
 	std::vector<std::string> up_signals;
-	std::vector<double> up_half_maxes;
-	std::vector<double> up_hill_powers;
+	std::vector<biofvm::real_t> up_half_maxes;
+	std::vector<biofvm::real_t> up_hill_powers;
 	std::vector<bool> up_applies_to_dead_cells;
 
 	std::vector<std::string> down_signals;
-	std::vector<double> down_half_maxes;
-	std::vector<double> down_hill_powers;
+	std::vector<biofvm::real_t> down_half_maxes;
+	std::vector<biofvm::real_t> down_hill_powers;
 	std::vector<bool> down_applies_to_dead_cells;
 
 	Hypothesis_Rule(); // done
@@ -48,18 +48,19 @@ public:
 	void sync_to_cell_definition(cell_definition* pCD, environment& e);	 // done
 	void sync_to_cell_definition(std::string cell_name, environment& e); // done
 
-	void add_signal(std::string signal, double half_max, double hill_power, std::string response); // done
-	void add_signal(std::string signal, std::string response);									   // done
+	void add_signal(std::string signal, biofvm::real_t half_max, biofvm::real_t hill_power,
+					std::string response);					   // done
+	void add_signal(std::string signal, std::string response); // done
 
-	double evaluate(std::vector<double> signal_values, bool dead); // done
-	double evaluate(std::vector<double> signal_values);			   // done
-	double evaluate(cell* pCell, environment& e);				   // done
-	void apply(cell* pCell, environment& e);					   // done
+	biofvm::real_t evaluate(std::vector<biofvm::real_t> signal_values, bool dead); // done
+	biofvm::real_t evaluate(std::vector<biofvm::real_t> signal_values);			   // done
+	biofvm::real_t evaluate(cell* pCell, environment& e);						   // done
+	void apply(cell* pCell, environment& e);									   // done
 
-	int find_signal(std::string name); // done
+	biofvm::index_t find_signal(std::string name); // done
 
-	void set_half_max(std::string, double hm);			  // done
-	void set_hill_power(std::string, double hp);		  // done
+	void set_half_max(std::string, biofvm::real_t hm);	  // done
+	void set_hill_power(std::string, biofvm::real_t hp);  // done
 	void set_response(std::string, std::string response); // done
 
 	void reduced_display(std::ostream& os);	 // done
@@ -85,7 +86,7 @@ public:
 
 	Hypothesis_Ruleset(); // done
 
-	Hypothesis_Rule* add_behavior(std::string behavior, double min_behavior, double max_behavior,
+	Hypothesis_Rule* add_behavior(std::string behavior, biofvm::real_t min_behavior, biofvm::real_t max_behavior,
 								  environment& e);						 // done
 	Hypothesis_Rule* add_behavior(std::string behavior, environment& e); // done
 
@@ -118,16 +119,16 @@ void add_rule(std::string cell_type, std::string signal, std::string behavior, s
 void add_rule(std::string cell_type, std::string signal, std::string behavior, std::string response, bool use_for_dead,
 			  environment& e);
 
-void set_hypothesis_parameters(std::string cell_type, std::string signal, std::string behavior, double half_max,
-							   double hill_power, environment& e);
-void set_behavior_parameters(std::string cell_type, std::string behavior, double min_value, double max_value,
-							 environment& e);
-void set_behavior_parameters(std::string cell_type, std::string behavior, double min_value, double base_value,
-							 double max_value, environment& e);
+void set_hypothesis_parameters(std::string cell_type, std::string signal, std::string behavior, biofvm::real_t half_max,
+							   biofvm::real_t hill_power, environment& e);
+void set_behavior_parameters(std::string cell_type, std::string behavior, biofvm::real_t min_value,
+							 biofvm::real_t max_value, environment& e);
+void set_behavior_parameters(std::string cell_type, std::string behavior, biofvm::real_t min_value,
+							 biofvm::real_t base_value, biofvm::real_t max_value, environment& e);
 
-void set_behavior_base_value(std::string cell_type, std::string behavior, double base_value, environment& e);
-void set_behavior_min_value(std::string cell_type, std::string behavior, double min_value, environment& e);
-void set_behavior_max_value(std::string cell_type, std::string behavior, double max_value, environment& e);
+void set_behavior_base_value(std::string cell_type, std::string behavior, biofvm::real_t base_value, environment& e);
+void set_behavior_min_value(std::string cell_type, std::string behavior, biofvm::real_t min_value, environment& e);
+void set_behavior_max_value(std::string cell_type, std::string behavior, biofvm::real_t max_value, environment& e);
 
 // display
 
@@ -137,7 +138,7 @@ void detailed_display_hypothesis_rulesets(std::ostream& os, environment& e);
 // applying to a cell
 
 void apply_ruleset(cell* pCell, environment& e);
-void rule_phenotype_function(cell* pCell, double dt, environment& e);
+void rule_phenotype_function(cell* pCell, biofvm::real_t dt, environment& e);
 
 
 // parsing to / from CSV
@@ -191,28 +192,28 @@ void save_annotated_detailed_English_rules_HTML(void);
 
 // add these to PhysiCell_utilities.cpp
 
-// std::vector<double> UniformInUnitDisc(void);
-// std::vector<double> UniformInUnitSphere(void);
+// std::vector<biofvm::real_t> UniformInUnitDisc(void);
+// std::vector<biofvm::real_t> UniformInUnitSphere(void);
 
-// std::vector<double> UniformInAnnulus(double r1, double r2);
-// std::vector<double> UniformInShell(double r1, double r2);
+// std::vector<biofvm::real_t> UniformInAnnulus(biofvm::real_t r1, biofvm::real_t r2);
+// std::vector<biofvm::real_t> UniformInShell(biofvm::real_t r1, biofvm::real_t r2);
 
 // add this to cell behaviors
 
-// double get_single_base_behavior( Cell_Definition* pCD , std::string name );
+// biofvm::real_t get_single_base_behavior( Cell_Definition* pCD , std::string name );
 
 
 // add these to basic signaling
 
 /*
-double multivariate_Hill_response_function( std::vector<double> signals, std::vector<double> half_maxes ,
-std::vector<double> hill_powers );
+biofvm::real_t multivariate_Hill_response_function( std::vector<biofvm::real_t> signals, std::vector<biofvm::real_t>
+half_maxes , std::vector<biofvm::real_t> hill_powers );
 
-double multivariate_linear_response_function( std::vector<double> signals, std::vector<double> min_thresholds ,
-std::vector<double> max_thresholds );
+biofvm::real_t multivariate_linear_response_function( std::vector<biofvm::real_t> signals, std::vector<biofvm::real_t>
+min_thresholds , std::vector<biofvm::real_t> max_thresholds );
 
-std::vector<double> linear_response_to_Hill_parameters( double s0, double s1 );
-std::vector<double> Hill_response_to_linear_parameters( double half_max , double Hill_power );
+std::vector<biofvm::real_t> linear_response_to_Hill_parameters( biofvm::real_t s0, biofvm::real_t s1 );
+std::vector<biofvm::real_t> Hill_response_to_linear_parameters( biofvm::real_t half_max , biofvm::real_t Hill_power );
 */
 
 void setup_cell_rules(runtime_settings& settings, environment& e);

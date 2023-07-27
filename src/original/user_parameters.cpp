@@ -4,6 +4,8 @@
 
 #include "pugixml_helper.h"
 
+using namespace biofvm;
+
 namespace physicell {
 
 template <class T>
@@ -84,13 +86,13 @@ std::ostream& operator<<(std::ostream& os, const Parameter<T>& param)
 }
 
 template <class T>
-int Parameters<T>::size(void) const
+index_t Parameters<T>::size(void) const
 {
 	return parameters.size();
 }
 
 template <class T>
-T& Parameters<T>::operator()(int i)
+T& Parameters<T>::operator()(index_t i)
 {
 	return parameters[i].value;
 }
@@ -107,7 +109,7 @@ T& Parameters<T>::operator()(std::string str)
 }
 
 template <class T>
-Parameter<T>& Parameters<T>::operator[](int i)
+Parameter<T>& Parameters<T>::operator[](index_t i)
 {
 	return parameters[i];
 }
@@ -125,7 +127,7 @@ Parameter<T>& Parameters<T>::operator[](std::string str)
 
 
 template <class T>
-int Parameters<T>::find_index(std::string search_name)
+index_t Parameters<T>::find_index(std::string search_name)
 {
 	auto out = name_to_index_map.find(search_name);
 	if (out != name_to_index_map.end())
@@ -162,7 +164,7 @@ void Parameters<T>::add_parameter(std::string my_name)
 	pNew = new Parameter<T>;
 	pNew->name = my_name;
 
-	int n = parameters.size();
+	index_t n = parameters.size();
 
 	parameters.push_back(*pNew);
 
@@ -178,7 +180,7 @@ void Parameters<T>::add_parameter(std::string my_name, T my_value)
 	pNew->name = my_name;
 	pNew->value = my_value;
 
-	int n = parameters.size();
+	index_t n = parameters.size();
 
 	parameters.push_back(*pNew);
 
@@ -194,7 +196,7 @@ void Parameters<T>::add_parameter( std::string my_name , T my_value )
 	pNew->name = my_name ;
 	pNew->value = my_value;
 
-	int n = parameters.size();
+	index_t n = parameters.size();
 
 	parameters.push_back( *pNew );
 
@@ -212,7 +214,7 @@ void Parameters<T>::add_parameter(std::string my_name, T my_value, std::string m
 	pNew->value = my_value;
 	pNew->units = my_units;
 
-	int n = parameters.size();
+	index_t n = parameters.size();
 
 	parameters.push_back(*pNew);
 
@@ -230,7 +232,7 @@ void Parameters<T>::add_parameter( std::string my_name , T my_value , std::strin
 	pNew->value = my_value;
 	pNew->units = my_units;
 
-	int n = parameters.size();
+	index_t n = parameters.size();
 
 	parameters.push_back( *pNew );
 
@@ -242,7 +244,7 @@ void Parameters<T>::add_parameter( std::string my_name , T my_value , std::strin
 template <class T>
 void Parameters<T>::add_parameter(Parameter<T> param)
 {
-	int n = parameters.size();
+	index_t n = parameters.size();
 	parameters.push_back(param);
 	name_to_index_map[param.name] = n;
 	return;
@@ -283,14 +285,14 @@ void User_Parameters::read_from_pugixml(pugi::xml_node parent_node)
 
 		if (type == "int" && done == false)
 		{
-			int value = xml_get_my_int_value(node1);
+			index_t value = xml_get_my_int_value(node1);
 			ints.add_parameter(name, value, units);
 			done = true;
 		}
 
 		if (type == "double" && done == false)
 		{
-			double value = xml_get_my_double_value(node1);
+			real_t value = xml_get_my_double_value(node1);
 			doubles.add_parameter(name, value, units);
 			done = true;
 		}
@@ -305,7 +307,7 @@ void User_Parameters::read_from_pugixml(pugi::xml_node parent_node)
 		/* default if no type specified: */
 		if (done == false)
 		{
-			double value = xml_get_my_double_value(node1);
+			real_t value = xml_get_my_double_value(node1);
 			doubles.add_parameter(name, value, units);
 			done = true;
 		}
@@ -321,13 +323,13 @@ void User_Parameters::read_from_pugixml(pugi::xml_node parent_node)
 
 // need this so that the template gets filled and compiled prior to linking
 template class Parameter<bool>;
-template class Parameter<int>;
-template class Parameter<double>;
+template class Parameter<index_t>;
+template class Parameter<real_t>;
 template class Parameter<std::string>;
 
 template class Parameters<bool>;
-template class Parameters<int>;
-template class Parameters<double>;
+template class Parameters<index_t>;
+template class Parameters<real_t>;
 template class Parameters<std::string>;
 
 } // namespace physicell

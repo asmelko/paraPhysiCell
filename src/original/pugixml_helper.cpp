@@ -1,5 +1,7 @@
 #include "pugixml_helper.h"
 
+using namespace biofvm;
+
 namespace physicell {
 
 
@@ -16,8 +18,8 @@ std::string xml_get_string_value(pugi::xml_node& parent_node, std::string find_m
 }
 
 
-// get the double value stored in <parent_node> <find_me>double_value</find_me> </parent_node>
-double xml_get_double_value(pugi::xml_node& parent_node, std::string find_me)
+// get the real_t value stored in <parent_node> <find_me>double_value</find_me> </parent_node>
+real_t xml_get_double_value(pugi::xml_node& parent_node, std::string find_me)
 {
 	// return strtod( parent_node.child( find_me.c_str() ).text().get() , NULL ); // classic
 
@@ -25,7 +27,7 @@ double xml_get_double_value(pugi::xml_node& parent_node, std::string find_me)
 }
 
 // get the integer value in <parent_node> <find_me>int_value</find_me> </parent_node>
-int xml_get_int_value(pugi::xml_node& parent_node, std::string find_me)
+index_t xml_get_int_value(pugi::xml_node& parent_node, std::string find_me)
 {
 	//	return atoi( parent_node.child( find_me.c_str() ).text().get() ); // classic
 
@@ -45,9 +47,9 @@ std::string xml_get_my_name(pugi::xml_node node) { return node.name(); }
 
 bool xml_get_my_bool_value(pugi::xml_node node) { return node.text().as_bool(); }
 
-int xml_get_my_int_value(pugi::xml_node node) { return node.text().as_int(); }
+index_t xml_get_my_int_value(pugi::xml_node node) { return node.text().as_int(); }
 
-double xml_get_my_double_value(pugi::xml_node node) { return node.text().as_double(); }
+real_t xml_get_my_double_value(pugi::xml_node node) { return node.text().as_double(); }
 
 std::string xml_get_my_string_value(pugi::xml_node node) { return node.text().get(); }
 

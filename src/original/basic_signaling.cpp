@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+using namespace biofvm;
+
 namespace physicell {
 
 Integrated_Signal::Integrated_Signal()
@@ -34,10 +36,10 @@ void Integrated_Signal::reset(void)
 	return;
 }
 
-double Integrated_Signal::compute_signal(void)
+real_t Integrated_Signal::compute_signal(void)
 {
-	double pr = 0.0;
-	double w = 0.0;
+	real_t pr = 0.0;
+	real_t w = 0.0;
 	for (std::size_t k = 0; k < promoters.size(); k++)
 	{
 		pr += promoters[k];
@@ -46,7 +48,7 @@ double Integrated_Signal::compute_signal(void)
 	w += 1e-16;
 	pr /= w;
 
-	double inhib = 0.0;
+	real_t inhib = 0.0;
 	w = 0.0;
 	for (std::size_t k = 0; k < inhibitors.size(); k++)
 	{
@@ -56,16 +58,16 @@ double Integrated_Signal::compute_signal(void)
 	w += 1e-16;
 	inhib /= w;
 
-	double Pn = pow(pr, promoters_Hill);
-	double Phalf = pow(promoters_half_max, promoters_Hill);
+	real_t Pn = pow(pr, promoters_Hill);
+	real_t Phalf = pow(promoters_half_max, promoters_Hill);
 
-	double In = pow(inhib, inhibitors_Hill);
-	double Ihalf = pow(inhibitors_half_max, inhibitors_Hill);
+	real_t In = pow(inhib, inhibitors_Hill);
+	real_t Ihalf = pow(inhibitors_half_max, inhibitors_Hill);
 
-	double P = Pn / (Pn + Phalf);
-	double I = 1.0 / (In + Ihalf);
+	real_t P = Pn / (Pn + Phalf);
+	real_t I = 1.0 / (In + Ihalf);
 
-	double output = max_activity;
+	real_t output = max_activity;
 	output -= base_activity; //(max-base)
 	output *= P;			 // (max-base)*P
 	output += base_activity; // base + (max-base)*P
@@ -74,7 +76,7 @@ double Integrated_Signal::compute_signal(void)
 	return output;
 };
 
-void Integrated_Signal::add_signal(char signal_type, double signal, double weight)
+void Integrated_Signal::add_signal(char signal_type, real_t signal, real_t weight)
 {
 	if (signal_type == 'P' || signal_type == 'p')
 	{
@@ -91,9 +93,9 @@ void Integrated_Signal::add_signal(char signal_type, double signal, double weigh
 	return;
 }
 
-void Integrated_Signal::add_signal(char signal_type, double signal) { return add_signal(signal_type, signal, 1.0); }
+void Integrated_Signal::add_signal(char signal_type, real_t signal) { return add_signal(signal_type, signal, 1.0); }
 
-double Hill_response_function(double s, double half_max, double hill_power)
+real_t Hill_response_function(real_t s, real_t half_max, real_t hill_power)
 {
 	// newer. only one expensive a^b operation. 45% less computationl expense.
 
@@ -105,16 +107,16 @@ double Hill_response_function(double s, double half_max, double hill_power)
 
 	// operations to reduce a^b operations and minimize hidden memory allocation / deallocation / copy operations.
 	// Hill = (s/half_max)^hill_power / ( 1 + (s/half_max)^hill_power  )
-	double temp = s;					  // s
+	real_t temp = s;					  // s
 	temp /= half_max;					  // s/half_max
-	double temp1 = pow(temp, hill_power); // (s/half_max)^h
+	real_t temp1 = pow(temp, hill_power); // (s/half_max)^h
 	temp = temp1;						  // (s/half_max)^h
 	temp += 1;							  // (1+(s/half_max)^h );
 	temp1 /= temp;						  // (s/half_max)^h / ( 1 + s/half_max)^h)
 	return temp1;
 }
 
-double linear_response_function(double s, double s_min, double s_max)
+real_t linear_response_function(real_t s, real_t s_min, real_t s_max)
 {
 	if (s <= s_min)
 	{
@@ -130,7 +132,7 @@ double linear_response_function(double s, double s_min, double s_max)
 	return s;
 }
 
-double decreasing_linear_response_function(double s, double s_min, double s_max)
+real_t decreasing_linear_response_function(real_t s, real_t s_min, real_t s_max)
 {
 	if (s <= s_min)
 	{
@@ -149,21 +151,21 @@ double decreasing_linear_response_function(double s, double s_min, double s_max)
 	return s;
 }
 
-double interpolate_behavior(double base_value, double max_changed_value, double response)
+real_t interpolate_behavior(real_t base_value, real_t max_changed_value, real_t response)
 {
-	double output = max_changed_value; // bM
+	real_t output = max_changed_value; // bM
 	output -= base_value;			   // (bM-b0);
 	output *= response;				   // R*(bM-b0);
 	output += base_value;			   // b0 + (bM-b0)*R;
 	return output;
 }
 
-double multivariate_Hill_response_function(std::vector<double> signals, std::vector<double> half_maxes,
-										   std::vector<double> hill_powers)
+real_t multivariate_Hill_response_function(std::vector<real_t> signals, std::vector<real_t> half_maxes,
+										   std::vector<real_t> hill_powers)
 {
-	double temp1 = 0.0;
-	double temp2 = 0.0;
-	double temp3 = 0.0;
+	real_t temp1 = 0.0;
+	real_t temp2 = 0.0;
+	real_t temp3 = 0.0;
 	// create the generalized (s^h), stored in temp1;
 	for (std::size_t j = 0; j < signals.size(); j++)
 	{
@@ -178,10 +180,10 @@ double multivariate_Hill_response_function(std::vector<double> signals, std::vec
 	return temp2;
 }
 
-double multivariate_linear_response_function(std::vector<double> signals, std::vector<double> min_thresholds,
-											 std::vector<double> max_thresholds)
+real_t multivariate_linear_response_function(std::vector<real_t> signals, std::vector<real_t> min_thresholds,
+											 std::vector<real_t> max_thresholds)
 {
-	double output = 0.0;
+	real_t output = 0.0;
 
 	for (std::size_t j = 0; j < signals.size(); j++)
 	{
@@ -196,40 +198,40 @@ double multivariate_linear_response_function(std::vector<double> signals, std::v
 	return output;
 }
 
-std::vector<double> linear_response_to_Hill_parameters(double s0, double s1)
+std::vector<real_t> linear_response_to_Hill_parameters(real_t s0, real_t s1)
 {
-	static double tol = 0.1;
-	static double param1 = (1 - tol) / tol;
-	static double param2 = log(param1);
+	static real_t tol = 0.1;
+	static real_t param1 = (1 - tol) / tol;
+	static real_t param2 = log(param1);
 
 	// half max, then hill power
-	double hm = 0.5 * (s0 + s1);
+	real_t hm = 0.5 * (s0 + s1);
 
 	// hp so that H(s1) ~ (1-tol)
-	double hp = round(param2 / log(s1 / hm));
+	real_t hp = round(param2 / log(s1 / hm));
 
-	std::vector<double> output = { hm, hp };
+	std::vector<real_t> output = { hm, hp };
 
 	return output;
 }
 
-std::vector<double> Hill_response_to_linear_parameters(double half_max, double Hill_power)
+std::vector<real_t> Hill_response_to_linear_parameters(real_t half_max, real_t Hill_power)
 {
-	static double tol = 0.1;
-	static double param1 = (1 - tol) / tol;
-	double param2 = pow(param1, 1.0 / Hill_power);
+	static real_t tol = 0.1;
+	static real_t param1 = (1 - tol) / tol;
+	real_t param2 = pow(param1, 1.0 / Hill_power);
 
 	// s1 such that H(s1) ~ (1-tol)
-	double s1 = half_max * param2;
+	real_t s1 = half_max * param2;
 
 	// s0 for symmetry
-	double s0 = 2 * half_max - s1;
+	real_t s0 = 2 * half_max - s1;
 	if (s0 < 0)
 	{
 		s0 = 0.0;
 	}
 
-	std::vector<double> output = { s0, s1 };
+	std::vector<real_t> output = { s0, s1 };
 
 	return output;
 }

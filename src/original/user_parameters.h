@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <BioFVM/types.h>
+
 namespace physicell {
 
 template <class T>
@@ -31,7 +33,7 @@ template <class T>
 class Parameters
 {
 private:
-	std::unordered_map<std::string, int> name_to_index_map;
+	std::unordered_map<std::string, biofvm::index_t> name_to_index_map;
 
 	template <class Y>
 	friend std::ostream& operator<<(std::ostream& os, const Parameters<Y>& params);
@@ -49,17 +51,17 @@ public:
 
 	void add_parameter(Parameter<T> param);
 
-	int find_index(std::string search_name);
+	biofvm::index_t find_index(std::string search_name);
 
 	// these access the values
-	T& operator()(int i);
+	T& operator()(biofvm::index_t i);
 	T& operator()(std::string str);
 
 	// these access the full, raw parameters
-	Parameter<T>& operator[](int i);
+	Parameter<T>& operator[](biofvm::index_t i);
 	Parameter<T>& operator[](std::string str);
 
-	int size(void) const;
+	biofvm::index_t size(void) const;
 };
 
 class User_Parameters
@@ -69,8 +71,8 @@ private:
 
 public:
 	Parameters<bool> bools;
-	Parameters<int> ints;
-	Parameters<double> doubles;
+	Parameters<biofvm::index_t> ints;
+	Parameters<biofvm::real_t> doubles;
 	Parameters<std::string> strings;
 
 	void read_from_pugixml(pugi::xml_node parent_node);

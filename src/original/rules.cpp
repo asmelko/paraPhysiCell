@@ -56,14 +56,14 @@ std::string convert_bool_to_response(bool input)
 }
 
 /*
-double multivariate_Hill_response_function( std::vector<double> signals, std::vector<double> half_maxes ,
-std::vector<double> hill_powers )
+real_t multivariate_Hill_response_function( std::vector<real_t> signals, std::vector<real_t> half_maxes ,
+std::vector<real_t> hill_powers )
 {
-	double temp1 = 0.0;
-	double temp2 = 0.0;
-	double temp3 = 0.0;
+	real_t temp1 = 0.0;
+	real_t temp2 = 0.0;
+	real_t temp3 = 0.0;
 	// create the generalized (s^h), stored in temp1;
-	for( int j=0 ; j < signals.size(); j++ )
+	for( index_t j=0 ; j < signals.size(); j++ )
 	{
 		temp2 = signals[j];     // s
 		temp2 /= half_maxes[j]; // s/s_half
@@ -76,12 +76,12 @@ std::vector<double> hill_powers )
 	return temp2;
 }
 
-double multivariate_linear_response_function( std::vector<double> signals, std::vector<double> min_thresholds ,
-std::vector<double> max_thresholds )
+real_t multivariate_linear_response_function( std::vector<real_t> signals, std::vector<real_t> min_thresholds ,
+std::vector<real_t> max_thresholds )
 {
-	double output = 0.0;
+	real_t output = 0.0;
 
-	for( int j=0 ; j < signals.size(); j++ )
+	for( index_t j=0 ; j < signals.size(); j++ )
 	{ output += linear_response_function( signals[j] , min_thresholds[j], max_thresholds[j] ); }
 
 	if( output > 1.0 )
@@ -229,7 +229,7 @@ void Hypothesis_Rule::English_display_HTML(std::ostream& os)
 	}
 }
 
-void Hypothesis_Rule::add_signal(std::string signal, double half_max, double hill_power, std::string response)
+void Hypothesis_Rule::add_signal(std::string signal, real_t half_max, real_t hill_power, std::string response)
 {
 	// check: is this a valid signal? (is it in the dictionary?)
 	if (find_signal_index(signal) < 0)
@@ -241,7 +241,7 @@ void Hypothesis_Rule::add_signal(std::string signal, double half_max, double hil
 	}
 
 	// check to see if it's already there
-	int n = find_signal(signal);
+	index_t n = find_signal(signal);
 
 	// if so, then just warn and exit.
 	if (n > -1)
@@ -289,11 +289,11 @@ void Hypothesis_Rule::add_signal(std::string signal, std::string response)
 	return add_signal(signal, 0.5, 3.0, response);
 }
 
-double Hypothesis_Rule::evaluate(std::vector<double> signal_values, bool dead)
+real_t Hypothesis_Rule::evaluate(std::vector<real_t> signal_values, bool dead)
 {
 	// create signals
-	std::vector<double> up_signal(0, 0);   //  up_signals.size() , 0.0 );
-	std::vector<double> down_signal(0, 0); //  down_signals.size() , 0.0 );
+	std::vector<real_t> up_signal(0, 0);   //  up_signals.size() , 0.0 );
+	std::vector<real_t> down_signal(0, 0); //  down_signals.size() , 0.0 );
 
 	bool apply_rule = false;
 
@@ -337,25 +337,25 @@ double Hypothesis_Rule::evaluate(std::vector<double> signal_values, bool dead)
 	}
 
 	// up-regulation part
-	double HU = multivariate_Hill_response_function(up_signal, up_half_maxes, up_hill_powers);
-	double U = base_value + (max_value - base_value) * HU;
+	real_t HU = multivariate_Hill_response_function(up_signal, up_half_maxes, up_hill_powers);
+	real_t U = base_value + (max_value - base_value) * HU;
 
 	// then the down-regulation part
-	double DU = multivariate_Hill_response_function(down_signal, down_half_maxes, down_hill_powers);
-	double output = U + (min_value - U) * DU;
+	real_t DU = multivariate_Hill_response_function(down_signal, down_half_maxes, down_hill_powers);
+	real_t output = U + (min_value - U) * DU;
 
 	return output;
 }
 
-double Hypothesis_Rule::evaluate(std::vector<double> signal_values)
+real_t Hypothesis_Rule::evaluate(std::vector<real_t> signal_values)
 {
 	return Hypothesis_Rule::evaluate(signal_values, true);
 }
 
-double Hypothesis_Rule::evaluate(cell* pCell, environment& e)
+real_t Hypothesis_Rule::evaluate(cell* pCell, environment& e)
 {
 	// construct signal vector
-	std::vector<double> signal_values(signals.size(), 0.0);
+	std::vector<real_t> signal_values(signals.size(), 0.0);
 	for (std::size_t i = 0; i < signals.size(); i++)
 	{
 		signal_values[i] = get_single_signal(pCell, signals[i]);
@@ -364,7 +364,7 @@ double Hypothesis_Rule::evaluate(cell* pCell, environment& e)
 	// now, get live/dead value
 	bool dead = (bool)get_single_signal(pCell, "dead");
 
-	double out = evaluate(signal_values, dead);
+	real_t out = evaluate(signal_values, dead);
 
 	// new March 27, 2023
 	// if the rule was found to not apply, then just get the prior value
@@ -379,7 +379,7 @@ double Hypothesis_Rule::evaluate(cell* pCell, environment& e)
 void Hypothesis_Rule::apply(cell* pCell, environment& e)
 {
 	// evaluate the rule
-	double param = evaluate(pCell, e);
+	real_t param = evaluate(pCell, e);
 
 	// apply it ot the appropriate behavior
 	set_single_behavior(pCell, behavior, param);
@@ -408,7 +408,7 @@ void Hypothesis_Rule::sync_to_cell_definition(std::string cell_name, environment
 	return sync_to_cell_definition(e.find_cell_definition(cell_name), e);
 }
 
-int Hypothesis_Rule::find_signal(std::string name)
+index_t Hypothesis_Rule::find_signal(std::string name)
 {
 	auto search = signals_map.find(name);
 
@@ -420,9 +420,9 @@ int Hypothesis_Rule::find_signal(std::string name)
 	return search->second;
 }
 
-void Hypothesis_Rule::set_half_max(std::string name, double hm)
+void Hypothesis_Rule::set_half_max(std::string name, real_t hm)
 {
-	int n = find_signal(name);
+	index_t n = find_signal(name);
 	if (n < 0)
 	{
 		return;
@@ -453,9 +453,9 @@ void Hypothesis_Rule::set_half_max(std::string name, double hm)
 	return;
 }
 
-void Hypothesis_Rule::set_hill_power(std::string name, double hp)
+void Hypothesis_Rule::set_hill_power(std::string name, real_t hp)
 {
-	int n = find_signal(name);
+	index_t n = find_signal(name);
 	if (n < 0)
 	{
 		return;
@@ -487,7 +487,7 @@ void Hypothesis_Rule::set_hill_power(std::string name, double hp)
 
 void Hypothesis_Rule::set_response(std::string name, std::string response)
 {
-	int n = find_signal(name);
+	index_t n = find_signal(name);
 	if (n < 0)
 	{
 		return;
@@ -509,7 +509,7 @@ void Hypothesis_Rule::set_response(std::string name, std::string response)
 	{
 		// need to switch from up to down
 		// find current index
-		int ci = -1;
+		index_t ci = -1;
 		for (std::size_t m = 0; m < up_signals.size(); m++)
 		{
 			if (up_signals[m] == name)
@@ -541,7 +541,7 @@ void Hypothesis_Rule::set_response(std::string name, std::string response)
 	{
 		// need to switch from down to up
 		// find current index
-		int ci = -1;
+		index_t ci = -1;
 		for (std::size_t m = 0; m < down_signals.size(); m++)
 		{
 			if (down_signals[m] == name)
@@ -577,12 +577,12 @@ void Hypothesis_Rule::set_response(std::string name, std::string response)
 
 /* add this to the core library! */
 /*
-double get_single_base_behavior( cell_definition* pCD , std::string name )
+real_t get_single_base_behavior( cell_definition* pCD , std::string name )
 {
-	static int m = microenvironment.number_of_densities();
-	static int n = cell_definition_indices_by_name.size();
+	static index_t m = microenvironment.number_of_densities();
+	static index_t n = cell_definition_indices_by_name.size();
 
-	int index = find_behavior_index(name);
+	index_t index = find_behavior_index(name);
 
 	if( index < 0 )
 	{
@@ -594,28 +594,28 @@ double get_single_base_behavior( cell_definition* pCD , std::string name )
 	// substrate-related behaviors
 
 	// first m entries are secretion
-	static int first_secretion_index = find_behavior_index( microenvironment.density_names[0] + " secretion" ); // 0;
-	if( index >= first_secretion_index && index < first_secretion_index + m )
-	{ return pCD->phenotype.secretion.secretion_rates[index-first_secretion_index]; }
+	static index_t first_secretion_index = find_behavior_index( microenvironment.density_names[0] + " secretion" ); //
+0; if( index >= first_secretion_index && index < first_secretion_index + m ) { return
+pCD->phenotype.secretion.secretion_rates[index-first_secretion_index]; }
 
 	// next m entries are secretion targets
-	static int first_secretion_target_index = find_behavior_index( microenvironment.density_names[0] + " secretion
+	static index_t first_secretion_target_index = find_behavior_index( microenvironment.density_names[0] + " secretion
 target" ); // m; if( index >= first_secretion_target_index && index < first_secretion_target_index + m ) { return
 pCD->phenotype.secretion.saturation_densities[index-first_secretion_target_index]; }
 
 	// next m entries are uptake rates
-	static int first_uptake_index = find_behavior_index( microenvironment.density_names[0] + " uptake" );  // 2*m;
+	static index_t first_uptake_index = find_behavior_index( microenvironment.density_names[0] + " uptake" );  // 2*m;
 	if( index >= first_uptake_index && index < first_uptake_index + m )
 	{ return pCD->phenotype.secretion.uptake_rates[index-first_uptake_index]; }
 
 	// next m entries are net export rates
-	static int first_export_index = find_behavior_index( microenvironment.density_names[0] + " export" ); //  3*m;
+	static index_t first_export_index = find_behavior_index( microenvironment.density_names[0] + " export" ); //  3*m;
 	if( index >= first_export_index && index < first_export_index + m )
 	{ return pCD->phenotype.secretion.net_export_rates[index-first_export_index]; }
 
 	// cycle entry (exit from phase 0) and exit from up to 5 more phases
-	static int first_cycle_index = find_behavior_index("exit from cycle phase 0" ); //  4*m;
-	int max_cycle_index = pCD->phenotype.cycle.model().phases.size();
+	static index_t first_cycle_index = find_behavior_index("exit from cycle phase 0" ); //  4*m;
+	index_t max_cycle_index = pCD->phenotype.cycle.model().phases.size();
 	if( max_cycle_index > 6 )
 	{
 		max_cycle_index = 6;
@@ -625,17 +625,19 @@ pCD->phenotype.secretion.saturation_densities[index-first_secretion_target_index
 	}
 	if( index >= first_cycle_index && index < first_cycle_index + 6 )
 	{
-		int ind = index - first_cycle_index;
+		index_t ind = index - first_cycle_index;
 		if( ind < max_cycle_index )
 		{ return pCD->phenotype.cycle.data.exit_rate( ind ); }
 		return 0.0;
 	}
 
-	static int apoptosis_index = pCD->phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model
-); static int necrosis_index = pCD->phenotype.death.find_death_model_index( PhysiCell_constants::necrosis_death_model );
+	static index_t apoptosis_index = pCD->phenotype.death.find_death_model_index(
+PhysiCell_constants::apoptosis_death_model
+); static index_t necrosis_index = pCD->phenotype.death.find_death_model_index(
+PhysiCell_constants::necrosis_death_model );
 
-	static int apop_param_index = find_behavior_index( "apoptosis");
-	static int necr_param_index = find_behavior_index( "necrosis");
+	static index_t apop_param_index = find_behavior_index( "apoptosis");
+	static index_t necr_param_index = find_behavior_index( "necrosis");
 
 	// apoptosis
 	if( index == apop_param_index )
@@ -646,88 +648,88 @@ pCD->phenotype.secretion.saturation_densities[index-first_secretion_target_index
 	{ return pCD->phenotype.death.rates[necrosis_index]; }
 
 	// migration speed
-	static int migr_spd_index = find_behavior_index( "migration speed");
+	static index_t migr_spd_index = find_behavior_index( "migration speed");
 	if( index == migr_spd_index )
 	{ return pCD->phenotype.motility.migration_speed; }
 
 	// migration bias
-	static int migr_bias_index = find_behavior_index( "migration bias");
+	static index_t migr_bias_index = find_behavior_index( "migration bias");
 	if( index == migr_bias_index )
 	{ return pCD->phenotype.motility.migration_bias; }
 
 	// migration persistence time
-	static int migr_pt_index = find_behavior_index( "migration persistence time");
+	static index_t migr_pt_index = find_behavior_index( "migration persistence time");
 	if( index == migr_pt_index )
 	{ return pCD->phenotype.motility.persistence_time; }
 
 	// chemotactic sensitivities
-	static int first_chemotaxis_index = find_behavior_index( "chemotactic response to " +
+	static index_t first_chemotaxis_index = find_behavior_index( "chemotactic response to " +
 microenvironment.density_names[0] ); if( index >= first_chemotaxis_index && index < first_chemotaxis_index + m ) {
 return pCD->phenotype.motility.chemotactic_sensitivities[index-first_chemotaxis_index]; }
 
 	// cell-cell adhesion
-	static int cca_index = find_behavior_index( "cell-cell adhesion" );
+	static index_t cca_index = find_behavior_index( "cell-cell adhesion" );
 	if( index == cca_index )
 	{ return pCD->phenotype.mechanics.cell_cell_adhesion_strength; }
 
 	// cell-cell "springs"
-	static int cca_spring_index = find_behavior_index( "cell-cell adhesion elastic constant" );
+	static index_t cca_spring_index = find_behavior_index( "cell-cell adhesion elastic constant" );
 	if( index == cca_spring_index )
 	{ return pCD->phenotype.mechanics.attachment_elastic_constant; }
 
 	// cell adhesion affinities
-	static int first_affinity_index = find_behavior_index("adhesive affinity to " + cell_definitions_by_type[0]->name );
-	if( index >= first_affinity_index && index < first_affinity_index + n )
-	{ return pCD->phenotype.mechanics.cell_adhesion_affinities[index-first_affinity_index]; }
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " +
+cell_definitions_by_type[0]->name ); if( index >= first_affinity_index && index < first_affinity_index + n ) { return
+pCD->phenotype.mechanics.cell_adhesion_affinities[index-first_affinity_index]; }
 
 	// max relative maximum adhesion distance
-	static int max_adh_index = find_behavior_index("relative maximum adhesion distance" );
+	static index_t max_adh_index = find_behavior_index("relative maximum adhesion distance" );
 	if( index == max_adh_index )
 	{ return pCD->phenotype.mechanics.relative_maximum_adhesion_distance; }
 
 	// cell-cell repulsion
-	static int ccr_index = find_behavior_index("cell-cell repulsion" );
+	static index_t ccr_index = find_behavior_index("cell-cell repulsion" );
 	if( index == ccr_index )
 	{ return pCD->phenotype.mechanics.cell_cell_repulsion_strength; }
 
 	// cell-BM adhesion
-	static int cba_index = find_behavior_index("cell-BM adhesion" );
+	static index_t cba_index = find_behavior_index("cell-BM adhesion" );
 	if( index == cba_index )
 	{ return pCD->phenotype.mechanics.cell_BM_adhesion_strength; }
 
 	// cell-BM repulsion
-	static int cbr_index = find_behavior_index("cell-BM repulsion" );
+	static index_t cbr_index = find_behavior_index("cell-BM repulsion" );
 	if( index == cbr_index )
 	{ return pCD->phenotype.mechanics.cell_BM_repulsion_strength; }
 
 	// dead cell phagocytosis
-	static int dead_phag_index = find_behavior_index("phagocytose dead cell" );
+	static index_t dead_phag_index = find_behavior_index("phagocytose dead cell" );
 	if( index == dead_phag_index )
 	{ return pCD->phenotype.cell_interactions.dead_phagocytosis_rate; }
 
 	// phagocytosis of each live cell type
-	static int first_phagocytosis_index = find_behavior_index( "phagocytose " + cell_definitions_by_type[0]->name );
+	static index_t first_phagocytosis_index = find_behavior_index( "phagocytose " + cell_definitions_by_type[0]->name );
 	if( index >= first_phagocytosis_index && index < first_phagocytosis_index + n )
 	{ return pCD->phenotype.cell_interactions.live_phagocytosis_rates[index-first_phagocytosis_index]; }
 
 	// attack of each live cell type
-	static int first_attack_index = find_behavior_index( "attack " + cell_definitions_by_type[0]->name );
+	static index_t first_attack_index = find_behavior_index( "attack " + cell_definitions_by_type[0]->name );
 	if( index >= first_attack_index && index < first_attack_index + n )
 	{ return pCD->phenotype.cell_interactions.attack_rates[index-first_attack_index]; }
 
 	// fusion
-	static int first_fusion_index = find_behavior_index( "fuse to " + cell_definitions_by_type[0]->name );
+	static index_t first_fusion_index = find_behavior_index( "fuse to " + cell_definitions_by_type[0]->name );
 	if( index >= first_fusion_index && index < first_fusion_index + n )
 	{ return pCD->phenotype.cell_interactions.fusion_rates[index-first_fusion_index]; }
 
 	// transformation
-	static int first_transformation_index = find_behavior_index( "transform to " + cell_definitions_by_type[0]->name );
-	if( index >= first_transformation_index && index < first_transformation_index + n )
-	{ return pCD->phenotype.cell_transformations.transformation_rates[index-first_transformation_index]; }
+	static index_t first_transformation_index = find_behavior_index( "transform to " + cell_definitions_by_type[0]->name
+); if( index >= first_transformation_index && index < first_transformation_index + n ) { return
+pCD->phenotype.cell_transformations.transformation_rates[index-first_transformation_index]; }
 
 	// custom behavior
-	static int first_custom_ind = find_behavior_index( "custom 0");
-	static int max_custom_ind = first_custom_ind + pCD->custom_data.variables.size();
+	static index_t first_custom_ind = find_behavior_index( "custom 0");
+	static index_t max_custom_ind = first_custom_ind + pCD->custom_data.variables.size();
 	if( first_custom_ind >= 0 && index >= first_custom_ind && index < max_custom_ind )
 	{ return pCD->custom_data.variables[index-first_custom_ind].value; }
 
@@ -781,7 +783,7 @@ void Hypothesis_Ruleset::sync_to_cell_definition(cell_definition* pCD, environme
 	return;
 }
 
-Hypothesis_Rule* Hypothesis_Ruleset::add_behavior(std::string behavior, double min_behavior, double max_behavior,
+Hypothesis_Rule* Hypothesis_Ruleset::add_behavior(std::string behavior, real_t min_behavior, real_t max_behavior,
 												  environment& e)
 {
 	// check: is this a valid signal? (is it in the dictionary?)
@@ -830,8 +832,8 @@ Hypothesis_Rule* Hypothesis_Ruleset::add_behavior(std::string behavior, double m
 
 Hypothesis_Rule* Hypothesis_Ruleset::add_behavior(std::string behavior, environment& e)
 {
-	double min_behavior = 0.1;
-	double max_behavior = 1.0;
+	real_t min_behavior = 0.1;
+	real_t max_behavior = 1.0;
 	return Hypothesis_Ruleset::add_behavior(behavior, min_behavior, max_behavior, e);
 }
 
@@ -886,7 +888,7 @@ void intialize_hypothesis_rulesets(environment& e)
 {
 	hypothesis_rulesets.clear(); // empty();
 
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		add_hypothesis_ruleset(pCD, e);
@@ -901,7 +903,7 @@ Hypothesis_Ruleset* find_ruleset(cell_definition* pCD) { return &(hypothesis_rul
 
 void display_hypothesis_rulesets(std::ostream& os, environment& e)
 {
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		hypothesis_rulesets[&e.cell_definitions[n]].display(os);
 	}
@@ -911,7 +913,7 @@ void display_hypothesis_rulesets(std::ostream& os, environment& e)
 
 void detailed_display_hypothesis_rulesets(std::ostream& os, environment& e)
 {
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		hypothesis_rulesets[&e.cell_definitions[n]].detailed_display(os);
 	}
@@ -987,7 +989,7 @@ void add_rule(std::string cell_type, std::string signal, std::string behavior, s
 
 	// set dead flag
 
-	int n = (*pHRS)[behavior].find_signal(signal);
+	index_t n = (*pHRS)[behavior].find_signal(signal);
 	(*pHRS)[behavior].applies_to_dead_cells[n] = use_for_dead;
 
 	return;
@@ -995,8 +997,8 @@ void add_rule(std::string cell_type, std::string signal, std::string behavior, s
 
 
 
-void set_hypothesis_parameters(std::string cell_type, std::string signal, std::string behavior, double half_max,
-							   double hill_power, environment& e)
+void set_hypothesis_parameters(std::string cell_type, std::string signal, std::string behavior, real_t half_max,
+							   real_t hill_power, environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
 	if (!pCD)
@@ -1035,7 +1037,7 @@ void set_hypothesis_parameters(std::string cell_type, std::string signal, std::s
 	return;
 }
 
-void set_behavior_parameters(std::string cell_type, std::string behavior, double min_value, double max_value,
+void set_behavior_parameters(std::string cell_type, std::string behavior, real_t min_value, real_t max_value,
 							 environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
@@ -1066,8 +1068,8 @@ void set_behavior_parameters(std::string cell_type, std::string behavior, double
 	return;
 }
 
-void set_behavior_parameters(std::string cell_type, std::string behavior, double min_value, double base_value,
-							 double max_value, environment& e)
+void set_behavior_parameters(std::string cell_type, std::string behavior, real_t min_value, real_t base_value,
+							 real_t max_value, environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
 	if (!pCD)
@@ -1100,7 +1102,7 @@ void set_behavior_parameters(std::string cell_type, std::string behavior, double
 }
 
 
-void set_behavior_base_value(std::string cell_type, std::string behavior, double base_value, environment& e)
+void set_behavior_base_value(std::string cell_type, std::string behavior, real_t base_value, environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
 	if (!pCD)
@@ -1129,7 +1131,7 @@ void set_behavior_base_value(std::string cell_type, std::string behavior, double
 	return;
 }
 
-void set_behavior_min_value(std::string cell_type, std::string behavior, double min_value, environment& e)
+void set_behavior_min_value(std::string cell_type, std::string behavior, real_t min_value, environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
 	if (!pCD)
@@ -1158,7 +1160,7 @@ void set_behavior_min_value(std::string cell_type, std::string behavior, double 
 	return;
 }
 
-void set_behavior_max_value(std::string cell_type, std::string behavior, double max_value, environment& e)
+void set_behavior_max_value(std::string cell_type, std::string behavior, real_t max_value, environment& e)
 {
 	cell_definition* pCD = e.find_cell_definition(cell_type);
 	if (!pCD)
@@ -1196,7 +1198,7 @@ void apply_ruleset(cell* pCell, environment& e)
 	return;
 }
 
-void rule_phenotype_function(cell* pCell, double, environment& e)
+void rule_phenotype_function(cell* pCell, real_t, environment& e)
 {
 	apply_ruleset(pCell, e);
 
@@ -1224,38 +1226,38 @@ void rule_phenotype_function(cell* pCell, double, environment& e)
 
 /* add these to core */
 /*
-std::vector<double> linear_response_to_Hill_parameters( double s0, double s1 )
+std::vector<real_t> linear_response_to_Hill_parameters( real_t s0, real_t s1 )
 {
-	static double tol = 0.1;
-	static double param1 = (1-tol)/tol;
-	static double param2 = log(param1);
+	static real_t tol = 0.1;
+	static real_t param1 = (1-tol)/tol;
+	static real_t param2 = log(param1);
 
 	// half max, then hill power
-	double hm = 0.5* (s0+s1);
+	real_t hm = 0.5* (s0+s1);
 
 	// hp so that H(s1) ~ (1-tol)
-	double hp = round( param2 / log(s1/hm) );
+	real_t hp = round( param2 / log(s1/hm) );
 
-	std::vector<double> output = { hm , hp };
+	std::vector<real_t> output = { hm , hp };
 
 	return output;
 }
 
-std::vector<double> Hill_response_to_linear_parameters( double half_max , double Hill_power )
+std::vector<real_t> Hill_response_to_linear_parameters( real_t half_max , real_t Hill_power )
 {
-	static double tol = 0.1;
-	static double param1 = (1-tol)/tol;
-	double param2 = pow( param1 , 1.0/ Hill_power );
+	static real_t tol = 0.1;
+	static real_t param1 = (1-tol)/tol;
+	real_t param2 = pow( param1 , 1.0/ Hill_power );
 
 	// s1 such that H(s1) ~ (1-tol)
-	double s1 = half_max * param2;
+	real_t s1 = half_max * param2;
 
 	// s0 for symmetry
-	double s0 = 2*half_max -s1;
+	real_t s0 = 2*half_max -s1;
 	if( s0 < 0 )
 	{ s0 = 0.0; }
 
-	std::vector<double> output = {s0,s1};
+	std::vector<real_t> output = {s0,s1};
 
 	return output;
 }
@@ -1499,12 +1501,12 @@ void parse_csv_rule_v0(std::vector<std::string> input, environment& e)
 	std::string response = input[6];
 
 	// numeric portions of the rule
-	double min_value = std::atof(input[2].c_str());
-	double base_value = std::atof(input[3].c_str());
-	double max_value = std::atof(input[4].c_str());
+	real_t min_value = std::atof(input[2].c_str());
+	real_t base_value = std::atof(input[3].c_str());
+	real_t max_value = std::atof(input[4].c_str());
 
-	double half_max = std::atof(input[7].c_str());
-	double hill_power = std::atof(input[8].c_str());
+	real_t half_max = std::atof(input[7].c_str());
+	real_t hill_power = std::atof(input[8].c_str());
 	bool use_for_dead = (bool)std::atof(input[9].c_str());
 
 	std::cout << "Adding rule for " << cell_type << " cells:\n\t";
@@ -1517,7 +1519,7 @@ void parse_csv_rule_v0(std::vector<std::string> input, environment& e)
 
 	// compare to base behavior value in cell def for discrepancies
 	cell_definition* pCD = e.find_cell_definition(cell_type);
-	double ref_base_value = get_single_base_behavior(pCD, behavior, e);
+	real_t ref_base_value = get_single_base_behavior(pCD, behavior, e);
 	if (std::fabs(ref_base_value - base_value) > 1e-15)
 	{
 		std::cout << "Error: Base value for " << behavior << " in cell type " << cell_type << std::endl
@@ -1535,7 +1537,7 @@ void parse_csv_rule_v0(std::vector<std::string> input, environment& e)
 	/*
 		// set "applies to dead"
 
-		int n = access_ruleset(pCD)[behavior].find_signal(signal);
+		index_t n = access_ruleset(pCD)[behavior].find_signal(signal);
 		access_ruleset(pCD)[behavior].applies_to_dead_cells[n] = use_for_dead;
 	*/
 
@@ -1635,16 +1637,16 @@ void parse_csv_rule_v1(std::vector<std::string> input, environment& e)
 	std::string behavior = input[3];
 
 	// numeric portions of the rule
-	// double min_value  = std::atof( input[2].c_str() );
+	// real_t min_value  = std::atof( input[2].c_str() );
 
-	double base_value = std::atof(input[4].c_str());
-	double max_response = std::atof(input[5].c_str());
+	real_t base_value = std::atof(input[4].c_str());
+	real_t max_response = std::atof(input[5].c_str());
 
 	// hmm from here
-	// double max_value  = std::atof( input[4].c_str() );
+	// real_t max_value  = std::atof( input[4].c_str() );
 
-	double half_max = std::atof(input[6].c_str());
-	double hill_power = std::atof(input[7].c_str());
+	real_t half_max = std::atof(input[6].c_str());
+	real_t hill_power = std::atof(input[7].c_str());
 	bool use_for_dead = (bool)std::atof(input[8].c_str());
 
 	std::cout << "Adding rule for " << cell_type << " cells:\n\t";
@@ -1656,7 +1658,7 @@ void parse_csv_rule_v1(std::vector<std::string> input, environment& e)
 
 	// compare to base behavior value in cell def for discrepancies
 	cell_definition* pCD = e.find_cell_definition(cell_type);
-	double ref_base_value = get_single_base_behavior(pCD, behavior, e);
+	real_t ref_base_value = get_single_base_behavior(pCD, behavior, e);
 	if (std::fabs(ref_base_value - base_value) > 1e-15)
 	{
 		std::cout << "Error: Base value for " << behavior << " in cell type " << cell_type << std::endl
@@ -1788,16 +1790,16 @@ void parse_csv_rule_v2(std::vector<std::string> input, environment& e)
 	std::string behavior = input[3];
 
 	// numeric portions of the rule
-	// double min_value  = std::atof( input[2].c_str() );
+	// real_t min_value  = std::atof( input[2].c_str() );
 
-	// double base_value = std::atof( input[4].c_str() );
-	double max_response = std::atof(input[4].c_str());
+	// real_t base_value = std::atof( input[4].c_str() );
+	real_t max_response = std::atof(input[4].c_str());
 
 	// hmm from here
-	// double max_value  = std::atof( input[4].c_str() );
+	// real_t max_value  = std::atof( input[4].c_str() );
 
-	double half_max = std::atof(input[5].c_str());
-	double hill_power = std::atof(input[6].c_str());
+	real_t half_max = std::atof(input[5].c_str());
+	real_t hill_power = std::atof(input[6].c_str());
 	bool use_for_dead = (bool)std::atof(input[7].c_str());
 
 	std::cout << "Adding rule for " << cell_type << " cells:\n\t";
@@ -1809,7 +1811,7 @@ void parse_csv_rule_v2(std::vector<std::string> input, environment& e)
 
 	// compare to base behavior value in cell def for discrepancies
 	cell_definition* pCD = e.find_cell_definition(cell_type);
-	double ref_base_value = get_single_base_behavior(pCD, behavior, e);
+	real_t ref_base_value = get_single_base_behavior(pCD, behavior, e);
 
 	set_behavior_base_value(cell_type, behavior, ref_base_value, e);
 	if (response == "increases")
@@ -1923,7 +1925,7 @@ void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
 			std::cout << "\tProcessing ruleset in " << input_filename << " ... " << std::endl;
 			std::string format = node.attribute("format").as_string();
 			std::string protocol = node.attribute("protocol").as_string();
-			double version = node.attribute("version").as_double();
+			real_t version = node.attribute("version").as_double();
 
 			bool done = false;
 
@@ -1933,7 +1935,7 @@ void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
 				{
 					std::cout << "\tFormat: CSV (prototype version)" << std::endl;
 
-					parse_csv_rules_v0(input_filename,e); // parse all rules in a CSV file
+					parse_csv_rules_v0(input_filename, e); // parse all rules in a CSV file
 
 					settings.rules_enabled = true;
 
@@ -1944,7 +1946,7 @@ void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
 				{
 					std::cout << "\tFormat: CSV (version " << version << ")" << std::endl;
 
-					parse_csv_rules_v1(input_filename,e); // parse all rules in a CSV file
+					parse_csv_rules_v1(input_filename, e); // parse all rules in a CSV file
 
 					settings.rules_enabled = true;
 
@@ -1955,7 +1957,7 @@ void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
 				{
 					std::cout << "\tFormat: CSV (version " << version << ")" << std::endl;
 
-					parse_csv_rules_v2(input_filename,e); // parse all rules in a CSV file
+					parse_csv_rules_v2(input_filename, e); // parse all rules in a CSV file
 
 					settings.rules_enabled = true;
 
@@ -1998,7 +2000,7 @@ void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
 	{
 		std::cout << "Loading rules from CSV file " << input_filename << " ... " << std::endl;
 		// load_cells_csv( input_filename );
-		parse_csv_rules_v0(input_filename,e);
+		parse_csv_rules_v0(input_filename, e);
 		return;
 	}
 
@@ -2029,7 +2031,7 @@ void parse_rules_from_parameters_v0(User_Parameters& parameters, environment& e)
 	{
 		std::cout << "Loading rules from CSV file " << input_filename << " ... " << std::endl;
 		// load_cells_csv( input_filename );
-		parse_csv_rules_v0(input_filename,e);
+		parse_csv_rules_v0(input_filename, e);
 		return;
 	}
 
@@ -2051,7 +2053,7 @@ void spaces_to_underscore(std::string& str)
 submit this as bugfix in PhysiCell (PhysiCell_settings.cpp)
 
 template <class T>
-int Parameters<T>::find_index( std::string search_name )
+index_t Parameters<T>::find_index( std::string search_name )
 {
 	auto search = name_to_index_map.find( search_name );
 	if( search != name_to_index_map.end() )
@@ -2065,7 +2067,7 @@ int Parameters<T>::find_index( std::string search_name )
 void stream_annotated_English_rules(std::ostream& os, environment& e)
 {
 	os << "Cell Hypothesis Rules" << std::endl << std::endl;
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
@@ -2083,7 +2085,7 @@ void stream_annotated_English_rules(std::ostream& os, environment& e)
 void stream_annotated_English_rules_HTML(std::ostream& os, environment& e)
 {
 	os << "<html>\n<body><h1>Cell Hypothesis Rules</h1>" << std::endl;
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		os << "<p>";
 		cell_definition* pCD = &e.cell_definitions[n];
@@ -2111,7 +2113,7 @@ void save_annotated_English_rules(const runtime_settings& settings)
 void stream_annotated_detailed_English_rules(std::ostream& os, environment& e)
 {
 	os << "Cell Hypothesis Rules (detailed)" << std::endl << std::endl;
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
@@ -2128,7 +2130,7 @@ void stream_annotated_detailed_English_rules(std::ostream& os, environment& e)
 void stream_annotated_detailed_English_rules_HTML(std::ostream& os, environment& e)
 {
 	os << "<html>\n<body><h1>Cell Hypothesis Rules (detailed)</h1>" << std::endl;
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		os << "<p>";
 		cell_definition* pCD = &e.cell_definitions[n];
@@ -2182,7 +2184,7 @@ void export_rules_csv_v0(std::string filename, environment& e)
 
 	std::cout << "Exporting rules to file " << filename << " (v0 format) ... " << std::endl;
 
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
@@ -2195,9 +2197,9 @@ void export_rules_csv_v0(std::string filename, environment& e)
 			std::string behavior = pHRS->rules[k].behavior;
 			std::cout << behavior << " : ";
 
-			double min_value = pHRS->rules[k].min_value;
-			double max_value = pHRS->rules[k].max_value;
-			double base_value = pHRS->rules[k].base_value;
+			real_t min_value = pHRS->rules[k].min_value;
+			real_t max_value = pHRS->rules[k].max_value;
+			real_t base_value = pHRS->rules[k].base_value;
 			for (std::size_t i = 0; i < pHRS->rules[k].signals.size(); i++)
 			{
 				std::string signal = pHRS->rules[k].signals[i];
@@ -2211,8 +2213,8 @@ void export_rules_csv_v0(std::string filename, environment& e)
 				{
 					response = "decreases";
 				}
-				double half_max = pHRS->rules[k].half_maxes[i];
-				double hill_power = pHRS->rules[k].hill_powers[i];
+				real_t half_max = pHRS->rules[k].half_maxes[i];
+				real_t hill_power = pHRS->rules[k].hill_powers[i];
 				bool use_for_dead = false;
 
 				// output the rule
@@ -2248,7 +2250,7 @@ void export_rules_csv_v1(std::string filename, environment& e)
 
 	std::cout << "Exporting rules to file " << filename << " (v1 format) ... " << std::endl;
 
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
@@ -2259,14 +2261,14 @@ void export_rules_csv_v1(std::string filename, environment& e)
 		{
 			std::string behavior = pHRS->rules[k].behavior;
 
-			double min_value = pHRS->rules[k].min_value;
-			double max_value = pHRS->rules[k].max_value;
-			double base_value = pHRS->rules[k].base_value;
+			real_t min_value = pHRS->rules[k].min_value;
+			real_t max_value = pHRS->rules[k].max_value;
+			real_t base_value = pHRS->rules[k].base_value;
 			for (std::size_t i = 0; i < pHRS->rules[k].signals.size(); i++)
 			{
 				std::string signal = pHRS->rules[k].signals[i];
 				std::string response;
-				double max_response = -9e99;
+				real_t max_response = -9e99;
 				if (pHRS->rules[k].responses[i] == true)
 				{
 					response = "increases";
@@ -2277,8 +2279,8 @@ void export_rules_csv_v1(std::string filename, environment& e)
 					response = "decreases";
 					max_response = min_value;
 				}
-				double half_max = pHRS->rules[k].half_maxes[i];
-				double hill_power = pHRS->rules[k].hill_powers[i];
+				real_t half_max = pHRS->rules[k].half_maxes[i];
+				real_t hill_power = pHRS->rules[k].hill_powers[i];
 				bool use_for_dead = false;
 
 				// output the rule
@@ -2310,7 +2312,7 @@ void export_rules_csv_v2(std::string filename, environment& e)
 
 	std::cout << "Exporting rules to file " << filename << " (v2 format) ... " << std::endl;
 
-	for (int n = 0; n < e.cell_definitions_count; n++)
+	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		cell_definition* pCD = &e.cell_definitions[n];
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
@@ -2321,14 +2323,14 @@ void export_rules_csv_v2(std::string filename, environment& e)
 		{
 			std::string behavior = pHRS->rules[k].behavior;
 
-			double min_value = pHRS->rules[k].min_value;
-			double max_value = pHRS->rules[k].max_value;
-			// double base_value = pHRS->rules[k].base_value;
+			real_t min_value = pHRS->rules[k].min_value;
+			real_t max_value = pHRS->rules[k].max_value;
+			// real_t base_value = pHRS->rules[k].base_value;
 			for (std::size_t i = 0; i < pHRS->rules[k].signals.size(); i++)
 			{
 				std::string signal = pHRS->rules[k].signals[i];
 				std::string response;
-				double max_response = -9e99;
+				real_t max_response = -9e99;
 				if (pHRS->rules[k].responses[i] == true)
 				{
 					response = "increases";
@@ -2339,8 +2341,8 @@ void export_rules_csv_v2(std::string filename, environment& e)
 					response = "decreases";
 					max_response = min_value;
 				}
-				double half_max = pHRS->rules[k].half_maxes[i];
-				double hill_power = pHRS->rules[k].hill_powers[i];
+				real_t half_max = pHRS->rules[k].half_maxes[i];
+				real_t hill_power = pHRS->rules[k].hill_powers[i];
 				bool use_for_dead = false;
 
 				// output the rule
@@ -2363,73 +2365,73 @@ void export_rules_csv_v2(std::string filename, environment& e)
 }
 
 
-// std::vector<double> UniformInUnitDisc(void)
+// std::vector<real_t> UniformInUnitDisc(void)
 // {
-// 	static double two_pi = 6.283185307179586;
-// 	double theta = UniformRandom();	  // U(0,1)
+// 	static real_t two_pi = 6.283185307179586;
+// 	real_t theta = UniformRandom();	  // U(0,1)
 // 	theta *= two_pi;				  // U(0,2*pi)
-// 	double r = sqrt(UniformRandom()); // sqrt( U(0,1) )
+// 	real_t r = sqrt(UniformRandom()); // sqrt( U(0,1) )
 // 	return { r * cos(theta), r * sin(theta), 0.0 };
 // }
 
-// std::vector<double> UniformInUnitSphere(void)
+// std::vector<real_t> UniformInUnitSphere(void)
 // {
 // 	// reference: https://doi.org/10.1063/1.168311, adapting equation 13
 
-// 	static double two_pi = 6.283185307179586;
+// 	static real_t two_pi = 6.283185307179586;
 
-// 	double T = UniformRandom();
-// 	double sqrt_T = sqrt(T);
-// 	double sqrt_one_minus_T = 1.0;
+// 	real_t T = UniformRandom();
+// 	real_t sqrt_T = sqrt(T);
+// 	real_t sqrt_one_minus_T = 1.0;
 // 	sqrt_one_minus_T -= T;
 // 	sqrt_one_minus_T = sqrt(sqrt_one_minus_T);
 
-// 	double param1 = pow(UniformRandom(), 0.33333333333333333333333333333333333333); //  xi^(1/3),
-// 	double param2 = param1;															// xi^(1/3)
+// 	real_t param1 = pow(UniformRandom(), 0.33333333333333333333333333333333333333); //  xi^(1/3),
+// 	real_t param2 = param1;															// xi^(1/3)
 // 	param2 *= 2.0;																	// 2 * xi^(1/3)
 // 	param2 *= sqrt_T;																// 2 * xi(1) * T^(1/2)
 // 	param2 *= sqrt_one_minus_T; //  2 * xi(1) * T^(1/2) * (1-T)^(1/2)
 
-// 	double theta = UniformRandom(); // U(0,1)
+// 	real_t theta = UniformRandom(); // U(0,1)
 // 	theta *= two_pi;				// U(0,2*pi)
 
 // 	return { param2 * sin(theta), param2 * cos(theta), param1 * (1 - 2 * T) };
 // }
 
-// std::vector<double> UniformInAnnulus(double r1, double r2)
+// std::vector<real_t> UniformInAnnulus(real_t r1, real_t r2)
 // {
-// 	static double two_pi = 6.283185307179586;
+// 	static real_t two_pi = 6.283185307179586;
 
-// 	double theta = UniformRandom();
+// 	real_t theta = UniformRandom();
 // 	theta *= two_pi;
-// 	double r1_2 = r1 * r1;
-// 	double r2_2 = r2 * r2;
+// 	real_t r1_2 = r1 * r1;
+// 	real_t r2_2 = r2 * r2;
 
-// 	double r = sqrt(r1_2 + (r2_2 - r1_2) * UniformRandom());
-// 	double x = r * cos(theta);
-// 	double y = r * sin(theta);
+// 	real_t r = sqrt(r1_2 + (r2_2 - r1_2) * UniformRandom());
+// 	real_t x = r * cos(theta);
+// 	real_t y = r * sin(theta);
 // 	return { x, y, 0.0 };
 // }
 
-// std::vector<double> UniformInShell(double r1, double r2)
+// std::vector<real_t> UniformInShell(real_t r1, real_t r2)
 // {
-// 	static double two_pi = 6.283185307179586;
+// 	static real_t two_pi = 6.283185307179586;
 
-// 	double T = UniformRandom();
-// 	double sqrt_T = sqrt(T);
-// 	double sqrt_one_minus_T = 1.0;
+// 	real_t T = UniformRandom();
+// 	real_t sqrt_T = sqrt(T);
+// 	real_t sqrt_one_minus_T = 1.0;
 // 	sqrt_one_minus_T -= T;
 // 	sqrt_one_minus_T = sqrt(sqrt_one_minus_T);
 
-// 	double param1 = pow(UniformRandom(), 0.33333333333333333333333333333333333333); //  xi^(1/3),
+// 	real_t param1 = pow(UniformRandom(), 0.33333333333333333333333333333333333333); //  xi^(1/3),
 // 																					// param1 *= (r2-r1);
 // 																					// param1 += r1;
-// 	double param2 = param1;															// xi^(1/3)
+// 	real_t param2 = param1;															// xi^(1/3)
 // 	param2 *= 2.0;																	// 2 * xi^(1/3)
 // 	param2 *= sqrt_T;																// 2 * xi(1) * T^(1/2)
 // 	param2 *= sqrt_one_minus_T; //  2 * xi(1) * T^(1/2) * (1-T)^(1/2)
 
-// 	double theta = UniformRandom(); // U(0,1)
+// 	real_t theta = UniformRandom(); // U(0,1)
 // 	theta *= two_pi;				// U(0,2*pi)
 
 // 	return { param2 * sin(theta), param2 * cos(theta), param1 * (1 - 2 * T) };

@@ -79,7 +79,7 @@ void fuse_position(index_t lhs, index_t rhs, index_t dims, real_t* __restrict__ 
 {
 	const real_t both_volume = total_volume[lhs] + total_volume[rhs];
 
-	for (int i = 0; i < dims; i++)
+	for (index_t i = 0; i < dims; i++)
 	{
 		position[lhs * dims + i] =
 			(position[lhs * dims + i] * total_volume[lhs] + position[rhs * dims + i] * total_volume[rhs]) / both_volume;
