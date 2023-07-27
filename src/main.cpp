@@ -47,9 +47,9 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 		a->phenotype.mechanics.cell_BM_repulsion_strength() = 100;
 
-		a->phenotype.interactions.attack_rates()[0] = .01;
-		a->phenotype.interactions.fussion_rates()[0] = .01;
-		a->phenotype.interactions.live_phagocytosis_rates()[0] = .01;
+		a->phenotype.cell_interactions.attack_rates()[0] = .01;
+		a->phenotype.cell_interactions.fusion_rates()[0] = .01;
+		a->phenotype.cell_interactions.live_phagocytosis_rates()[0] = .01;
 
 		x += e.m.mesh.voxel_shape[0];
 		if (x >= e.m.mesh.bounding_box_maxs[0])

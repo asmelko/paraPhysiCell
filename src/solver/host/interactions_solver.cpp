@@ -229,6 +229,6 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.deaths.dead.data(),
 		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
-		data.interactions.fussion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
+		data.interactions.fusion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
 		data.flags.data(), data);
 }

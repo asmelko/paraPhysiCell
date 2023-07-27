@@ -100,7 +100,7 @@ struct interactions_data
 	std::vector<biofvm::real_t> attack_rates;
 	std::vector<biofvm::real_t> immunogenicities;
 
-	std::vector<biofvm::real_t> fussion_rates;
+	std::vector<biofvm::real_t> fusion_rates;
 
 	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);

@@ -172,7 +172,7 @@ void interactions_data::add(index_t size, index_t cell_definitions_count)
 	attack_rates.resize(size * cell_definitions_count, 0);
 	immunogenicities.resize(size * cell_definitions_count, 0);
 
-	fussion_rates.resize(size * cell_definitions_count, 0);
+	fusion_rates.resize(size * cell_definitions_count, 0);
 }
 
 void interactions_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -187,8 +187,8 @@ void interactions_data::remove(index_t index, index_t size, index_t cell_definit
 	move_vector(immunogenicities.data() + index * cell_definitions_count,
 				immunogenicities.data() + size * cell_definitions_count, cell_definitions_count);
 
-	move_vector(fussion_rates.data() + index * cell_definitions_count,
-				fussion_rates.data() + size * cell_definitions_count, cell_definitions_count);
+	move_vector(fusion_rates.data() + index * cell_definitions_count,
+				fusion_rates.data() + size * cell_definitions_count, cell_definitions_count);
 }
 
 void death_data::add(index_t size) { dead.resize(size, 0); }

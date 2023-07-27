@@ -18,8 +18,8 @@ struct phenotype_t
 
 	molecular_t molecular;
 
-	interactions_t interactions;
-	transformations_t transformations;
+	interactions_t cell_interactions;
+	transformations_t cell_transformations;
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 

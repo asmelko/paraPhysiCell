@@ -150,9 +150,9 @@ real_t* interactions_t::immunogenicities()
 	return data_.interactions.immunogenicities.data() + index_ * data_.e.cell_definitions_count;
 }
 
-real_t* interactions_t::fussion_rates()
+real_t* interactions_t::fusion_rates()
 {
-	return data_.interactions.fussion_rates.data() + index_ * data_.e.cell_definitions_count;
+	return data_.interactions.fusion_rates.data() + index_ * data_.e.cell_definitions_count;
 }
 
 secretion_t::secretion_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
@@ -298,7 +298,7 @@ void interactions_t::copy(interactions_t& dest)
 	}
 	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
 	{
-		dest.fussion_rates()[i] = fussion_rates()[i];
+		dest.fusion_rates()[i] = fusion_rates()[i];
 	}
 }
 

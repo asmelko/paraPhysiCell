@@ -25,15 +25,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(paraBioFVM)
 
+# Fetch pugixml
+FetchContent_Declare(
+  pugixml
+  URL https://github.com/zeux/pugixml/archive/refs/tags/v1.13.zip
+)
+FetchContent_MakeAvailable(pugixml)
+
 # Target PhysiCellCore
 file(GLOB_RECURSE src_files "src/*")
 list(FILTER src_files EXCLUDE REGEX ".*main\\..*")
 
 add_library(PhysiCellCore ${src_files})
 
-target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include)
+target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include ${pugixml_SOURCE_DIR}/src)
 
-target_link_libraries(PhysiCellCore PUBLIC BioFVMCore)
+target_link_libraries(PhysiCellCore PUBLIC BioFVMCore pugixml-static)
 
 # Target unit_PhysiCell
 file(GLOB_RECURSE test_files "test/*")

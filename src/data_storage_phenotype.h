@@ -146,7 +146,7 @@ struct interactions_t : public phenotype_data_storage
 	biofvm::real_t* attack_rates();
 	biofvm::real_t* immunogenicities();
 
-	biofvm::real_t* fussion_rates();
+	biofvm::real_t* fusion_rates();
 
 	void copy(interactions_t& dest);
 };

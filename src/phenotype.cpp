@@ -11,8 +11,8 @@ phenotype_t::phenotype_t(cell_data& data, index_t index)
 	  motility(data, index),
 	  secretion(data, index),
 	  molecular(data, index),
-	  interactions(data, index),
-	  transformations(data, index)
+	  cell_interactions(data, index),
+	  cell_transformations(data, index)
 {}
 
 void phenotype_t::copy(phenotype_t& dest)
@@ -25,6 +25,6 @@ void phenotype_t::copy(phenotype_t& dest)
 	motility.copy(dest.motility);
 	secretion.copy(dest.secretion);
 	molecular.copy(dest.molecular);
-	interactions.copy(dest.interactions);
-	transformations.copy(dest.transformations);
+	cell_interactions.copy(dest.cell_interactions);
+	cell_transformations.copy(dest.cell_transformations);
 }
