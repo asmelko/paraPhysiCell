@@ -41,7 +41,7 @@ struct volume_data
 	std::vector<biofvm::real_t> target_cytoplasmic_to_nuclear_ratio;
 	std::vector<biofvm::real_t> relative_rupture_volume; 
 
-	void add(biofvm::index_t size);
+	void resize(biofvm::index_t size);
 	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
@@ -52,7 +52,7 @@ struct geometry_data
 	std::vector<biofvm::real_t> surface_area;
 	std::vector<biofvm::real_t> polarity;
 
-	void add(biofvm::index_t size);
+	void resize(biofvm::index_t size);
 	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
@@ -74,7 +74,7 @@ struct mechanics_data
 	std::vector<biofvm::real_t> attachment_rate;
 	std::vector<biofvm::real_t> detachment_rate;
 
-	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void resize(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
@@ -99,7 +99,7 @@ struct motility_data
 
 	std::vector<direction_update_func> update_migration_bias_direction;
 
-	void add(biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
+	void resize(biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
 };
 
@@ -114,7 +114,7 @@ struct interactions_data
 
 	std::vector<biofvm::real_t> fusion_rates;
 
-	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void resize(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
@@ -122,7 +122,7 @@ struct transformations_data
 {
 	std::vector<biofvm::real_t> transformation_rates;
 
-	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void resize(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
 };
 
@@ -130,7 +130,7 @@ struct death_data
 {
 	std::vector<std::uint8_t> dead;
 
-	void add(biofvm::index_t size);
+	void resize(biofvm::index_t size);
 	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
@@ -148,7 +148,7 @@ struct cell_state_data
 	std::vector<biofvm::real_t> damage;
 	std::vector<biofvm::real_t> total_attack_time;
 
-	void add(biofvm::index_t size, biofvm::index_t dims);
+	void resize(biofvm::index_t size, biofvm::index_t dims);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims);
 };
 
@@ -191,6 +191,7 @@ struct cell_data
 	cell_data(environment& e);
 
 	void add();
+	void resize(biofvm::index_t size);
 	void remove(biofvm::index_t index);
 };
 
