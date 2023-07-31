@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "pugixml_helper.h"
+#include "modules/pugixml_helper.h"
 
 using namespace biofvm;
 

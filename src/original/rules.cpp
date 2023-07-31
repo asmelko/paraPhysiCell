@@ -7,7 +7,7 @@
 #include "../cell_definition.h"
 #include "../environment.h"
 #include "basic_signaling.h"
-#include "pugixml_helper.h"
+#include "modules/pugixml_helper.h"
 #include "signal_behavior.h"
 #include "user_parameters.h"
 
