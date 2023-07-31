@@ -36,7 +36,6 @@ biofvm::real_t interpolate_behavior(biofvm::real_t base_value, biofvm::real_t ma
 
 class Integrated_Signal
 {
-private:
 public:
 	biofvm::real_t base_activity;
 	biofvm::real_t max_activity;
@@ -52,12 +51,12 @@ public:
 	biofvm::real_t inhibitors_half_max;
 
 	Integrated_Signal();
-	void reset(void);
+	void reset();
 
 	void add_signal(char signal_type, biofvm::real_t signal, biofvm::real_t weight);
 	void add_signal(char signal_type, biofvm::real_t signal);
 
-	biofvm::real_t compute_signal(void);
+	biofvm::real_t compute_signal();
 };
 
 

@@ -51,7 +51,7 @@ Cycle_Data::Cycle_Data()
 	return;
 }
 
-void Cycle_Data::sync_to_cycle_model(void)
+void Cycle_Data::sync_to_cycle_model()
 {
 	// make sure the inverse map is the right size
 	biofvm::index_t n = pCycle_Model->phases.size();
@@ -127,7 +127,7 @@ biofvm::index_t Cycle_Model::add_phase(biofvm::index_t code, std::string name)
 }
 
 biofvm::index_t Cycle_Model::add_phase_link(biofvm::index_t start_index, biofvm::index_t end_index,
-											cell_func_t<bool>& arrest_function)
+											cell_func_t<bool> arrest_function)
 {
 	// first, resize the phase links
 	biofvm::index_t n = phase_links[start_index].size();
@@ -149,7 +149,7 @@ biofvm::index_t Cycle_Model::add_phase_link(biofvm::index_t start_index, biofvm:
 }
 
 biofvm::index_t Cycle_Model::add_phase_link(biofvm::index_t start_index, biofvm::index_t end_index, biofvm::real_t rate,
-											cell_func_t<bool>& arrest_function)
+											cell_func_t<bool> arrest_function)
 {
 	biofvm::index_t n = add_phase_link(start_index, end_index, arrest_function);
 	data.transition_rate(start_index, end_index) = rate;
@@ -295,7 +295,7 @@ void Cycle_Model::advance_model(cell& cell, biofvm::real_t dt)
 	return;
 }
 
-Phase& Cycle_Data::current_phase(void) { return pCycle_Model->phases[current_phase_index]; }
+Phase& Cycle_Data::current_phase() { return pCycle_Model->phases[current_phase_index]; }
 
 Death_Parameters::Death_Parameters()
 {
@@ -430,15 +430,15 @@ void Death::trigger_death(biofvm::index_t death_model_index)
 	return;
 }
 
-Cycle_Model& Death::current_model(void) { return *models[current_death_model_index]; }
+Cycle_Model& Death::current_model() { return *models[current_death_model_index]; }
 
-biofvm::real_t& Death::apoptosis_rate(void)
+biofvm::real_t& Death::apoptosis_rate()
 {
 	static biofvm::index_t nApoptosis = find_death_model_index(constants::apoptosis_death_model);
 	return rates[nApoptosis];
 }
 
-biofvm::real_t& Death::necrosis_rate(void)
+biofvm::real_t& Death::necrosis_rate()
 {
 	static biofvm::index_t nNecrosis = find_death_model_index(constants::necrosis_death_model);
 	return rates[nNecrosis];
@@ -457,11 +457,11 @@ void Cycle::advance_cycle(cell& cell, biofvm::real_t dt)
 	return;
 }
 
-Cycle_Model& Cycle::model(void) { return *pCycle_Model; }
+Cycle_Model& Cycle::model() { return *pCycle_Model; }
 
-Phase& Cycle::current_phase(void) { return data.current_phase(); }
+Phase& Cycle::current_phase() { return data.current_phase(); }
 
-biofvm::index_t& Cycle::current_phase_index(void) { return data.current_phase_index; }
+biofvm::index_t& Cycle::current_phase_index() { return data.current_phase_index; }
 
 void Cycle::sync_to_cycle_model(Cycle_Model& cm)
 {
@@ -470,7 +470,7 @@ void Cycle::sync_to_cycle_model(Cycle_Model& cm)
 	return;
 }
 
-Death_Parameters& Death::current_parameters(void) { return parameters[current_death_model_index]; }
+Death_Parameters& Death::current_parameters() { return parameters[current_death_model_index]; }
 
 void Cycle::copy(Cycle& dest) { dest = *this; }
 

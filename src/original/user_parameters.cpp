@@ -86,7 +86,7 @@ std::ostream& operator<<(std::ostream& os, const Parameter<T>& param)
 }
 
 template <class T>
-index_t Parameters<T>::size(void) const
+index_t Parameters<T>::size() const
 {
 	return parameters.size();
 }

@@ -182,18 +182,18 @@ void export_rules_csv_v2(std::string filename);
 
 void stream_annotated_English_rules(std::ostream& os);
 void stream_annotated_detailed_English_rules(std::ostream& os);
-void save_annotated_English_rules(void);
-void save_annotated_English_rules_HTML(void);
+void save_annotated_English_rules();
+void save_annotated_English_rules_HTML();
 
 void stream_annotated_English_rules_HTML(std::ostream& os);
 void stream_annotated_detailed_English_rules_HTML(std::ostream& os);
-void save_annotated_detailed_English_rules(void);
-void save_annotated_detailed_English_rules_HTML(void);
+void save_annotated_detailed_English_rules();
+void save_annotated_detailed_English_rules_HTML();
 
 // add these to PhysiCell_utilities.cpp
 
-// std::vector<biofvm::real_t> UniformInUnitDisc(void);
-// std::vector<biofvm::real_t> UniformInUnitSphere(void);
+// std::vector<biofvm::real_t> UniformInUnitDisc();
+// std::vector<biofvm::real_t> UniformInUnitSphere();
 
 // std::vector<biofvm::real_t> UniformInAnnulus(biofvm::real_t r1, biofvm::real_t r2);
 // std::vector<biofvm::real_t> UniformInShell(biofvm::real_t r1, biofvm::real_t r2);

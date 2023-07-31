@@ -2365,7 +2365,7 @@ void export_rules_csv_v2(std::string filename, environment& e)
 }
 
 
-// std::vector<real_t> UniformInUnitDisc(void)
+// std::vector<real_t> UniformInUnitDisc()
 // {
 // 	static real_t two_pi = 6.283185307179586;
 // 	real_t theta = UniformRandom();	  // U(0,1)
@@ -2374,7 +2374,7 @@ void export_rules_csv_v2(std::string filename, environment& e)
 // 	return { r * cos(theta), r * sin(theta), 0.0 };
 // }
 
-// std::vector<real_t> UniformInUnitSphere(void)
+// std::vector<real_t> UniformInUnitSphere()
 // {
 // 	// reference: https://doi.org/10.1063/1.168311, adapting equation 13
 

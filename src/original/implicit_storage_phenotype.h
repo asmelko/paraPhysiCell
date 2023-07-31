@@ -108,9 +108,9 @@ public:
 	biofvm::index_t add_phase(biofvm::index_t code, std::string name); // done
 
 	biofvm::index_t add_phase_link(biofvm::index_t start_index, biofvm::index_t end_index,
-								   cell_func_t<bool>& arrest_function); // done
+								   cell_func_t<bool> arrest_function); // done
 	biofvm::index_t add_phase_link(biofvm::index_t start_index, biofvm::index_t end_index, biofvm::real_t rate,
-								   cell_func_t<bool>& arrest_function); // done
+								   cell_func_t<bool> arrest_function); // done
 
 	biofvm::index_t find_phase_index(biofvm::index_t code); // done
 	biofvm::index_t find_phase_index(std::string name);		// done
@@ -131,9 +131,9 @@ public:
 
 	void advance_cycle(cell& pCell, biofvm::real_t dt); // done
 
-	Cycle_Model& model(void);					// done
-	Phase& current_phase(void);					// done
-	biofvm::index_t& current_phase_index(void); // done
+	Cycle_Model& model();					// done
+	Phase& current_phase();					// done
+	biofvm::index_t& current_phase_index(); // done
 
 	void sync_to_cycle_model(Cycle_Model& cm); // done
 
@@ -180,12 +180,12 @@ public:
 	bool check_for_death(biofvm::real_t dt);			   // done
 	void trigger_death(biofvm::index_t death_model_index); // done
 
-	Cycle_Model& current_model(void);			// done
-	Death_Parameters& current_parameters(void); // done '
+	Cycle_Model& current_model();			// done
+	Death_Parameters& current_parameters(); // done
 
 	// ease of access
-	biofvm::real_t& apoptosis_rate(void);
-	biofvm::real_t& necrosis_rate(void);
+	biofvm::real_t& apoptosis_rate();
+	biofvm::real_t& necrosis_rate();
 
 	void copy(Death& dest);
 };

@@ -61,7 +61,7 @@ public:
 	Parameter<T>& operator[](biofvm::index_t i);
 	Parameter<T>& operator[](std::string str);
 
-	biofvm::index_t size(void) const;
+	biofvm::index_t size() const;
 };
 
 class User_Parameters

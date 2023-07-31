@@ -21,14 +21,14 @@ biofvm::real_t& signal_scale(biofvm::index_t signal_index); // done
 void setup_signal_behavior_dictionaries(environment& e); // done
 
 // display dictionaries
-void display_signal_dictionary(void);	// done
-void display_behavior_dictionary(void); // done
+void display_signal_dictionary();	// done
+void display_behavior_dictionary(); // done
 
 void display_signal_dictionary(std::ostream& os);	// done
 void display_behavior_dictionary(std::ostream& os); // done
 
-void display_signal_dictionary_with_synonyms(void);	  // done
-void display_behavior_dictionary_with_synonyms(void); // done
+void display_signal_dictionary_with_synonyms();	  // done
+void display_behavior_dictionary_with_synonyms(); // done
 
 /* signal functions */
 

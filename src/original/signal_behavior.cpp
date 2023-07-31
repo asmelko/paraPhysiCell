@@ -502,14 +502,14 @@ void display_signal_dictionary(std::ostream& os)
 	return;
 }
 
-void display_signal_dictionary(void)
+void display_signal_dictionary()
 {
 	display_signal_dictionary(std::cout);
 	std::cout << std::endl;
 }
 
 
-void display_signal_dictionary_with_synonyms(void)
+void display_signal_dictionary_with_synonyms()
 {
 	std::cout << "Signals (with synonyms): " << std::endl << "=======================" << std::endl;
 	for (auto it = signal_to_int.begin(); it != signal_to_int.end(); it++)
@@ -531,14 +531,14 @@ void display_behavior_dictionary(std::ostream& os)
 	return;
 }
 
-void display_behavior_dictionary(void)
+void display_behavior_dictionary()
 {
 	display_behavior_dictionary(std::cout);
 	std::cout << std::endl;
 	return;
 }
 
-void display_response_dictionary_with_synonyms(void)
+void display_response_dictionary_with_synonyms()
 {
 	std::cout << "Behaviors (with synonyms): " << std::endl << "=========================" << std::endl;
 	for (auto it = behavior_to_int.begin(); it != behavior_to_int.end(); it++)
@@ -1916,7 +1916,7 @@ std::vector<real_t> get_behaviors(cell* pCell, std::vector<index_t> indices, env
 	std::vector<real_t> parameters(indices.size(), 0.0);
 	for (std::size_t n = 0; n < indices.size(); n++)
 	{
-		parameters[n] = get_single_behavior(pCell, indices[n],e);
+		parameters[n] = get_single_behavior(pCell, indices[n], e);
 	}
 	return parameters;
 }
@@ -1926,7 +1926,7 @@ std::vector<real_t> get_behaviors(cell* pCell, std::vector<std::string> names, e
 	std::vector<real_t> parameters(names.size(), 0.0);
 	for (std::size_t n = 0; n < names.size(); n++)
 	{
-		parameters[n] = get_single_behavior(pCell, names[n],e);
+		parameters[n] = get_single_behavior(pCell, names[n], e);
 	}
 	return parameters;
 }

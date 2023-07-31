@@ -26,7 +26,7 @@ Integrated_Signal::Integrated_Signal()
 	return;
 }
 
-void Integrated_Signal::reset(void)
+void Integrated_Signal::reset()
 {
 	promoters.clear();
 	promoter_weights.clear();
@@ -36,7 +36,7 @@ void Integrated_Signal::reset(void)
 	return;
 }
 
-real_t Integrated_Signal::compute_signal(void)
+real_t Integrated_Signal::compute_signal()
 {
 	real_t pr = 0.0;
 	real_t w = 0.0;
