@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "environment.h"
 #include "original/standard_models.h"
 
 using namespace biofvm;
@@ -16,6 +17,19 @@ void simulator::initialize(environment& e)
 	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.time_step);
 	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.time_step);
 	recompute_secretion_and_uptake_ = false;
+}
+
+void custom_cell_rules(environment& e)
+{
+	auto& cells = e.cast_container<cell_container>();
+
+	for (auto& cell : cells.agents())
+	{
+		if (cell->functions.custom_cell_rule)
+		{
+			cell->functions.custom_cell_rule(*cell);
+		}
+	}
 }
 
 void simulator::simulate_diffusion_and_mechanics(environment& e)
@@ -39,6 +53,12 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 
 		// Update mechanics mesh with new cell positions:
 		mechanics_solver_.containers.update_mechanics_mesh(e);
+
+		// custom attached cells adhesion:
+		evaluate_interactions(e);
+
+		// custom cell rules:
+		custom_cell_rules(e);
 
 		// Compute velocities and update the positions:
 		{
