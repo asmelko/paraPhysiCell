@@ -19,4 +19,6 @@ void standard_elastic_contract_function(cell& lhs, cell& rhs);
 
 void evaluate_interactions(environment& e);
 
+void update_cell_and_death_parameters_O2_based(cell& cell, biofvm::real_t dt);
+
 } // namespace physicell

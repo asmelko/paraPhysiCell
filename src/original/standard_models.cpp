@@ -2,6 +2,7 @@
 
 #include "../random.h"
 #include "../solver/host/solver_helper.h"
+#include "constants.h"
 #include "rules.h"
 #include "signal_behavior.h"
 
@@ -225,6 +226,132 @@ void evaluate_interactions(environment& e)
 			}
 		}
 	}
+}
+
+void update_cell_and_death_parameters_O2_based(cell& cell, real_t)
+{
+	// supported cycle models:
+	// advanced_Ki67_cycle_model= 0;
+	// basic_Ki67_cycle_model=1
+	// live_cells_cycle_model = 5;
+
+	if (cell.phenotype.death.dead())
+	{
+		return;
+	}
+
+	// set up shortcuts to find the Q and K(1) phases (assuming Ki67 basic or advanced model)
+	static bool indices_initiated = false;
+	static int start_phase_index; // Q_phase_index;
+	static int end_phase_index;	  // K_phase_index;
+	static int necrosis_index;
+
+	static int oxygen_substrate_index = cell.e().m.find_substrate_index("oxygen");
+
+	if (indices_initiated == false)
+	{
+		// Ki67 models
+
+		if (cell.phenotype.cycle.model().code == constants::advanced_Ki67_cycle_model
+			|| cell.phenotype.cycle.model().code == constants::basic_Ki67_cycle_model)
+		{
+			start_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::Ki67_negative);
+			necrosis_index = cell.phenotype.death.find_death_model_index(constants::necrosis_death_model);
+
+			if (cell.phenotype.cycle.model().code == constants::basic_Ki67_cycle_model)
+			{
+				end_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::Ki67_positive);
+				indices_initiated = true;
+			}
+			if (cell.phenotype.cycle.model().code == constants::advanced_Ki67_cycle_model)
+			{
+				end_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::Ki67_positive_premitotic);
+				indices_initiated = true;
+			}
+		}
+
+		// live model
+
+		if (cell.phenotype.cycle.model().code == constants::live_cells_cycle_model)
+		{
+			start_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::live);
+			necrosis_index = cell.phenotype.death.find_death_model_index(constants::necrosis_death_model);
+			end_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::live);
+			indices_initiated = true;
+		}
+
+		// cytometry models
+
+		if (cell.phenotype.cycle.model().code == constants::flow_cytometry_cycle_model
+			|| cell.phenotype.cycle.model().code == constants::flow_cytometry_separated_cycle_model)
+		{
+			start_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::G0G1_phase);
+			necrosis_index = cell.phenotype.death.find_death_model_index(constants::necrosis_death_model);
+			end_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::S_phase);
+			indices_initiated = true;
+		}
+
+		if (cell.phenotype.cycle.model().code == constants::cycling_quiescent_model)
+		{
+			start_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::quiescent);
+			necrosis_index = cell.phenotype.death.find_death_model_index(constants::necrosis_death_model);
+			end_phase_index = cell.phenotype.cycle.model().find_phase_index(constants::cycling);
+			indices_initiated = true;
+		}
+	}
+
+	// don't continue if we never "figured out" the current cycle model.
+	if (indices_initiated == false)
+	{
+		return;
+	}
+
+	// sample the microenvironment to get the pO2 value
+
+	double pO2 = (cell.nearest_density_vector())[oxygen_substrate_index]; // constants::oxygen_index];
+
+	// this multiplier is for linear interpolation of the oxygen value
+	double multiplier = 1.0;
+	if (pO2 < cell.parameters.o2_proliferation_saturation)
+	{
+		multiplier = (pO2 - cell.parameters.o2_proliferation_threshold)
+					 / (cell.parameters.o2_proliferation_saturation - cell.parameters.o2_proliferation_threshold);
+	}
+	if (pO2 < cell.parameters.o2_proliferation_threshold)
+	{
+		multiplier = 0.0;
+	}
+
+	// now, update the appropriate cycle transition rate
+
+	cell.phenotype.cycle.data.transition_rate(start_phase_index, end_phase_index) =
+		multiplier
+		* cell.parameters.pReference_live_phenotype->cycle.data.transition_rate(start_phase_index, end_phase_index);
+
+	// Update necrosis rate
+	multiplier = 0.0;
+	if (pO2 < cell.parameters.o2_necrosis_threshold)
+	{
+		multiplier = (cell.parameters.o2_necrosis_threshold - pO2)
+					 / (cell.parameters.o2_necrosis_threshold - cell.parameters.o2_necrosis_max);
+	}
+	if (pO2 < cell.parameters.o2_necrosis_max)
+	{
+		multiplier = 1.0;
+	}
+
+	// now, update the necrosis rate
+
+	cell.phenotype.death.rates[necrosis_index] = multiplier * cell.parameters.max_necrosis_rate;
+
+	// check for deterministic necrosis
+
+	if (cell.parameters.necrosis_type == constants::deterministic_necrosis && multiplier > 1e-16)
+	{
+		cell.phenotype.death.rates[necrosis_index] = 9e99;
+	}
+
+	return;
 }
 
 } // namespace physicell
