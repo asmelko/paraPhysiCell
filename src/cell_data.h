@@ -31,9 +31,15 @@ struct volume_data
 
 	std::vector<biofvm::real_t> rupture_volume;
 
+	std::vector<biofvm::real_t> cytoplasmic_biomass_change_rate; 
+	std::vector<biofvm::real_t> nuclear_biomass_change_rate; 
+	std::vector<biofvm::real_t> fluid_change_rate;
+	std::vector<biofvm::real_t> calcification_rate; 
 	std::vector<biofvm::real_t> target_solid_cytoplasmic;
 	std::vector<biofvm::real_t> target_solid_nuclear;
 	std::vector<biofvm::real_t> target_fluid_fraction;
+	std::vector<biofvm::real_t> target_cytoplasmic_to_nuclear_ratio;
+	std::vector<biofvm::real_t> relative_rupture_volume; 
 
 	void add(biofvm::index_t size);
 	void remove(biofvm::index_t index, biofvm::index_t size);

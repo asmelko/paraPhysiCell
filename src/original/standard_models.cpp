@@ -141,4 +141,59 @@ void advanced_chemotaxis_function(cell& cell)
 	normalize(cell.phenotype.motility.migration_bias_direction(), cell.e().mechanics_mesh.dims);
 }
 
+void standard_volume_update_function(cell& cell)
+{
+	cell.phenotype.volume.fluid() += cell.e().phenotype_time_step * cell.phenotype.volume.fluid_change_rate()
+									 * (cell.phenotype.volume.target_fluid_fraction() * cell.phenotype.volume.total()
+										- cell.phenotype.volume.fluid());
+
+	// if the fluid volume is negative, set to zero
+	if (cell.phenotype.volume.fluid() < 0.0)
+	{
+		cell.phenotype.volume.fluid() = 0.0;
+	}
+
+	cell.phenotype.volume.nuclear_fluid() =
+		(cell.phenotype.volume.nuclear() / (cell.phenotype.volume.total() + 1e-16)) * (cell.phenotype.volume.fluid());
+	cell.phenotype.volume.cytoplasmic_fluid() = cell.phenotype.volume.fluid() - cell.phenotype.volume.nuclear_fluid();
+
+	cell.phenotype.volume.nuclear_solid() +=
+		cell.e().phenotype_time_step * cell.phenotype.volume.nuclear_biomass_change_rate()
+		* (cell.phenotype.volume.target_solid_nuclear() - cell.phenotype.volume.nuclear_solid());
+	if (cell.phenotype.volume.nuclear_solid() < 0.0)
+	{
+		cell.phenotype.volume.nuclear_solid() = 0.0;
+	}
+
+	cell.phenotype.volume.target_solid_cytoplasmic() = cell.phenotype.volume.target_cytoplasmic_to_nuclear_ratio()
+													   * // cell.phenotype.volume.cytoplasmic_to_nuclear_fraction() *
+													   cell.phenotype.volume.target_solid_nuclear();
+
+	cell.phenotype.volume.cytoplasmic_solid() +=
+		cell.e().phenotype_time_step * cell.phenotype.volume.cytoplasmic_biomass_change_rate()
+		* (cell.phenotype.volume.target_solid_cytoplasmic() - cell.phenotype.volume.cytoplasmic_solid());
+	if (cell.phenotype.volume.cytoplasmic_solid() < 0.0)
+	{
+		cell.phenotype.volume.cytoplasmic_solid() = 0.0;
+	}
+
+	cell.phenotype.volume.solid() = cell.phenotype.volume.nuclear_solid() + cell.phenotype.volume.cytoplasmic_solid();
+
+	cell.phenotype.volume.nuclear() = cell.phenotype.volume.nuclear_solid() + cell.phenotype.volume.nuclear_fluid();
+	cell.phenotype.volume.cytoplasmic() =
+		cell.phenotype.volume.cytoplasmic_solid() + cell.phenotype.volume.cytoplasmic_fluid();
+
+	cell.phenotype.volume.calcified_fraction() += cell.e().phenotype_time_step
+												  * cell.phenotype.volume.calcification_rate()
+												  * (1 - cell.phenotype.volume.calcified_fraction());
+
+	cell.phenotype.volume.total() = cell.phenotype.volume.cytoplasmic() + cell.phenotype.volume.nuclear();
+
+	cell.phenotype.volume.fluid_fraction() = cell.phenotype.volume.fluid() / (1e-16 + cell.phenotype.volume.total());
+
+	cell.phenotype.geometry.update();
+
+	return;
+}
+
 } // namespace physicell

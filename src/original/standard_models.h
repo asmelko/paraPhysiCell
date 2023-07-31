@@ -13,4 +13,6 @@ void chemotaxis_function(cell& cell);
 template <bool do_normalize>
 void advanced_chemotaxis_function(cell& cell);
 
+void standard_volume_update_function(cell& cell);
+
 } // namespace physicell

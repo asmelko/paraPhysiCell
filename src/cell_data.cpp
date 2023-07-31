@@ -41,9 +41,15 @@ void volume_data::add(index_t size)
 
 	rupture_volume.resize(size, 0);
 
+	cytoplasmic_biomass_change_rate.resize(size, 0);
+	nuclear_biomass_change_rate.resize(size, 0);
+	fluid_change_rate.resize(size, 0);
+	calcification_rate.resize(size, 0);
 	target_solid_cytoplasmic.resize(size, 0);
 	target_solid_nuclear.resize(size, 0);
 	target_fluid_fraction.resize(size, 0);
+	target_cytoplasmic_to_nuclear_ratio.resize(size, 0);
+	relative_rupture_volume.resize(size, 0);
 }
 
 void volume_data::remove(index_t index, index_t size)
@@ -66,9 +72,15 @@ void volume_data::remove(index_t index, index_t size)
 
 	move_scalar(rupture_volume.data() + index, rupture_volume.data() + size);
 
+	move_scalar(cytoplasmic_biomass_change_rate.data() + index, cytoplasmic_biomass_change_rate.data() + size);
+	move_scalar(nuclear_biomass_change_rate.data() + index, nuclear_biomass_change_rate.data() + size);
+	move_scalar(fluid_change_rate.data() + index, fluid_change_rate.data() + size);
+	move_scalar(calcification_rate.data() + index, calcification_rate.data() + size);
 	move_scalar(target_solid_cytoplasmic.data() + index, target_solid_cytoplasmic.data() + size);
 	move_scalar(target_solid_nuclear.data() + index, target_solid_nuclear.data() + size);
 	move_scalar(target_fluid_fraction.data() + index, target_fluid_fraction.data() + size);
+	move_scalar(target_cytoplasmic_to_nuclear_ratio.data() + index, target_cytoplasmic_to_nuclear_ratio.data() + size);
+	move_scalar(relative_rupture_volume.data() + index, relative_rupture_volume.data() + size);
 }
 
 void geometry_data::add(index_t size)

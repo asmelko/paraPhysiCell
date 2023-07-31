@@ -44,6 +44,16 @@ struct volume_t : public phenotype_data_storage
 
 	biofvm::real_t& rupture_volume();
 
+	biofvm::real_t& cytoplasmic_biomass_change_rate();
+	biofvm::real_t& nuclear_biomass_change_rate();
+	biofvm::real_t& fluid_change_rate();
+	biofvm::real_t& calcification_rate();
+	biofvm::real_t& target_solid_cytoplasmic();
+	biofvm::real_t& target_solid_nuclear();
+	biofvm::real_t& target_fluid_fraction();
+	biofvm::real_t& target_cytoplasmic_to_nuclear_ratio();
+	biofvm::real_t& relative_rupture_volume();
+
 	void divide();
 
 	void multiply_by_factor(biofvm::real_t factor);

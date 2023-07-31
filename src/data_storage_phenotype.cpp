@@ -38,6 +38,24 @@ real_t& volume_t::cytoplasmic_to_nuclear_ratio() { return data_.volumes.cytoplas
 
 real_t& volume_t::rupture_volume() { return data_.volumes.rupture_volume[index_]; }
 
+real_t& volume_t::cytoplasmic_biomass_change_rate() { return data_.volumes.cytoplasmic_biomass_change_rate[index_]; }
+
+real_t& volume_t::nuclear_biomass_change_rate() { return data_.volumes.nuclear_biomass_change_rate[index_]; }
+
+real_t& volume_t::fluid_change_rate() { return data_.volumes.fluid_change_rate[index_]; }
+
+real_t& volume_t::calcification_rate() { return data_.volumes.calcification_rate[index_]; }
+
+real_t& volume_t::target_solid_cytoplasmic() { return data_.volumes.target_solid_cytoplasmic[index_]; }
+
+real_t& volume_t::target_solid_nuclear() { return data_.volumes.target_solid_nuclear[index_]; }
+
+real_t& volume_t::target_fluid_fraction() { return data_.volumes.target_fluid_fraction[index_]; }
+
+real_t& volume_t::target_cytoplasmic_to_nuclear_ratio() { return data_.volumes.target_cytoplasmic_to_nuclear_ratio[index_]; }
+
+real_t& volume_t::relative_rupture_volume() { return data_.volumes.relative_rupture_volume[index_]; }
+
 geometry_t::geometry_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
 real_t& geometry_t::radius() { return data_.geometries.radius[index_]; }
@@ -220,6 +238,16 @@ void volume_t::copy(volume_t& dest)
 	dest.calcified_fraction() = calcified_fraction();
 	dest.cytoplasmic_to_nuclear_ratio() = cytoplasmic_to_nuclear_ratio();
 	dest.rupture_volume() = rupture_volume();
+
+	dest.cytoplasmic_biomass_change_rate() = cytoplasmic_biomass_change_rate();
+	dest.nuclear_biomass_change_rate() = nuclear_biomass_change_rate();
+	dest.fluid_change_rate() = fluid_change_rate();
+	dest.calcification_rate() = calcification_rate();
+	dest.target_solid_cytoplasmic() = target_solid_cytoplasmic();
+	dest.target_solid_nuclear() = target_solid_nuclear();
+	dest.target_fluid_fraction() = target_fluid_fraction();
+	dest.target_cytoplasmic_to_nuclear_ratio() = target_cytoplasmic_to_nuclear_ratio();
+	dest.relative_rupture_volume() = relative_rupture_volume();
 }
 
 void geometry_t::copy(geometry_t& dest)
@@ -352,6 +380,9 @@ void volume_t::multiply_by_factor(real_t factor)
 	cytoplasmic_solid() *= factor;
 
 	rupture_volume() *= factor;
+
+	target_solid_cytoplasmic() *= factor;
+	target_solid_nuclear() *= factor;
 }
 
 void volume_t::divide() { multiply_by_factor(0.5); }
