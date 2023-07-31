@@ -22,6 +22,8 @@ struct cell_functions
 	cell_func_t<void> post_update_intracellular = nullptr;
 
 	cell_func_t<void> set_orientation = nullptr;
+
+	std::function<void(cell& lhs, cell& rhs)> contact_function = nullptr;
 };
 
 } // namespace physicell

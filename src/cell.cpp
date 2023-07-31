@@ -85,8 +85,10 @@ void cell::copy_from(cell& source)
 void cell::divide(cell& new_cell)
 {
 	// remove all attached
-	remove_springs(index_, data_.states.springs.data());
+	remove_attached(index_, data_.states.springs.data());
+	remove_attached(index_, data_.states.attached_cells.data());
 	state.spring_attachments().clear();
+	state.attached_cells().clear();
 
 	// divide conserved quantitites in custom data in half
 	custom_data.divide_conserved_quantities();
@@ -167,3 +169,36 @@ void cell::flag_for_removal() { flag() = cell_state_flag::to_remove; }
 void cell::flag_for_division() { flag() = cell_state_flag::to_divide; }
 
 const environment& cell::e() const { return data_.e; }
+
+void cell::attach_cell(cell& cell)
+{
+	auto it = std::find_if(state.attached_cells().begin(), state.attached_cells().end(),
+						   [to_find = cell.index()](const index_t index) { return index == to_find; });
+	if (it == state.attached_cells().end())
+	{
+		state.attached_cells().push_back(cell.index());
+	}
+}
+
+void cell::detach_cell(cell& cell)
+{
+	auto it = std::find_if(state.attached_cells().begin(), state.attached_cells().end(),
+						   [to_find = cell.index()](const index_t index) { return index == to_find; });
+	if (it != state.attached_cells().end())
+	{
+		*it = state.attached_cells().back();
+		state.attached_cells().pop_back();
+	}
+}
+
+void cell::attach_cells(cell& lhs, cell& rhs)
+{
+	lhs.attach_cell(rhs);
+	rhs.attach_cell(lhs);
+}
+
+void cell::detach_cells(cell& lhs, cell& rhs)
+{
+	lhs.detach_cell(rhs);
+	rhs.detach_cell(lhs);
+}

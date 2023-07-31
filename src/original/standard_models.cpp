@@ -196,4 +196,35 @@ void standard_volume_update_function(cell& cell)
 	return;
 }
 
+void standard_elastic_contract_function(cell& lhs, cell& rhs)
+{
+	const real_t adhesion = sqrt(lhs.phenotype.mechanics.attachment_elastic_constant()
+								 * rhs.phenotype.mechanics.attachment_elastic_constant()
+								 * lhs.phenotype.mechanics.cell_adhesion_affinities()[rhs.cell_definition_index()]
+								 * rhs.phenotype.mechanics.cell_adhesion_affinities()[lhs.cell_definition_index()]);
+
+	for (index_t d = 0; d < lhs.e().mechanics_mesh.dims; d++)
+	{
+		lhs.velocity()[d] = adhesion * (lhs.position()[d] - rhs.position()[d]);
+	}
+}
+
+void evaluate_interactions(environment& e)
+{
+	auto& cells = e.cast_container<cell_container>();
+
+	for (auto& cell : cells.agents())
+	{
+		if (cell->functions.contact_function)
+		{
+			for (auto& other : cell->state.attached_cells())
+			{
+				auto& other_cell = *cells.agents()[other];
+
+				cell->functions.contact_function(*cell, other_cell);
+			}
+		}
+	}
+}
+
 } // namespace physicell

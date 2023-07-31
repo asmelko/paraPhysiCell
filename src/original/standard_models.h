@@ -15,4 +15,8 @@ void advanced_chemotaxis_function(cell& cell);
 
 void standard_volume_update_function(cell& cell);
 
+void standard_elastic_contract_function(cell& lhs, cell& rhs);
+
+void evaluate_interactions(environment& e);
+
 } // namespace physicell

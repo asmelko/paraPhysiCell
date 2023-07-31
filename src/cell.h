@@ -64,6 +64,12 @@ public:
 
 	void assign_orientation();
 
+	void attach_cell(cell& cell);
+	void detach_cell(cell& cell);
+
+	static void attach_cells(cell& lhs, cell& rhs);
+	static void detach_cells(cell& lhs, cell& rhs);
+
 	void flag_for_removal();
 	void flag_for_division();
 };

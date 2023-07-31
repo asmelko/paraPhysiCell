@@ -13,6 +13,6 @@ public:
 	static void update_cell_container_for_phenotype(environment& e, biofvm::cell_solver& s);
 };
 
-void remove_springs(biofvm::index_t to_remove, std::vector<biofvm::index_t>* __restrict__ springs);
+void remove_attached(biofvm::index_t to_remove, std::vector<biofvm::index_t>* __restrict__ springs);
 
 } // namespace physicell

@@ -24,23 +24,23 @@ void containers_solver::update_mechanics_mesh(environment& e)
 	}
 }
 
-void physicell::remove_springs(index_t to_remove, std::vector<index_t>* __restrict__ springs)
+void physicell::remove_attached(index_t to_remove, std::vector<index_t>* __restrict__ attached)
 {
-	for (auto spring : springs[to_remove])
+	for (auto spring : attached[to_remove])
 	{
-		auto it = std::find_if(springs[spring].begin(), springs[spring].end(),
+		auto it = std::find_if(attached[spring].begin(), attached[spring].end(),
 							   [to_remove](index_t i) { return i == to_remove; });
 
-		*it = springs[spring].back();
-		springs[spring].pop_back();
+		*it = attached[spring].back();
+		attached[spring].pop_back();
 	}
 }
 
-void rename_springs(index_t old_index, index_t new_index, std::vector<index_t>* __restrict__ springs)
+void rename_attached(index_t old_index, index_t new_index, std::vector<index_t>* __restrict__ attached)
 {
-	for (auto spring : springs[old_index])
+	for (auto spring : attached[old_index])
 	{
-		auto it = std::find_if(springs[spring].begin(), springs[spring].end(),
+		auto it = std::find_if(attached[spring].begin(), attached[spring].end(),
 							   [old_index](index_t i) { return i == old_index; });
 
 		*it = new_index;
@@ -48,7 +48,8 @@ void rename_springs(index_t old_index, index_t new_index, std::vector<index_t>* 
 }
 
 void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
-				   std::vector<index_t>* __restrict__ springs, const cartesian_mesh& mesh, cell_container& container)
+				   std::vector<index_t>* __restrict__ springs, std::vector<index_t>* __restrict__ attachced_cells,
+				   const cartesian_mesh& mesh, cell_container& container)
 {
 	while (true)
 	{
@@ -66,20 +67,24 @@ void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const re
 		if (out_of_bounds == false && flag[i] == cell_state_flag::none)
 			return;
 
-		remove_springs(i, springs);
-		rename_springs(container.data().agents_count - 1, i, springs);
+		remove_attached(i, springs);
+		rename_attached(container.data().agents_count - 1, i, springs);
+
+		remove_attached(i, attachced_cells);
+		rename_attached(container.data().agents_count - 1, i, attachced_cells);
 
 		container.remove_at(i);
 	}
 }
 
 void update_cell_container_internal(const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
-									std::vector<index_t>* __restrict__ springs, const cartesian_mesh& mesh,
+									std::vector<index_t>* __restrict__ springs,
+									std::vector<index_t>* __restrict__ attached_cells, const cartesian_mesh& mesh,
 									cell_container& container)
 {
 	for (index_t i = 0; i < container.data().agents_count; i++)
 	{
-		remove_single(i, flag, positions, springs, mesh, container);
+		remove_single(i, flag, positions, springs, attached_cells, mesh, container);
 	}
 }
 
@@ -88,7 +93,7 @@ void containers_solver::update_cell_container_for_mechanics(environment& e)
 	auto& data = get_cell_data(e);
 
 	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-								   e.m.mesh, e.cast_container<cell_container>());
+								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>());
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
@@ -112,6 +117,7 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 	{
 		s.release_internalized_substrates(e.m, i);
 
-		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(), e.m.mesh, c);
+		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+					  data.states.attached_cells.data(), e.m.mesh, c);
 	}
 }
