@@ -59,6 +59,8 @@ struct volume_t : public phenotype_data_storage
 	void multiply_by_factor(biofvm::real_t factor);
 
 	void copy(volume_t& dest);
+
+	void set_defaults();
 };
 
 struct geometry_t : public phenotype_data_storage
@@ -73,6 +75,8 @@ struct geometry_t : public phenotype_data_storage
 	void copy(geometry_t& dest);
 
 	void update();
+
+	void set_defaults();
 };
 
 struct mechanics_t : public phenotype_data_storage
@@ -96,6 +100,8 @@ struct mechanics_t : public phenotype_data_storage
 	biofvm::real_t& detachment_rate();
 
 	void copy(mechanics_t& dest);
+
+	void set_defaults();
 };
 
 struct motility_t : public phenotype_data_storage
@@ -118,6 +124,8 @@ struct motility_t : public phenotype_data_storage
 	std::function<void(cell&)>& update_migration_bias_direction();
 
 	void copy(motility_t& dest);
+
+	void set_defaults();
 };
 
 struct secretion_t : public phenotype_data_storage
@@ -133,6 +141,8 @@ struct secretion_t : public phenotype_data_storage
 
 	void set_all_secretion_to_zero();
 	void scale_all_uptake_by_factor(biofvm::real_t factor);
+
+	void set_defaults();
 };
 
 struct molecular_t : public phenotype_data_storage
@@ -146,6 +156,8 @@ struct molecular_t : public phenotype_data_storage
 	void divide();
 
 	void copy(molecular_t& dest);
+
+	void set_defaults();
 };
 
 struct interactions_t : public phenotype_data_storage
@@ -162,6 +174,8 @@ struct interactions_t : public phenotype_data_storage
 	biofvm::real_t* fusion_rates();
 
 	void copy(interactions_t& dest);
+
+	void set_defaults();
 };
 
 struct transformations_t : public phenotype_data_storage
@@ -171,6 +185,8 @@ struct transformations_t : public phenotype_data_storage
 	biofvm::real_t* transformation_rates();
 
 	void copy(transformations_t& dest);
+
+	void set_defaults();
 };
 
 } // namespace physicell

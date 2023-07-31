@@ -317,10 +317,6 @@ Death_Parameters::Death_Parameters()
 
 Death::Death(cell_data& data, index_t index) : phenotype_data_storage(data, index)
 {
-	rates.resize(0);
-	models.resize(0);
-	parameters.resize(0);
-
 	dead() = false;
 	current_death_model_index = 0;
 

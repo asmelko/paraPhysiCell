@@ -26,6 +26,8 @@ bool create_standard_cell_cycle_models();	   // done
 bool create_standard_cell_death_models();	   // done
 bool create_standard_cycle_and_death_models(); // done
 
+void initialize_default_cell_definition(environment& e);
+
 // standard volume functions
 
 void standard_volume_update_function(cell& cell);
@@ -36,7 +38,7 @@ void standard_volume_update_function(cell& cell);
 
 // standard o2-based phenotype changes
 
-void update_cell_and_death_parameters_O2_based(cell& cell, biofvm::real_t dt);
+void update_cell_and_death_parameters_O2_based(cell& cell);
 
 // standard motility functions
 

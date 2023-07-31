@@ -23,33 +23,33 @@ void move_vector(T* dst, const T* src, biofvm::index_t size)
 
 void volume_data::add(index_t size)
 {
-	solid.resize(size, 0);
-	fluid.resize(size, 0);
-	fluid_fraction.resize(size, 0);
+	solid.resize(size);
+	fluid.resize(size);
+	fluid_fraction.resize(size);
 
-	nuclear.resize(size, 0);
-	nuclear_fluid.resize(size, 0);
-	nuclear_solid.resize(size, 0);
+	nuclear.resize(size);
+	nuclear_fluid.resize(size);
+	nuclear_solid.resize(size);
 
-	cytoplasmic.resize(size, 0);
-	cytoplasmic_fluid.resize(size, 0);
-	cytoplasmic_solid.resize(size, 0);
+	cytoplasmic.resize(size);
+	cytoplasmic_fluid.resize(size);
+	cytoplasmic_solid.resize(size);
 
-	calcified_fraction.resize(size, 0);
+	calcified_fraction.resize(size);
 
-	cytoplasmic_to_nuclear_ratio.resize(size, 0);
+	cytoplasmic_to_nuclear_ratio.resize(size);
 
-	rupture_volume.resize(size, 0);
+	rupture_volume.resize(size);
 
-	cytoplasmic_biomass_change_rate.resize(size, 0);
-	nuclear_biomass_change_rate.resize(size, 0);
-	fluid_change_rate.resize(size, 0);
-	calcification_rate.resize(size, 0);
-	target_solid_cytoplasmic.resize(size, 0);
-	target_solid_nuclear.resize(size, 0);
-	target_fluid_fraction.resize(size, 0);
-	target_cytoplasmic_to_nuclear_ratio.resize(size, 0);
-	relative_rupture_volume.resize(size, 0);
+	cytoplasmic_biomass_change_rate.resize(size);
+	nuclear_biomass_change_rate.resize(size);
+	fluid_change_rate.resize(size);
+	calcification_rate.resize(size);
+	target_solid_cytoplasmic.resize(size);
+	target_solid_nuclear.resize(size);
+	target_fluid_fraction.resize(size);
+	target_cytoplasmic_to_nuclear_ratio.resize(size);
+	relative_rupture_volume.resize(size);
 }
 
 void volume_data::remove(index_t index, index_t size)
@@ -85,10 +85,10 @@ void volume_data::remove(index_t index, index_t size)
 
 void geometry_data::add(index_t size)
 {
-	radius.resize(size, 0);
-	nuclear_radius.resize(size, 0);
-	surface_area.resize(size, 0);
-	polarity.resize(size, 0);
+	radius.resize(size);
+	nuclear_radius.resize(size);
+	surface_area.resize(size);
+	polarity.resize(size);
 }
 
 void geometry_data::remove(index_t index, index_t size)
@@ -101,21 +101,21 @@ void geometry_data::remove(index_t index, index_t size)
 
 void mechanics_data::add(index_t size, index_t cell_definitions_count)
 {
-	cell_cell_adhesion_strength.resize(size, 0);
-	cell_BM_adhesion_strength.resize(size, 0);
+	cell_cell_adhesion_strength.resize(size);
+	cell_BM_adhesion_strength.resize(size);
 
-	cell_cell_repulsion_strength.resize(size, 0);
-	cell_BM_repulsion_strength.resize(size, 0);
+	cell_cell_repulsion_strength.resize(size);
+	cell_BM_repulsion_strength.resize(size);
 
-	cell_adhesion_affinities.resize(size * cell_definitions_count, 0);
+	cell_adhesion_affinities.resize(size * cell_definitions_count);
 
-	relative_maximum_adhesion_distance.resize(size, 0);
+	relative_maximum_adhesion_distance.resize(size);
 
-	maximum_number_of_attachments.resize(size, 0);
-	attachment_elastic_constant.resize(size, 0);
+	maximum_number_of_attachments.resize(size);
+	attachment_elastic_constant.resize(size);
 
-	attachment_rate.resize(size, 0);
-	detachment_rate.resize(size, 0);
+	attachment_rate.resize(size);
+	detachment_rate.resize(size);
 }
 
 void mechanics_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -140,19 +140,19 @@ void mechanics_data::remove(index_t index, index_t size, index_t cell_definition
 
 void motility_data::add(index_t index, index_t dims, index_t substrates_count)
 {
-	is_motile.resize(index, 0);
-	persistence_time.resize(index, 0);
-	migration_speed.resize(index, 0);
+	is_motile.resize(index);
+	persistence_time.resize(index);
+	migration_speed.resize(index);
 
 	migration_bias_direction.resize(index * dims, 0);
-	migration_bias.resize(index, 0);
+	migration_bias.resize(index);
 
 	motility_vector.resize(index * dims, 0);
 
-	restrict_to_2d.resize(index, 0);
+	restrict_to_2d.resize(index);
 
-	chemotaxis_index.resize(index, 0);
-	chemotaxis_direction.resize(index, 0);
+	chemotaxis_index.resize(index);
+	chemotaxis_direction.resize(index);
 	chemotactic_sensitivities.resize(index * substrates_count, 0);
 
 	update_migration_bias_direction.resize(index, nullptr);
@@ -181,14 +181,14 @@ void motility_data::remove(index_t index, index_t size, index_t dims, index_t su
 
 void interactions_data::add(index_t size, index_t cell_definitions_count)
 {
-	dead_phagocytosis_rate.resize(size, 0);
-	live_phagocytosis_rates.resize(size * cell_definitions_count, 0);
+	dead_phagocytosis_rate.resize(size);
+	live_phagocytosis_rates.resize(size * cell_definitions_count);
 
-	damage_rate.resize(size, 0);
-	attack_rates.resize(size * cell_definitions_count, 0);
-	immunogenicities.resize(size * cell_definitions_count, 0);
+	damage_rate.resize(size);
+	attack_rates.resize(size * cell_definitions_count);
+	immunogenicities.resize(size * cell_definitions_count);
 
-	fusion_rates.resize(size * cell_definitions_count, 0);
+	fusion_rates.resize(size * cell_definitions_count);
 }
 
 void interactions_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -207,13 +207,13 @@ void interactions_data::remove(index_t index, index_t size, index_t cell_definit
 				fusion_rates.data() + size * cell_definitions_count, cell_definitions_count);
 }
 
-void death_data::add(index_t size) { dead.resize(size, 0); }
+void death_data::add(index_t size) { dead.resize(size); }
 
 void death_data::remove(index_t index, index_t size) { move_scalar(dead.data() + index, dead.data() + size); }
 
 void transformations_data::add(index_t size, index_t cell_definitions_count)
 {
-	transformation_rates.resize(size * cell_definitions_count, 0);
+	transformation_rates.resize(size * cell_definitions_count);
 }
 
 void transformations_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -249,6 +249,8 @@ void cell_state_data::remove(index_t index, index_t size, index_t dims)
 
 	move_scalar(damage.data() + index, damage.data() + size);
 	move_scalar(total_attack_time.data() + index, total_attack_time.data() + size);
+
+	add(size - 1, dims); // cell state needs to be resized so the addition of new cell will properly assign defaults
 }
 
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
@@ -268,12 +270,12 @@ void cell_data::add()
 	interactions.add(agents_count, e.cell_definitions_count);
 	transformations.add(agents_count, e.cell_definitions_count);
 
-	previous_velocities.resize(agents_count * e.m.mesh.dims, 0);
-	velocities.resize(agents_count * e.m.mesh.dims, 0);
-	cell_definition_indices.resize(agents_count, 0);
-	is_movable.resize(agents_count, 0);
+	previous_velocities.resize(agents_count * e.m.mesh.dims);
+	velocities.resize(agents_count * e.m.mesh.dims);
+	cell_definition_indices.resize(agents_count);
+	is_movable.resize(agents_count);
 
-	flags.resize(agents_count, cell_state_flag::none);
+	flags.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)

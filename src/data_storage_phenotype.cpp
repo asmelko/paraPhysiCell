@@ -52,9 +52,53 @@ real_t& volume_t::target_solid_nuclear() { return data_.volumes.target_solid_nuc
 
 real_t& volume_t::target_fluid_fraction() { return data_.volumes.target_fluid_fraction[index_]; }
 
-real_t& volume_t::target_cytoplasmic_to_nuclear_ratio() { return data_.volumes.target_cytoplasmic_to_nuclear_ratio[index_]; }
+real_t& volume_t::target_cytoplasmic_to_nuclear_ratio()
+{
+	return data_.volumes.target_cytoplasmic_to_nuclear_ratio[index_];
+}
 
 real_t& volume_t::relative_rupture_volume() { return data_.volumes.relative_rupture_volume[index_]; }
+
+void volume_t::set_defaults()
+{
+	// reference parameter values for MCF-7, in cubic microns
+	fluid_fraction() = 0.75;
+
+	total() = 2494;
+	fluid() = fluid_fraction() * total();
+	solid() = total() - fluid();
+
+	nuclear() = 540.0;
+
+
+	nuclear_fluid() = fluid_fraction() * nuclear();
+	nuclear_solid() = nuclear() - nuclear_fluid();
+
+	cytoplasmic() = total() - nuclear();
+	cytoplasmic_fluid() = fluid_fraction() * cytoplasmic();
+	cytoplasmic_solid() = cytoplasmic() - cytoplasmic_fluid();
+
+	// rates are in units of 1/min
+	cytoplasmic_biomass_change_rate() = 0.27 / 60.0;
+	nuclear_biomass_change_rate() = 0.33 / 60.0;
+	fluid_change_rate() = 3.0 / 60.0;
+
+	calcified_fraction() = 0.0;
+
+	calcification_rate() = 0.0;
+
+	target_solid_cytoplasmic() = cytoplasmic_solid();
+	target_solid_nuclear() = nuclear_solid();
+	target_fluid_fraction() = fluid_fraction();
+
+	cytoplasmic_to_nuclear_ratio() = cytoplasmic() / (1e-16 + nuclear());
+	target_cytoplasmic_to_nuclear_ratio() = cytoplasmic_to_nuclear_ratio();
+
+	// the cell bursts at these volumes
+	relative_rupture_volume() = 2.0;
+	// as fraction of volume at entry to the current phase
+	rupture_volume() = relative_rupture_volume() * total(); // in volume units
+}
 
 geometry_t::geometry_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
@@ -71,6 +115,15 @@ void geometry_t::update()
 	update_geometry(index_, data_.geometries.radius.data(), data_.geometries.nuclear_radius.data(),
 					data_.geometries.surface_area.data(), data_.agent_data.volumes.data(),
 					data_.volumes.nuclear.data());
+}
+
+void geometry_t::set_defaults()
+{
+	radius() = 8.412710547954228;
+	nuclear_radius() = 5.051670902881889;
+	surface_area() = 889.3685284131693;
+
+	polarity() = 0.0;
 }
 
 mechanics_t::mechanics_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
@@ -101,6 +154,29 @@ real_t& mechanics_t::attachment_rate() { return data_.mechanics.attachment_rate[
 
 real_t& mechanics_t::detachment_rate() { return data_.mechanics.detachment_rate[index_]; }
 
+void mechanics_t::set_defaults()
+{
+	cell_cell_adhesion_strength() = 0.4;
+	cell_BM_adhesion_strength() = 4.0;
+
+	cell_cell_repulsion_strength() = 10.0;
+	cell_BM_repulsion_strength() = 10.0;
+
+	std::fill(cell_adhesion_affinities(), cell_adhesion_affinities() + data_.e.cell_definitions_count, 0);
+	cell_adhesion_affinities()[0] = 1;
+
+	// this is a multiple of the cell (equivalent) radius
+	relative_maximum_adhesion_distance() = 1.25;
+	// maximum_adhesion_distance = 0.0;
+
+	/* for spring attachments */
+	maximum_number_of_attachments() = 12;
+	attachment_elastic_constant() = 0.01;
+
+	attachment_rate() = 0; // 10.0 prior ot March 2023
+	detachment_rate() = 0;
+}
+
 motility_t::motility_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
 std::uint8_t& motility_t::is_motile() { return data_.motilities.is_motile[index_]; }
@@ -130,6 +206,25 @@ real_t* motility_t::chemotactic_sensitivities()
 	return data_.motilities.chemotactic_sensitivities.data() + index_ * data_.e.m.substrates_count;
 }
 
+void motility_t::set_defaults()
+{
+	is_motile() = false;
+
+	persistence_time() = 1.0;
+	migration_speed() = 1.0;
+
+	std::fill(migration_bias_direction(), migration_bias_direction() + data_.e.mechanics_mesh.dims, 0);
+	migration_bias() = 0.0;
+
+	update_migration_bias_direction() = nullptr;
+
+	std::fill(motility_vector(), motility_vector() + data_.e.mechanics_mesh.dims, 0);
+
+	chemotaxis_index() = 0;
+	chemotaxis_direction() = 1;
+	std::fill(chemotactic_sensitivities(), chemotactic_sensitivities() + data_.e.m.substrates_count, 0);
+}
+
 motility_data::direction_update_func& motility_t::update_migration_bias_direction()
 {
 	return data_.motilities.update_migration_bias_direction[index_];
@@ -150,6 +245,14 @@ real_t* molecular_t::fraction_released_at_death()
 real_t* molecular_t::fraction_transferred_when_ingested()
 {
 	return data_.agent_data.fraction_transferred_when_ingested.data() + index_ * data_.e.m.substrates_count;
+}
+
+void molecular_t::set_defaults()
+{
+	std::fill(internalized_total_substrates(), internalized_total_substrates() + data_.e.m.substrates_count, 0);
+	std::fill(fraction_released_at_death(), fraction_released_at_death() + data_.e.m.substrates_count, 0);
+	std::fill(fraction_transferred_when_ingested(), fraction_transferred_when_ingested() + data_.e.m.substrates_count,
+			  0);
 }
 
 interactions_t::interactions_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
@@ -176,6 +279,17 @@ real_t* interactions_t::immunogenicities()
 real_t* interactions_t::fusion_rates()
 {
 	return data_.interactions.fusion_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
+void interactions_t::set_defaults()
+{
+	dead_phagocytosis_rate() = 0.0;
+	std::fill(live_phagocytosis_rates(), live_phagocytosis_rates() + data_.e.cell_definitions_count, 0);
+	damage_rate() = 1.0;
+	std::fill(attack_rates(), attack_rates() + data_.e.cell_definitions_count, 0);
+	std::fill(immunogenicities(), immunogenicities() + data_.e.cell_definitions_count, 0);
+	immunogenicities()[0] = 1;
+	std::fill(fusion_rates(), fusion_rates() + data_.e.cell_definitions_count, 0);
 }
 
 secretion_t::secretion_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
@@ -216,11 +330,24 @@ void secretion_t::scale_all_uptake_by_factor(real_t factor)
 	}
 }
 
+void secretion_t::set_defaults()
+{
+	std::fill(secretion_rates(), secretion_rates() + data_.e.m.substrates_count, 0);
+	std::fill(uptake_rates(), uptake_rates() + data_.e.m.substrates_count, 0);
+	std::fill(saturation_densities(), saturation_densities() + data_.e.m.substrates_count, 0);
+	std::fill(net_export_rates(), net_export_rates() + data_.e.m.substrates_count, 0);
+}
+
 transformations_t::transformations_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
 real_t* transformations_t::transformation_rates()
 {
 	return data_.transformations.transformation_rates.data() + index_ * data_.e.cell_definitions_count;
+}
+
+void transformations_t::set_defaults()
+{
+	std::fill(transformation_rates(), transformation_rates() + data_.e.cell_definitions_count, 0);
 }
 
 void volume_t::copy(volume_t& dest)

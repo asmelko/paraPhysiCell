@@ -503,13 +503,13 @@ void advance_bundled_phenotype_functions(environment& e)
 		// call the custom code to update the phenotype
 		if (cell->functions.update_phenotype)
 		{
-			cell->functions.update_phenotype(*cell, e.phenotype_time_step);
+			cell->functions.update_phenotype(*cell);
 		}
 
 		// update volume
 		if (cell->functions.volume_update_function)
 		{
-			cell->functions.volume_update_function(*cell, e.phenotype_time_step);
+			cell->functions.volume_update_function(*cell);
 		}
 
 		// update geometry
@@ -671,7 +671,7 @@ void evaluate_interactions(environment& e)
 	}
 }
 
-void update_cell_and_death_parameters_O2_based(cell& cell, real_t)
+void update_cell_and_death_parameters_O2_based(cell& cell)
 {
 	// supported cycle models:
 	// advanced_Ki67_cycle_model= 0;
@@ -795,6 +795,38 @@ void update_cell_and_death_parameters_O2_based(cell& cell, real_t)
 	}
 
 	return;
+}
+
+void initialize_default_cell_definition(environment& e)
+{
+	// If the standard models have not yet been created, do so now.
+	create_standard_cycle_and_death_models();
+
+	e.cell_defaults.type = 0;
+	e.cell_defaults.name = "breast epithelium";
+
+	// set up the default functions
+	e.cell_defaults.phenotype.cycle.sync_to_cycle_model(Ki67_advanced);
+
+	e.cell_defaults.functions.volume_update_function = standard_volume_update_function;
+
+	e.cell_defaults.functions.update_phenotype = update_cell_and_death_parameters_O2_based; // NULL;
+
+	// add the standard death models to the default phenotype.
+	e.cell_defaults.phenotype.death.add_death_model(0.00319 / 60.0, &apoptosis, apoptosis_parameters);
+	// MCF10A, to get a 2% apoptotic index
+	e.cell_defaults.phenotype.death.add_death_model(0.0, &necrosis, necrosis_parameters);
+
+	// Cell_Parameters, Custom_Cell_Data, Cell_Functions are handled by the default constructor
+
+	e.cell_defaults.phenotype.volume.set_defaults();
+	e.cell_defaults.phenotype.geometry.set_defaults();
+	e.cell_defaults.phenotype.mechanics.set_defaults();
+	e.cell_defaults.phenotype.motility.set_defaults();
+	e.cell_defaults.phenotype.secretion.set_defaults();
+	e.cell_defaults.phenotype.molecular.set_defaults();
+	e.cell_defaults.phenotype.cell_interactions.set_defaults();
+	e.cell_defaults.phenotype.cell_transformations.set_defaults();
 }
 
 } // namespace physicell

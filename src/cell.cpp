@@ -30,7 +30,15 @@ real_t& cell_state_t::total_attack_time() { return data_.states.total_attack_tim
 
 cell::cell(agent_id_t id, cell_data& data, index_t index)
 	: agent(id, data.agent_data, index), data_(data), phenotype(data_, index), state(data_, index)
-{}
+{
+	std::fill(data_.previous_velocities.data() + index_ * data_.e.mechanics_mesh.dims,
+			  data_.previous_velocities.data() + (index_ + 1) * data_.e.mechanics_mesh.dims, 0.0);
+
+	std::fill(data_.velocities.data() + index_ * data_.e.mechanics_mesh.dims,
+			  data_.velocities.data() + (index_ + 1) * data_.e.mechanics_mesh.dims, 0.0);
+
+	flag() = cell_state_flag::none;
+}
 
 real_t* cell::velocity() { return data_.velocities.data() + index_ * data_.e.m.mesh.dims; }
 
