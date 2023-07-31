@@ -189,6 +189,7 @@ struct cell_data
 	environment& e;
 
 	cell_data(environment& e);
+	cell_data(environment& e, biofvm::index_t agents_count);
 
 	void add();
 	void remove(biofvm::index_t index);

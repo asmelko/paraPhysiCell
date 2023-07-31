@@ -255,6 +255,12 @@ void cell_state_data::remove(index_t index, index_t size, index_t dims)
 
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
 
+cell_data::cell_data(environment& e, index_t count) : agent_data(e.m), agents_count(agent_data.agents_count), e(e)
+{
+	for (index_t i = 0; i < count; ++i)
+		add();
+}
+
 void cell_data::add()
 {
 	agent_data.add();
