@@ -142,6 +142,8 @@ void motility_data::add(index_t index, index_t dims, index_t substrates_count)
 	chemotaxis_index.resize(index, 0);
 	chemotaxis_direction.resize(index, 0);
 	chemotactic_sensitivities.resize(index * substrates_count, 0);
+
+	update_migration_bias_direction.resize(index, nullptr);
 }
 
 void motility_data::remove(index_t index, index_t size, index_t dims, index_t substrates_count)
@@ -161,6 +163,8 @@ void motility_data::remove(index_t index, index_t size, index_t dims, index_t su
 	move_scalar(chemotaxis_direction.data() + index, chemotaxis_direction.data() + size);
 	move_vector(chemotactic_sensitivities.data() + index * substrates_count,
 				chemotactic_sensitivities.data() + size * substrates_count, substrates_count);
+
+	move_scalar(update_migration_bias_direction.data() + index, update_migration_bias_direction.data() + size);
 }
 
 void interactions_data::add(index_t size, index_t cell_definitions_count)

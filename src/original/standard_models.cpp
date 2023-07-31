@@ -1,6 +1,7 @@
 #include "standard_models.h"
 
 #include "../random.h"
+#include "../solver/host/solver_helper.h"
 #include "rules.h"
 #include "signal_behavior.h"
 
@@ -93,6 +94,51 @@ void advance_bundled_phenotype_functions(environment& e)
 		// advance cycle model (for both cell cycle and death cycle models)
 		cell->phenotype.cycle.advance_cycle(*cell, e.phenotype_time_step);
 	}
+}
+
+void chemotaxis_function(cell& cell)
+{
+	// bias direction is gradient for the indicated substrate
+	auto g = cell.nearest_gradient(cell.phenotype.motility.chemotaxis_index());
+
+	for (index_t i = 0; i < cell.e().mechanics_mesh.dims; i++)
+	{
+		// move up or down gradient based on this direction
+		cell.phenotype.motility.migration_bias_direction()[i] = g[i] * cell.phenotype.motility.chemotaxis_direction();
+	}
+
+	// normalize
+	normalize(cell.phenotype.motility.migration_bias_direction(), cell.e().mechanics_mesh.dims);
+
+	return;
+}
+
+template <bool do_normalize>
+void advanced_chemotaxis_function(cell& cell)
+{
+	for (index_t i = 0; i < cell.e().mechanics_mesh.dims; i++)
+	{
+		cell.phenotype.motility.migration_bias_direction()[i] = 0;
+	}
+
+	// weighted combination of the gradients
+	for (index_t i = 0; i < cell.e().m.substrates_count; i++)
+	{
+		// get and normalize ith gradient
+		auto g = cell.nearest_gradient(cell.phenotype.motility.chemotaxis_index());
+
+		if constexpr (do_normalize)
+			normalize(g.data(), cell.e().mechanics_mesh.dims);
+
+		for (index_t d = 0; d < cell.e().mechanics_mesh.dims; d++)
+		{
+			cell.phenotype.motility.migration_bias_direction()[d] +=
+				g[d] * cell.phenotype.motility.chemotactic_sensitivities()[i];
+		}
+	}
+
+	// normalize
+	normalize(cell.phenotype.motility.migration_bias_direction(), cell.e().mechanics_mesh.dims);
 }
 
 } // namespace physicell

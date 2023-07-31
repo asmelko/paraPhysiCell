@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
 #include <BioFVM/types.h>
 
@@ -103,6 +104,8 @@ struct motility_t : public phenotype_data_storage
 	biofvm::index_t& chemotaxis_index();
 	biofvm::index_t& chemotaxis_direction();
 	biofvm::real_t* chemotactic_sensitivities();
+
+	std::function<void(cell&)>& update_migration_bias_direction();
 
 	void copy(motility_t& dest);
 };

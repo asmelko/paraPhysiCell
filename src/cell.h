@@ -49,6 +49,8 @@ public:
 
 	cell_state_t state;
 
+	const environment& e() const;
+
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
 	std::uint8_t& is_movable();

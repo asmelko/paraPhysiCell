@@ -98,11 +98,13 @@ void update_cell_forces_and_neighbors_single(
 }
 
 template <index_t dims>
-void update_motility_single(index_t i, real_t* __restrict__ motility_vector, real_t* __restrict__ velocity,
-							const real_t* __restrict__ persistence_time, const real_t* __restrict__ migration_bias,
-							const real_t* __restrict__ migration_bias_direction,
+void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
+							real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
+							const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
 							const std::uint8_t* __restrict__ restrict_to_2d, const std::uint8_t* __restrict__ is_motile,
-							const real_t* __restrict__ migration_speed, real_t time_step)
+							const real_t* __restrict__ migration_speed,
+							const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
+							cell_container& cells)
 {
 	if (is_motile[i] == 0)
 		return;
@@ -115,6 +117,11 @@ void update_motility_single(index_t i, real_t* __restrict__ motility_vector, rea
 	real_t random_walk[dims];
 
 	position_helper<dims>::random_walk(restrict_to_2d, random_walk);
+
+	if (update_migration_bias_direction_f != nullptr)
+	{
+		update_migration_bias_direction_f[i](*cells.agents()[i]);
+	}
 
 	position_helper<dims>::update_motility_vector(motility_vector + i * dims, random_walk,
 												  migration_bias_direction + i * dims, migration_bias[i]);
@@ -157,17 +164,18 @@ void update_cell_velocities_and_neighbors_internal(
 }
 
 template <index_t dims>
-void update_motility_internal(index_t agents_count, real_t* __restrict__ motility_vector, real_t* __restrict__ velocity,
-							  const real_t* __restrict__ persistence_time, const real_t* __restrict__ migration_bias,
-							  const real_t* __restrict__ migration_bias_direction,
-							  const std::uint8_t* __restrict__ restrict_to_2d,
-							  const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
-							  real_t time_step)
+void update_motility_internal(
+	index_t agents_count, real_t time_step, real_t* __restrict__ motility_vector, real_t* __restrict__ velocity,
+	const real_t* __restrict__ persistence_time, const real_t* __restrict__ migration_bias,
+	real_t* __restrict__ migration_bias_direction, const std::uint8_t* __restrict__ restrict_to_2d,
+	const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
+	const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f, cell_container& cells)
 {
 	for (index_t i = 0; i < agents_count; i++)
 	{
-		update_motility_single<dims>(i, motility_vector, velocity, persistence_time, migration_bias,
-									 migration_bias_direction, restrict_to_2d, is_motile, migration_speed, time_step);
+		update_motility_single<dims>(i, time_step, motility_vector, velocity, persistence_time, migration_bias,
+									 migration_bias_direction, restrict_to_2d, is_motile, migration_speed,
+									 update_migration_bias_direction_f, cells);
 	}
 }
 
@@ -225,25 +233,29 @@ void position_solver::update_cell_velocities_and_neighbors(environment& e)
 void position_solver::update_motility(environment& e)
 {
 	auto& data = get_cell_data(e);
+	auto& cells = e.cast_container<cell_container>();
 
 	if (e.m.mesh.dims == 1)
-		update_motility_internal<1>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
-									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-									data.motilities.migration_bias_direction.data(),
-									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
-									data.motilities.migration_speed.data(), e.mechanics_time_step);
+		update_motility_internal<1>(
+			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
+			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
+			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
+			data.motilities.update_migration_bias_direction.data(), cells);
 	else if (e.m.mesh.dims == 2)
-		update_motility_internal<2>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
-									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-									data.motilities.migration_bias_direction.data(),
-									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
-									data.motilities.migration_speed.data(), e.mechanics_time_step);
+		update_motility_internal<2>(
+			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
+			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
+			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
+			data.motilities.update_migration_bias_direction.data(), cells);
 	else if (e.m.mesh.dims == 3)
-		update_motility_internal<3>(data.agents_count, data.motilities.motility_vector.data(), data.velocities.data(),
-									data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-									data.motilities.migration_bias_direction.data(),
-									data.motilities.restrict_to_2d.data(), data.motilities.is_motile.data(),
-									data.motilities.migration_speed.data(), e.mechanics_time_step);
+		update_motility_internal<3>(
+			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
+			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
+			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
+			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
+			data.motilities.update_migration_bias_direction.data(), cells);
 }
 
 void position_solver::update_basement_membrane_interactions(environment& e)

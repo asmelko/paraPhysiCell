@@ -165,3 +165,5 @@ cell_state_flag& cell::flag() { return data_.flags[index_]; }
 void cell::flag_for_removal() { flag() = cell_state_flag::to_remove; }
 
 void cell::flag_for_division() { flag() = cell_state_flag::to_divide; }
+
+const environment& cell::e() const { return data_.e; }

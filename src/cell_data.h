@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 #include <BioFVM/agent_data.h>
@@ -8,6 +9,7 @@
 namespace physicell {
 
 struct environment;
+class cell;
 
 struct volume_data
 {
@@ -72,6 +74,8 @@ struct mechanics_data
 
 struct motility_data
 {
+	using direction_update_func = std::function<void(cell&)>;
+
 	std::vector<std::uint8_t> is_motile;
 	std::vector<biofvm::real_t> persistence_time;
 	std::vector<biofvm::real_t> migration_speed;
@@ -86,6 +90,8 @@ struct motility_data
 	std::vector<biofvm::index_t> chemotaxis_index;
 	std::vector<biofvm::index_t> chemotaxis_direction;
 	std::vector<biofvm::real_t> chemotactic_sensitivities;
+
+	std::vector<direction_update_func> update_migration_bias_direction;
 
 	void add(biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);

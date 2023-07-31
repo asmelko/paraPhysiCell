@@ -26,6 +26,23 @@ constexpr void update_membrane_velocity(biofvm::real_t position, biofvm::real_t 
 	velocity += repulsion * distance;
 }
 
+constexpr void normalize(biofvm::real_t* __restrict__ vector, biofvm::index_t dims)
+{
+	biofvm::real_t length = 0;
+
+	for (biofvm::index_t d = 0; d < dims; d++)
+	{
+		length += vector[d] * vector[d];
+	}
+
+	length = std::sqrt(length);
+
+	for (biofvm::index_t d = 0; d < dims; d++)
+	{
+		vector[d] = length > zero_threshold ? vector[d] / length : 0;
+	}
+}
+
 template <biofvm::index_t dims>
 struct position_helper
 {};

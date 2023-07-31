@@ -112,6 +112,11 @@ real_t* motility_t::chemotactic_sensitivities()
 	return data_.motilities.chemotactic_sensitivities.data() + index_ * data_.e.m.substrates_count;
 }
 
+motility_data::direction_update_func& motility_t::update_migration_bias_direction()
+{
+	return data_.motilities.update_migration_bias_direction[index_];
+}
+
 molecular_t::molecular_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
 
 real_t* molecular_t::internalized_total_substrates()
@@ -262,6 +267,8 @@ void motility_t::copy(motility_t& dest)
 	{
 		dest.chemotactic_sensitivities()[i] = chemotactic_sensitivities()[i];
 	}
+
+	dest.update_migration_bias_direction() = update_migration_bias_direction();
 }
 
 void molecular_t::copy(molecular_t& dest)
