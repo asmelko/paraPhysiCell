@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <BioFVM/types.h>
 
 namespace physicell {
@@ -59,4 +61,7 @@ constexpr biofvm::index_t necrotic = 103;
 constexpr biofvm::index_t debris = 104;
 
 } // namespace constants
+
+biofvm::index_t find_cycle_model_code(const std::string& model_name);
+
 } // namespace physicell

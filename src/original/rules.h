@@ -6,11 +6,12 @@
 
 #include <BioFVM/types.h>
 
+#include "modules/settings.h"
+
 namespace physicell {
 
 struct cell_definition;
 struct environment;
-struct runtime_settings;
 class cell;
 
 class Hypothesis_Rule
@@ -162,7 +163,7 @@ void parse_csv_rule_v2(std::vector<std::string> input, environment& e); // parse
 void parse_csv_rule_v2(std::string input, environment& e);	   // parse a single string (a single line from CSV)
 void parse_csv_rules_v2(std::string filename, environment& e); // parse all rules in a CSV file
 
-void parse_rules_from_pugixml(runtime_settings& settings, environment& e);
+void parse_rules_from_pugixml(PhysiCell_Settings& settings, const pugi::xml_node& config_root, environment& e);
 
 // needs fixing March 2023 // probably deprecate
 void parse_rules_from_parameters_v0(environment& e);
@@ -216,6 +217,6 @@ std::vector<biofvm::real_t> linear_response_to_Hill_parameters( biofvm::real_t s
 std::vector<biofvm::real_t> Hill_response_to_linear_parameters( biofvm::real_t half_max , biofvm::real_t Hill_power );
 */
 
-void setup_cell_rules(runtime_settings& settings, environment& e);
+void setup_cell_rules(PhysiCell_Settings& settings, const pugi::xml_node& config_root, environment& e);
 
 }; // namespace physicell

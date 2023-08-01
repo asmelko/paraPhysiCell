@@ -29,6 +29,10 @@ public:
 	phenotype_t phenotype;
 
 	cell_definition(environment& e);
+
+	cell_definition create_copy();
+
+	void inherit_from(cell_definition& def);
 };
 
 } // namespace physicell

@@ -8,8 +8,8 @@
 #include "../environment.h"
 #include "basic_signaling.h"
 #include "modules/pugixml_helper.h"
+#include "modules/settings.h"
 #include "signal_behavior.h"
-#include "user_parameters.h"
 
 using namespace biofvm;
 
@@ -1880,9 +1880,9 @@ void parse_csv_rules_v2(std::string filename, environment& e)
 /* end of v2 work */
 
 // needs fixing
-void parse_rules_from_pugixml(runtime_settings& settings, environment& e)
+void parse_rules_from_pugixml(PhysiCell_Settings& settings, const pugi::xml_node& config_root, environment& e)
 {
-	pugi::xml_node node = settings.config_dom_root.child("cell_rules");
+	pugi::xml_node node = config_root.child("cell_rules");
 	if (!node)
 	{
 		std::cout << "Error: Could not find <cell_rules> section of XML config file." << std::endl
@@ -2102,7 +2102,7 @@ void stream_annotated_English_rules_HTML(std::ostream& os, environment& e)
 	return;
 }
 
-void save_annotated_English_rules(const runtime_settings& settings)
+void save_annotated_English_rules(const PhysiCell_Settings& settings)
 {
 	std::string filename = settings.folder + "/rules.txt";
 	std::ofstream of(filename, std::ios::out);
@@ -2147,7 +2147,7 @@ void stream_annotated_detailed_English_rules_HTML(std::ostream& os, environment&
 	return;
 }
 
-void save_annotated_detailed_English_rules(const runtime_settings& settings)
+void save_annotated_detailed_English_rules(const PhysiCell_Settings& settings)
 {
 	std::string filename = settings.folder + "/detailed_rules.txt";
 	std::ofstream of(filename, std::ios::out);
@@ -2155,7 +2155,7 @@ void save_annotated_detailed_English_rules(const runtime_settings& settings)
 	of.close();
 }
 
-void save_annotated_detailed_English_rules_HTML(const runtime_settings& settings)
+void save_annotated_detailed_English_rules_HTML(const PhysiCell_Settings& settings)
 {
 	std::string filename = settings.folder + "/detailed_rules.html";
 	std::ofstream of(filename, std::ios::out);
@@ -2163,7 +2163,7 @@ void save_annotated_detailed_English_rules_HTML(const runtime_settings& settings
 	of.close();
 }
 
-void save_annotated_English_rules_HTML(const runtime_settings& settings)
+void save_annotated_English_rules_HTML(const PhysiCell_Settings& settings)
 {
 	std::string filename = settings.folder + "/rules.html";
 	std::ofstream of(filename, std::ios::out);
@@ -2437,13 +2437,13 @@ void export_rules_csv_v2(std::string filename, environment& e)
 // 	return { param2 * sin(theta), param2 * cos(theta), param1 * (1 - 2 * T) };
 // }
 
-void setup_cell_rules(runtime_settings& settings, environment& e)
+void setup_cell_rules(PhysiCell_Settings& settings, const pugi::xml_node& config_root, environment& e)
 {
 	// setup
 	intialize_hypothesis_rulesets(e);
 
 	// load rules
-	parse_rules_from_pugixml(settings, e);
+	parse_rules_from_pugixml(settings, config_root, e);
 
 	// display rules to screen
 	display_hypothesis_rulesets(std::cout, e);

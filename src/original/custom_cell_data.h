@@ -60,9 +60,6 @@ public:
 	biofvm::real_t& operator[](std::string name);  // done
 
 	void divide_conserved_quantities();
-
-
-	Custom_Cell_Data() = default; // done
 };
 
 }; // namespace physicell

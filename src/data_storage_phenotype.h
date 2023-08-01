@@ -101,6 +101,10 @@ struct mechanics_t : public phenotype_data_storage
 
 	void copy(mechanics_t& dest);
 
+	void set_relative_equilibrium_distance(biofvm::real_t value);
+
+	void set_absolute_equilibrium_distance(biofvm::real_t radius, biofvm::real_t value);
+
 	void set_defaults();
 };
 

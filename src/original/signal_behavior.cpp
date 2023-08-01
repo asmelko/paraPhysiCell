@@ -153,17 +153,17 @@ void setup_signal_behavior_dictionaries(environment& e)
 	signal_to_int["global time"] = map_index;
 
 	// custom signals
-	for (std::size_t nc = 0; nc < e.cell_defaults.custom_data.variables.size(); nc++)
+	for (std::size_t nc = 0; nc < e.cell_defaults().custom_data.variables.size(); nc++)
 	{
 		map_index++;
 		std::string custom_signal_name = "custom:";
-		custom_signal_name += e.cell_defaults.custom_data.variables[nc].name;
+		custom_signal_name += e.cell_defaults().custom_data.variables[nc].name;
 		signal_to_int[custom_signal_name] = map_index;
 		int_to_signal[map_index] = custom_signal_name;
 
 		// synonyms
 		custom_signal_name = "custom: ";
-		custom_signal_name += e.cell_defaults.custom_data.variables[nc].name;
+		custom_signal_name += e.cell_defaults().custom_data.variables[nc].name;
 		signal_to_int[custom_signal_name] = map_index;
 
 		custom_signal_name = "custom ";
@@ -415,17 +415,17 @@ void setup_signal_behavior_dictionaries(environment& e)
 	}
 
 	// custom behaviors
-	for (std::size_t nc = 0; nc < e.cell_defaults.custom_data.variables.size(); nc++)
+	for (std::size_t nc = 0; nc < e.cell_defaults().custom_data.variables.size(); nc++)
 	{
 		map_index++;
 		std::string custom_behavior_name = "custom:";
-		custom_behavior_name += e.cell_defaults.custom_data.variables[nc].name;
+		custom_behavior_name += e.cell_defaults().custom_data.variables[nc].name;
 		behavior_to_int[custom_behavior_name] = map_index;
 		int_to_behavior[map_index] = custom_behavior_name;
 
 		// synonyms
 		custom_behavior_name = "custom: ";
-		custom_behavior_name += e.cell_defaults.custom_data.variables[nc].name;
+		custom_behavior_name += e.cell_defaults().custom_data.variables[nc].name;
 		behavior_to_int[custom_behavior_name] = map_index;
 
 		custom_behavior_name = "custom ";

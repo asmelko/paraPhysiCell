@@ -85,7 +85,6 @@ int main()
 	std::size_t microenv_init_duration, env_init_duration, cells_init_duration, solver_init_duration;
 
 	cartesian_mesh mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 20, 20, 20 });
-	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 40, 40, 40 });
 
 	real_t diffusion_time_step = 0.01;
 	index_t substrates_count = 2;
@@ -105,7 +104,7 @@ int main()
 	m.decay_rates = std::move(decay_rates);
 	m.compute_internalized_substrates = true;
 
-	measure(environment e(m, mechanics_mesh), env_init_duration);
+	measure(environment e(m, cell_defs_count, { 40, 40, 40 }), env_init_duration);
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 	e.mechanics_time_step = 0.1;

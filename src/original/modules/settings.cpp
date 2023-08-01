@@ -1,12 +1,139 @@
-#include "user_parameters.h"
+#include "settings.h"
 
 #include <iostream>
 
-#include "modules/pugixml_helper.h"
+#include "pugixml_helper.h"
 
 using namespace biofvm;
 
 namespace physicell {
+
+PhysiCell_Settings::PhysiCell_Settings()
+{
+	// units
+	time_units = "min";
+	space_units = "micron";
+
+	// save options
+	folder = ".";
+	max_time = 60 * 24 * 45;
+
+	full_save_interval = 60;
+	enable_full_saves = true;
+	enable_legacy_saves = false;
+
+	SVG_save_interval = 60;
+	enable_SVG_saves = true;
+	enable_substrate_plot = false;
+	substrate_to_monitor = "oxygen";
+	limits_substrate_plot = false;
+	min_concentration = -1.0;
+	max_concentration = -1.0;
+
+	intracellular_save_interval = 60;
+	enable_intracellular_saves = false;
+
+	// parallel options
+
+	omp_num_threads = 4;
+
+	rules_enabled = false;
+	rules_protocol = "Cell Behavior Hypothesis Grammar (CBHG)";
+	rules_protocol_version = "1.0";
+
+	return;
+}
+
+void PhysiCell_Settings::read_from_pugixml(pugi::xml_node& physicell_config_root)
+{
+	pugi::xml_node node;
+
+	// overall options
+
+	node = xml_find_node(physicell_config_root, "overall");
+
+	max_time = xml_get_double_value(node, "max_time");
+	time_units = xml_get_string_value(node, "time_units");
+	space_units = xml_get_string_value(node, "space_units");
+
+	node = node.parent();
+
+	// save options
+
+	node = xml_find_node(physicell_config_root, "save");
+
+	folder = xml_get_string_value(node, "folder");
+
+	node = xml_find_node(node, "full_data");
+	full_save_interval = xml_get_double_value(node, "interval");
+	enable_full_saves = xml_get_bool_value(node, "enable");
+	node = node.parent();
+
+	node = xml_find_node(node, "SVG");
+	SVG_save_interval = xml_get_double_value(node, "interval");
+	enable_SVG_saves = xml_get_bool_value(node, "enable");
+
+	pugi::xml_node node_plot_substrate;
+	node_plot_substrate = xml_find_node(node, "plot_substrate");
+	enable_substrate_plot = node_plot_substrate.attribute("enabled").as_bool();
+	limits_substrate_plot = node_plot_substrate.attribute("limits").as_bool();
+
+	if (enable_substrate_plot)
+	{
+		substrate_to_monitor = xml_get_string_value(node_plot_substrate, "substrate");
+		if (limits_substrate_plot)
+		{
+			min_concentration = xml_get_double_value(node_plot_substrate, "min_conc");
+			max_concentration = xml_get_double_value(node_plot_substrate, "max_conc");
+		}
+	};
+	node = node.parent();
+
+	node = xml_find_node(node, "intracellular_data");
+	intracellular_save_interval = xml_get_double_value(node, "interval");
+	enable_intracellular_saves = xml_get_bool_value(node, "enable");
+	node = node.parent();
+
+	node = xml_find_node(node, "legacy_data");
+	enable_legacy_saves = xml_get_bool_value(node, "enable");
+	node = node.parent();
+
+	// parallel options
+
+	node = xml_find_node(physicell_config_root, "parallel");
+	omp_num_threads = xml_get_int_value(node, "omp_num_threads");
+
+	node = node.parent();
+
+	// legacy and other options
+
+	pugi::xml_node node_options;
+
+	node_options = xml_find_node(physicell_config_root, "options");
+	if (node_options)
+	{
+		bool settings;
+
+		// look for legacy_random_points_on_sphere_in_divide
+		settings = xml_get_bool_value(node_options, "legacy_random_points_on_sphere_in_divide");
+		if (settings)
+		{
+			// std::cout << "setting legacy unif" << std::endl;
+			// extern std::vector<double> (*cell_division_orientation)(void);
+			// cell_division_orientation = LegacyRandomOnUnitSphere;
+			throw std::runtime_error("legacy_random_points_on_sphere_in_divide is no longer supported.");
+		}
+
+		settings = xml_get_bool_value(node_options, "disable_automated_spring_adhesions");
+		if (settings)
+		{
+			std::cout << "Disabling automated spring adhesions and detachments!" << std::endl;
+			disable_automated_spring_adhesions = true;
+		}
+
+		// other options can go here, eventually
+	}
+}
 
 template <class T>
 Parameter<T>::Parameter()

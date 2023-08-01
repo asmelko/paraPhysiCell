@@ -154,6 +154,43 @@ real_t& mechanics_t::attachment_rate() { return data_.mechanics.attachment_rate[
 
 real_t& mechanics_t::detachment_rate() { return data_.mechanics.detachment_rate[index_]; }
 
+void mechanics_t::set_relative_equilibrium_distance(real_t new_value)
+{
+	if (new_value > 2.0)
+	{
+		std::cout << "**** Warning in function " << __FUNCTION__ << " in " << __FILE__ << " : " << std::endl
+				  << "\tAttempted to set equilibrium distance exceeding two cell radii." << std::endl
+				  << "\tWe will cap the equilibrium distance at 2.0 cell radii." << std::endl
+				  << "****" << std::endl
+				  << std::endl;
+
+		new_value = 2.0;
+	}
+
+	// adjust the adhesive coefficient to achieve the new (relative) equilibrium distance
+
+	real_t temp1 = new_value;
+	temp1 /= 2.0;
+
+	real_t temp2 = 1.0;
+	temp2 -= temp1; // 1 - s_relative/2.0
+
+	temp1 /= relative_maximum_adhesion_distance(); // s_relative/(2*relative_maximum_adhesion_distance);
+	temp1 *= -1.0;								   // -s_relative/(2*relative_maximum_adhesion_distance);
+	temp1 += 1.0;								   // 1.0 -s_relative/(2*relative_maximum_adhesion_distance);
+
+	temp2 /= temp1;
+	temp2 *= temp2;
+
+	cell_cell_adhesion_strength() = cell_cell_repulsion_strength();
+	cell_cell_adhesion_strength() *= temp2;
+}
+
+void mechanics_t::set_absolute_equilibrium_distance(real_t radius, real_t new_value)
+{
+	set_relative_equilibrium_distance(new_value / radius);
+}
+
 void mechanics_t::set_defaults()
 {
 	cell_cell_adhesion_strength() = 0.4;
