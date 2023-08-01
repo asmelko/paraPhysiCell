@@ -148,7 +148,7 @@ int main()
 			std::cout << "Number of cells: " << e.cast_container<cell_container>().data().agents_count << std::endl;
 		}
 
-	for (int i = 0; i < 5; i++)
+	for (index_t i = 0; i < 5; i++)
 	{
 		containers_solver::update_mechanics_mesh(e);
 		position_solver::update_cell_velocities_and_neighbors(e);

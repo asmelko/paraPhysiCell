@@ -685,11 +685,11 @@ void update_cell_and_death_parameters_O2_based(cell& cell)
 
 	// set up shortcuts to find the Q and K(1) phases (assuming Ki67 basic or advanced model)
 	static bool indices_initiated = false;
-	static int start_phase_index; // Q_phase_index;
-	static int end_phase_index;	  // K_phase_index;
-	static int necrosis_index;
+	static index_t start_phase_index; // Q_phase_index;
+	static index_t end_phase_index;	  // K_phase_index;
+	static index_t necrosis_index;
 
-	static int oxygen_substrate_index = cell.e().m.find_substrate_index("oxygen");
+	static index_t oxygen_substrate_index = cell.e().m.find_substrate_index("oxygen");
 
 	if (indices_initiated == false)
 	{
@@ -751,10 +751,10 @@ void update_cell_and_death_parameters_O2_based(cell& cell)
 
 	// sample the microenvironment to get the pO2 value
 
-	double pO2 = (cell.nearest_density_vector())[oxygen_substrate_index]; // constants::oxygen_index];
+	real_t pO2 = (cell.nearest_density_vector())[oxygen_substrate_index]; // constants::oxygen_index];
 
 	// this multiplier is for linear interpolation of the oxygen value
-	double multiplier = 1.0;
+	real_t multiplier = 1.0;
 	if (pO2 < cell.parameters.o2_proliferation_saturation)
 	{
 		multiplier = (pO2 - cell.parameters.o2_proliferation_threshold)

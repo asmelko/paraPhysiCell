@@ -14,34 +14,34 @@ class PhysiCell_Settings
 private:
 public:
 	// overall
-	double max_time = 60 * 24 * 45;
+	biofvm::real_t max_time = 60 * 24 * 45;
 
 	// units
 	std::string time_units = "min";
 	std::string space_units = "micron";
 
 	// parallel options
-	int omp_num_threads = 2;
+	biofvm::index_t omp_num_threads = 2;
 
 	// save options
 	std::string folder = ".";
 
-	double full_save_interval = 60;
+	biofvm::real_t full_save_interval = 60;
 	bool enable_full_saves = true;
 	bool enable_legacy_saves = false;
 
 	bool disable_automated_spring_adhesions = false;
 
-	double SVG_save_interval = 60;
+	biofvm::real_t SVG_save_interval = 60;
 	bool enable_SVG_saves = true;
 
 	bool enable_substrate_plot = false;
 	std::string substrate_to_monitor = "oxygen";
 	bool limits_substrate_plot = false;
-	double min_concentration = -1.0;
-	double max_concentration = -1.0;
+	biofvm::real_t min_concentration = -1.0;
+	biofvm::real_t max_concentration = -1.0;
 
-	double intracellular_save_interval = 60;
+	biofvm::real_t intracellular_save_interval = 60;
 	bool enable_intracellular_saves = false;
 
 	// cell rules option

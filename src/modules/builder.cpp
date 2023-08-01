@@ -53,19 +53,19 @@ microenvironment_builder& builder::get_microenvironment_builder()
 {
 	auto node = xml_find_node(config_root_, "domain");
 
-	int xmin = xml_get_int_value(node, "x_min");
-	int xmax = xml_get_int_value(node, "x_max");
-	int ymin = xml_get_int_value(node, "y_min");
-	int ymax = xml_get_int_value(node, "y_max");
-	int zmin = xml_get_int_value(node, "z_min");
-	int zmax = xml_get_int_value(node, "z_max");
-	int dx = xml_get_int_value(node, "dx");
-	int dy = xml_get_int_value(node, "dy");
-	int dz = xml_get_int_value(node, "dz");
+	index_t xmin = xml_get_int_value(node, "x_min");
+	index_t xmax = xml_get_int_value(node, "x_max");
+	index_t ymin = xml_get_int_value(node, "y_min");
+	index_t ymax = xml_get_int_value(node, "y_max");
+	index_t zmin = xml_get_int_value(node, "z_min");
+	index_t zmax = xml_get_int_value(node, "z_max");
+	index_t dx = xml_get_int_value(node, "dx");
+	index_t dy = xml_get_int_value(node, "dy");
+	index_t dz = xml_get_int_value(node, "dz");
 
 	bool simulate_2D = xml_get_bool_value(node, "use_2D");
 
-	int dims = 3;
+	index_t dims = 3;
 
 	if (simulate_2D == true)
 	{
@@ -96,7 +96,7 @@ microenvironment_builder& builder::get_microenvironment_builder()
 	// find the first substrate
 	pugi::xml_node node1 = node.child("variable"); // xml_find_node( node , "variable" );
 	node = node1;
-	int i = 0;
+	index_t i = 0;
 
 	while (node)
 	{
@@ -227,7 +227,7 @@ void builder::peek_cell_definitions()
 
 	while (node)
 	{
-		int ID = node.attribute("ID").as_int();
+		index_t ID = node.attribute("ID").as_int();
 		std::string type_name = node.attribute("name").value();
 
 		std::cout << "Pre-processing type " << ID << " named " << type_name << std::endl;
@@ -434,7 +434,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	node = node.child("cycle");
 	if (node)
 	{
-		int model; // = node.attribute("code").as_int() ;
+		index_t model; // = node.attribute("code").as_int() ;
 		if (std::string(node.attribute("code").as_string()).size() > 0)
 		{
 			model = node.attribute("code").as_int();
@@ -451,7 +451,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		}
 
 		// set the model
-		// switch( model )   // do not use a switch stmt to avoid compile errors related to "static const int"
+		// switch( model )   // do not use a switch stmt to avoid compile errors related to "static const index_t"
 		// on various compilers
 		if (model == constants::advanced_Ki67_cycle_model)
 		{
@@ -524,8 +524,8 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			while (node)
 			{
 				// which rate
-				int start = node.attribute("start_index").as_int();
-				int end = node.attribute("end_index").as_int();
+				index_t start = node.attribute("start_index").as_int();
+				index_t end = node.attribute("end_index").as_int();
 				// fixed duration?
 				bool fixed = false;
 				if (node.attribute("fixed_duration"))
@@ -533,7 +533,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 					fixed = node.attribute("fixed_duration").as_bool();
 				}
 				// actual value of transition rate
-				double value = xml_get_my_double_value(node);
+				real_t value = xml_get_my_double_value(node);
 
 				// set the transition rate
 				pCD->phenotype.cycle.data.transition_rate(start, end) = value;
@@ -557,7 +557,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			while (node)
 			{
 				// which duration?
-				int start = node.attribute("index").as_int();
+				index_t start = node.attribute("index").as_int();
 				// fixed duration?
 				bool fixed = false;
 				if (node.attribute("fixed_duration"))
@@ -565,7 +565,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 					fixed = node.attribute("fixed_duration").as_bool();
 				}
 				// actual value of the duration
-				double value = xml_get_my_double_value(node);
+				real_t value = xml_get_my_double_value(node);
 
 				// set the transition rate
 				pCD->phenotype.cycle.data.exit_rate(start) = 1.0 / (value + 1e-16);
@@ -584,7 +584,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	// otherwise, modify properties of that model
 
 	// set up the death models
-	//	int death_model_index = 0;
+	//	index_t death_model_index = 0;
 	node = cd_node.child("phenotype");
 	node = node.child("death");
 	if (node)
@@ -594,7 +594,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		{
 			node = model_node;
 
-			int model; // = node.attribute("code").as_int() ;
+			index_t model; // = node.attribute("code").as_int() ;
 			if (std::string(node.attribute("code").as_string()).size() > 0)
 			{
 				model = node.attribute("code").as_int();
@@ -614,9 +614,9 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// check: is that death model already there?
 
 			Death* pD = &(pCD->phenotype.death);
-			int death_index = pD->find_death_model_index(model);
+			index_t death_index = pD->find_death_model_index(model);
 			bool death_model_already_exists = false;
-			if ((int)pD->rates.size() > death_index)
+			if ((index_t)pD->rates.size() > death_index)
 			{
 				if (pD->models[death_index]->code == model)
 				{
@@ -635,7 +635,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 				node = node.child("rate");
 				std::cout << "Warning: " << node.name() << " is deprecated. Use death.model.death_rate." << std::endl;
 			}
-			double rate = xml_get_my_double_value(node);
+			real_t rate = xml_get_my_double_value(node);
 			node = node.parent();
 
 			// get death model parameters
@@ -764,8 +764,8 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 				while (node1)
 				{
 					// which rate
-					int start = node1.attribute("start_index").as_int();
-					int end = node1.attribute("end_index").as_int();
+					index_t start = node1.attribute("start_index").as_int();
+					index_t end = node1.attribute("end_index").as_int();
 					// fixed duration?
 					bool fixed = false;
 					if (node1.attribute("fixed_duration"))
@@ -773,7 +773,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 						fixed = node1.attribute("fixed_duration").as_bool();
 					}
 					// actual value of transition rate
-					double value = xml_get_my_double_value(node1);
+					real_t value = xml_get_my_double_value(node1);
 
 					// set the transition rate
 					pCD->phenotype.death.models[death_index]->transition_rate(start, end) = value;
@@ -791,7 +791,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 				while (node)
 				{
 					// which duration?
-					int start = node.attribute("index").as_int();
+					index_t start = node.attribute("index").as_int();
 					// fixed duration?
 					bool fixed = false;
 					if (node.attribute("fixed_duration"))
@@ -799,7 +799,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 						fixed = node.attribute("fixed_duration").as_bool();
 					}
 					// actual value of the duration
-					double value = xml_get_my_double_value(node);
+					real_t value = xml_get_my_double_value(node);
 
 					// set the transition rate
 					pCD->phenotype.death.models[death_index]->data.exit_rate(start) = 1.0 / (value + 1e-16);
@@ -819,13 +819,13 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 							while( node )
 							{
 								// which duration?
-								int start = node.attribute("index").as_int();
+								index_t start = node.attribute("index").as_int();
 								// fixed duration?
 								bool fixed = false;
 								if( node.attribute( "fixed_duration" ) )
 								{ fixed = node.attribute("fixed_duration").as_bool(); }
 								// actual value of the duration
-								double value = xml_get_my_double_value( node );
+								real_t value = xml_get_my_double_value( node );
 
 								// set the transition rate
 								pCD->phenotype.cycle.data.exit_rate(start) = 1.0 / (value+1e-16);
@@ -984,11 +984,11 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			while (node_mech)
 			{
 				std::string target = node_mech.attribute("name").value();
-				double value = xml_get_my_double_value(node_mech);
+				real_t value = xml_get_my_double_value(node_mech);
 
 				// find the target
 				// if found, assign taht affinity
-				int ind = find_cell_definition_index(target);
+				index_t ind = find_cell_definition_index(target);
 				if (ind > -1)
 				{
 					pM->cell_adhesion_affinities()[ind] = value;
@@ -1010,7 +1010,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			{
 				if (node_mech1.attribute("enabled").as_bool())
 				{
-					double temp = xml_get_my_double_value(node_mech1);
+					real_t temp = xml_get_my_double_value(node_mech1);
 					pM->set_relative_equilibrium_distance(temp);
 				}
 			}
@@ -1020,7 +1020,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			{
 				if (node_mech1.attribute("enabled").as_bool())
 				{
-					double temp = xml_get_my_double_value(node_mech1);
+					real_t temp = xml_get_my_double_value(node_mech1);
 					pM->set_absolute_equilibrium_distance(pCD->phenotype.geometry.radius(), temp);
 				}
 			}
@@ -1152,7 +1152,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 					while (node_cs)
 					{
 						std::string substrate_name = node_cs.attribute("substrate").value();
-						int index = e_->m.find_substrate_index(substrate_name);
+						index_t index = e_->m.find_substrate_index(substrate_name);
 						std::string actual_name = "";
 						if (index == -1)
 						{
@@ -1184,13 +1184,13 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 		if (motility_f == advanced_chemotaxis_function<false> && pMot->is_motile() == true)
 		{
-			int number_of_substrates = e_->m.substrates_count;
+			index_t number_of_substrates = e_->m.substrates_count;
 
 			std::cout << "Cells of type " << pCD->name << " use advanced chemotaxis: " << std::endl
 					  << "\t d_bias (before normalization) = " << pMot->chemotactic_sensitivities()[0] << " * grad("
 					  << e_->m.substrates_names[0] << ")";
 
-			for (int n = 1; n < number_of_substrates; n++)
+			for (index_t n = 1; n < number_of_substrates; n++)
 			{
 				std::cout << " + " << pMot->chemotactic_sensitivities()[n] << " * grad(" << e_->m.substrates_names[n]
 						  << ")";
@@ -1200,14 +1200,14 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 		if (motility_f == advanced_chemotaxis_function<true> && pMot->is_motile() == true)
 		{
-			int number_of_substrates = e_->m.substrates_count;
+			index_t number_of_substrates = e_->m.substrates_count;
 
 			std::cout << "Cells of type " << pCD->name << " use normalized advanced chemotaxis: " << std::endl
 					  << "\t d_bias (before normalization) = " << pMot->chemotactic_sensitivities()[0] << " * grad("
 					  << e_->m.substrates_names[0] << ")"
 					  << " / ||grad(" << e_->m.substrates_names[0] << ")||";
 
-			for (int n = 1; n < number_of_substrates; n++)
+			for (index_t n = 1; n < number_of_substrates; n++)
 			{
 				std::cout << " + " << pMot->chemotactic_sensitivities()[n] << " * grad(" << e_->m.substrates_names[n]
 						  << ")"
@@ -1232,7 +1232,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// which substrate?
 
 			std::string substrate_name = node_sec.attribute("name").value();
-			int index = e_->m.find_substrate_index(substrate_name);
+			index_t index = e_->m.find_substrate_index(substrate_name);
 
 			// error check
 			if (index == -1)
@@ -1296,7 +1296,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// get the name of the target cell type
 			std::string target_name = node_lpcr.attribute("name").value();
 			// now find its index
-			int index = find_cell_definition_index(target_name);
+			index_t index = find_cell_definition_index(target_name);
 			// safety first!
 			if (index == -1)
 			{
@@ -1322,7 +1322,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// get the name of the target cell type
 			std::string target_name = node_ar.attribute("name").value();
 			// now find its index
-			int index = find_cell_definition_index(target_name);
+			index_t index = find_cell_definition_index(target_name);
 			// safety first!
 			if (index == -1)
 			{
@@ -1349,7 +1349,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// get the name of the target cell type
 			std::string target_name = node_fr.attribute("name").value();
 			// now find its index
-			int index = find_cell_definition_index(target_name);
+			index_t index = find_cell_definition_index(target_name);
 			// safety first!
 			if (index == -1)
 			{
@@ -1382,7 +1382,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			// get the name of the target cell type
 			std::string target_name = node_tr.attribute("name").value();
 			// now find its index
-			int index = find_cell_definition_index(target_name);
+			index_t index = find_cell_definition_index(target_name);
 			// safety first!
 			if (index == -1)
 			{
@@ -1392,7 +1392,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			}
 			// if the target is found, set the appropriate rate
 
-			double transformation_rate = xml_get_my_double_value(node_tr);
+			real_t transformation_rate = xml_get_my_double_value(node_tr);
 			if (target_name == pCD->name && transformation_rate > 1e-16)
 			{
 				std::cout << "Warning: When processing the " << pCD->name << " cell definition: " << std::endl
@@ -1499,7 +1499,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		if (values.size() == 1)
 		{
 			// find the variable
-			int n = pCD->custom_data.find_variable_index(name);
+			index_t n = pCD->custom_data.find_variable_index(name);
 			// if it exists, overwrite
 			if (n > -1)
 			{
@@ -1519,7 +1519,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		else
 		{
 			// find the variable
-			int n = pCD->custom_data.find_vector_variable_index(name);
+			index_t n = pCD->custom_data.find_vector_variable_index(name);
 			// if it exists, overwrite
 			if (n > -1)
 			{
