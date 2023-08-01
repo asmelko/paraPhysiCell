@@ -27,6 +27,7 @@ struct environment
 
 	bool virtual_wall_at_domain_edges;
 	bool rules_enabled;
+	bool automated_spring_adhesion;
 
 	biofvm::cartesian_mesh mechanics_mesh;
 

@@ -260,6 +260,9 @@ void position_solver::update_motility(environment& e)
 
 void position_solver::update_basement_membrane_interactions(environment& e)
 {
+	if (!e.virtual_wall_at_domain_edges)
+		return;
+
 	auto& data = get_cell_data(e);
 
 	if (e.m.mesh.dims == 1)
@@ -373,6 +376,9 @@ void update_spring_attachments_internal(
 
 void position_solver::update_spring_attachments(environment& e)
 {
+	if (!e.automated_spring_adhesion)
+		return;
+
 	auto& data = get_cell_data(e);
 
 	update_spring_attachments_internal(

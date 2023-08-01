@@ -204,9 +204,13 @@ microenvironment_builder& builder::get_microenvironment_builder()
 	return m_builder_;
 }
 
-void builder::load_signals() { setup_signal_behavior_dictionaries(*e_); }
+void builder::load_signals() { setup_signal_behavior_dictionaries(get_environment()); }
 
-void builder::load_rules() { setup_cell_rules(get_settings(), config_root_, *e_); };
+void builder::load_rules()
+{
+	setup_cell_rules(get_settings(), config_root_, get_environment());
+	get_environment().rules_enabled = settings_->rules_enabled;
+};
 
 void builder::peek_cell_definitions()
 {
@@ -270,6 +274,7 @@ environment& builder::get_environment()
 	}
 
 	e_->rules_enabled = get_settings().rules_enabled;
+	e_->automated_spring_adhesion = !get_settings().disable_automated_spring_adhesions;
 
 	return *e_;
 }
