@@ -10,8 +10,8 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	  rules_enabled(false),
 	  automated_spring_adhesion(true),
 	  mechanics_mesh(m.mesh.dims, m.mesh.bounding_box_mins, m.mesh.bounding_box_maxs, mechanics_voxel_shape),
-	  mechanics_time_step(0),
-	  phenotype_time_step(0),
+	  mechanics_time_step(0.1),
+	  phenotype_time_step(6),
 	  current_time(0),
 	  cell_definitions_count(cell_definitions_count)
 {

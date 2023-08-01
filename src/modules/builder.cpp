@@ -77,6 +77,25 @@ microenvironment_builder& builder::get_microenvironment_builder()
 
 	m_builder_.resize(dims, { xmin, ymin, zmin }, { xmax, ymax, zmax }, { dx, dy, dz });
 
+	{
+		auto& s = get_settings();
+
+		m_builder_.set_space_units(s.space_units);
+		m_builder_.set_time_units(s.time_units);
+
+		auto node = xml_find_node(config_root_, "overall");
+
+		// check to see if dt is specified in overall options
+		// if so, set from XML
+
+		pugi::xml_node search_result;
+		search_result = xml_find_node(node, "dt_diffusion");
+		if (search_result)
+		{
+			m_builder_.set_time_step(xml_get_my_double_value(search_result));
+		}
+	}
+
 	// First, look for the correct XML node.
 	// If it isn't there, return false.
 
@@ -271,6 +290,23 @@ environment& builder::get_environment()
 			std::cout << "virtual_wall_at_domain_edge: enabled" << std::endl;
 			e_->virtual_wall_at_domain_edges = true;
 		}
+	}
+
+	auto overall_node = xml_find_node(config_root_, "overall");
+
+	// check to see if dt is specified in overall options
+	// if so, set from XML
+
+	auto search_result = xml_find_node(overall_node, "dt_mechanics");
+	if (search_result)
+	{
+		e_->mechanics_time_step = xml_get_my_double_value(search_result);
+	}
+
+	search_result = xml_find_node(overall_node, "dt_phenotype");
+	if (search_result)
+	{
+		e_->phenotype_time_step = xml_get_my_double_value(search_result);
 	}
 
 	e_->rules_enabled = get_settings().rules_enabled;
