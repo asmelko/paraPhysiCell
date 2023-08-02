@@ -27,4 +27,18 @@ std::vector<real_t> csv_to_vector(const std::string& buffer)
 	return vect;
 }
 
+void data_to_list(biofvm::real_t* data, std::size_t count, char*& buffer, char delim)
+{
+	// %.7e is approximately the same at matlab longe for single precision.
+	// If you want better precision, use a binary data format like matlab, or (in the future) HDF
+
+	int position = 0;
+	for (unsigned int j = 0; j < count - 1; j++)
+	{
+		position += std::sprintf(buffer + position, "%.7e%c", (double)data[j], delim);
+	}
+	std::sprintf(buffer + position, "%.7e", data[count - 1]);
+	return;
+}
+
 } // namespace physicell
