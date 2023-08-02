@@ -49,7 +49,7 @@ void rename_attached(index_t old_index, index_t new_index, std::vector<index_t>*
 
 void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
 				   std::vector<index_t>* __restrict__ springs, std::vector<index_t>* __restrict__ attachced_cells,
-				   const cartesian_mesh& mesh, cell_container& container)
+				   const cartesian_mesh& mesh, cell_container& container, index_t& counter)
 {
 	while (true)
 	{
@@ -64,8 +64,11 @@ void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const re
 			}
 		}
 
-		if (out_of_bounds == false && flag[i] == cell_state_flag::none)
+		if (out_of_bounds == false && flag[i] != cell_state_flag::to_remove)
 			return;
+
+		if (flag[i] == cell_state_flag::to_remove)
+			counter++;
 
 		remove_attached(i, springs);
 		rename_attached(container.data().agents_count - 1, i, springs);
@@ -80,11 +83,11 @@ void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const re
 void update_cell_container_internal(const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
 									std::vector<index_t>* __restrict__ springs,
 									std::vector<index_t>* __restrict__ attached_cells, const cartesian_mesh& mesh,
-									cell_container& container)
+									cell_container& container, index_t& counter)
 {
 	for (index_t i = 0; i < container.data().agents_count; i++)
 	{
-		remove_single(i, flag, positions, springs, attached_cells, mesh, container);
+		remove_single(i, flag, positions, springs, attached_cells, mesh, container, counter);
 	}
 }
 
@@ -93,7 +96,8 @@ void containers_solver::update_cell_container_for_mechanics(environment& e)
 	auto& data = get_cell_data(e);
 
 	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>());
+								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
+								   e.deaths_count);
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
@@ -110,6 +114,8 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 			auto cell = c.create();
 
 			c.agents()[i]->divide(*cell);
+
+			e.divisions_count++;
 		}
 	}
 
@@ -118,6 +124,6 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 		s.release_internalized_substrates(e.m, i);
 
 		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-					  data.states.attached_cells.data(), e.m.mesh, c);
+					  data.states.attached_cells.data(), e.m.mesh, c, e.deaths_count);
 	}
 }

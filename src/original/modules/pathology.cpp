@@ -434,4 +434,63 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 	return;
 }
 
+void create_plot_legend(std::string filename, std::vector<std::string> (*cell_coloring_function)(cell*), environment& e)
+{
+	int number_of_cell_types = e.cell_definitions_count;
+
+	double temp_cell_radius = 25;
+	// double temp_cell_volume = 4.1887902047863909846168578443727 * pow(temp_cell_radius, 3.0);
+
+	double relative_padding = 0.15;
+	double padding = relative_padding * 2.0 * temp_cell_radius;
+
+	double row_height = 2.0 * temp_cell_radius + 2 * padding;
+
+	double font_size = 0.85 * 2.0 * temp_cell_radius;
+	double row_width = 2.0 * temp_cell_radius + 2 * padding + (32 * font_size) + 2 * padding;
+
+	double total_height = number_of_cell_types * row_height;
+	double total_width = row_width;
+
+
+	std::ofstream os(filename, std::ios::out);
+	Write_SVG_start(os, total_width, total_height);
+
+	double cursor_x = padding + temp_cell_radius;
+	double cursor_y = padding + temp_cell_radius;
+
+	for (int k = 0; k < number_of_cell_types; k++)
+	{
+		// switch to the cell type
+		cell* C = e.cast_container<cell_container>().create_cell(e.cell_definitions[k]);
+
+		// get the colors using the current coloring function
+		std::vector<std::string> colors = cell_coloring_function(C);
+
+		// place a big circle with cytoplasm colors
+		Write_SVG_circle(os, cursor_x, cursor_y, temp_cell_radius, 1.0, colors[1], colors[0]);
+		// place a small circle with nuclear colors
+		Write_SVG_circle(os, cursor_x, cursor_y, 0.5 * temp_cell_radius, 1.0, colors[3], colors[2]);
+
+		// place the label
+
+		cursor_x += temp_cell_radius + 2 * padding;
+		cursor_y += 0.3 * font_size;
+
+		Write_SVG_text(os, e.cell_definitions[k].name.c_str(), cursor_x, cursor_y, font_size,
+					   PhysiCell_SVG_options.font_color.c_str(), PhysiCell_SVG_options.font.c_str());
+
+		// move the cursor down to the next row
+
+		cursor_y -= 0.3 * font_size;
+		cursor_y += (2.0 * padding + 2.0 * temp_cell_radius);
+		cursor_x = padding + temp_cell_radius;
+
+		e.cast_container<cell_container>().remove_agent(C);
+	}
+
+	Write_SVG_end(os);
+	os.close();
+}
+
 } // namespace physicell

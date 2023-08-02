@@ -29,6 +29,9 @@ struct environment
 	bool rules_enabled;
 	bool automated_spring_adhesion;
 
+	biofvm::index_t divisions_count;
+	biofvm::index_t deaths_count;
+
 	biofvm::cartesian_mesh mechanics_mesh;
 
 	biofvm::real_t mechanics_time_step;
