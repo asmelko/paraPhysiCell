@@ -9,6 +9,7 @@
 #include "../original/rules.h"
 #include "../original/signal_behavior.h"
 #include "../original/standard_models.h"
+#include "../random.h"
 #include "microenvironment.h"
 #include "microenvironment_builder.h"
 #include "types.h"
@@ -1585,6 +1586,8 @@ environment builder::build_environment()
 	load_rules();
 
 	load_signals();
+
+	random::instance().set_seed(get_parameters().ints("random_seed"));
 
 	e_->display_info();
 
