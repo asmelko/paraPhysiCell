@@ -12,6 +12,8 @@ namespace physicell {
 
 class Variable
 {
+private:
+	friend std::ostream& operator<<(std::ostream& os, const Variable& v); // done
 public:
 	std::string name;
 	biofvm::real_t value;
@@ -23,6 +25,8 @@ public:
 
 class Vector_Variable
 {
+private:
+	friend std::ostream& operator<<(std::ostream& os, const Vector_Variable& v); // done
 public:
 	std::string name;
 	std::vector<biofvm::real_t> value;

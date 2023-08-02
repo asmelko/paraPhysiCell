@@ -27,7 +27,7 @@ microenvironment default_microenv(cartesian_mesh mesh)
 	initial_conds[1] = 1;
 
 	microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get());
-	m.diffustion_coefficients = std::move(diff_coefs);
+	m.diffusion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 
 	return m;

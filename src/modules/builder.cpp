@@ -1586,5 +1586,7 @@ environment builder::build_environment()
 
 	load_signals();
 
+	e_->display_info();
+
 	return std::move(e_.value());
 };

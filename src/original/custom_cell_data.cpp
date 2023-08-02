@@ -7,7 +7,8 @@
 #include <vector>
 
 using namespace biofvm;
-using namespace physicell;
+
+namespace physicell {
 
 Variable::Variable()
 {
@@ -188,3 +189,5 @@ void Custom_Cell_Data::divide_conserved_quantities()
 		}
 	}
 }
+
+} // namespace physicell

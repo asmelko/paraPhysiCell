@@ -100,7 +100,7 @@ int main()
 
 	measure(microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get()),
 			microenv_init_duration);
-	m.diffustion_coefficients = std::move(diff_coefs);
+	m.diffusion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 	m.compute_internalized_substrates = true;
 

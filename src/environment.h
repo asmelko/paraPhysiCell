@@ -44,6 +44,10 @@ struct environment
 
 	cell_definition* find_cell_definition(std::string name);
 	cell_definition* find_cell_definition(biofvm::index_t type);
+
+	void display_info();
+
+	void display_cell_definitions_info();
 };
 
 } // namespace physicell
