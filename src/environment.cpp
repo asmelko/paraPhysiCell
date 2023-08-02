@@ -22,6 +22,22 @@ cell_container_base& environment::cells() { return cast_container<cell_container
 
 cell_definition& environment::cell_defaults() { return cell_definitions[0]; }
 
+cell_definition* environment::find_cell_definition(const std::string& name)
+{
+	auto it = std::find_if(cell_definitions.begin(), cell_definitions.end(),
+						   [&name](const cell_definition& cd) { return cd.name == name; });
+
+	return it == cell_definitions.end() ? nullptr : &(*it);
+}
+
+cell_definition* environment::find_cell_definition(index_t type)
+{
+	auto it = std::find_if(cell_definitions.begin(), cell_definitions.end(),
+						   [&type](const cell_definition& cd) { return cd.type == type; });
+
+	return it == cell_definitions.end() ? nullptr : &(*it);
+}
+
 void environment::display_info()
 {
 	m.display_info();

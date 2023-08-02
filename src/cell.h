@@ -56,8 +56,8 @@ public:
 	std::uint8_t& is_movable();
 	cell_state_flag& flag();
 
-	void set_default(cell_definition& def, biofvm::index_t def_index);
-	void convert(cell_definition& def, biofvm::index_t def_index);
+	void set_default(cell_definition& def);
+	void convert(cell_definition& def);
 	void copy_from(cell& source);
 
 	void divide(cell& new_cell);
@@ -72,6 +72,10 @@ public:
 
 	void flag_for_removal();
 	void flag_for_division();
+
+	void assign_position(const biofvm::point_t<biofvm::real_t, 3>& position);
+
+	void set_total_volume(biofvm::real_t volume);
 };
 
 } // namespace physicell

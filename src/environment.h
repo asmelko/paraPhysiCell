@@ -42,7 +42,7 @@ struct environment
 	std::vector<cell_definition> cell_definitions;
 	cell_definition& cell_defaults();
 
-	cell_definition* find_cell_definition(std::string name);
+	cell_definition* find_cell_definition(const std::string& name);
 	cell_definition* find_cell_definition(biofvm::index_t type);
 
 	void display_info();

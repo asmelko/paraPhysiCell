@@ -361,7 +361,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	if (std::string(cd_node.attribute("name").value()) != "default"
 		&& std::string(cd_node.attribute("ID").value()) != "0")
 	{
-		e_->cell_definitions.emplace_back(*e_);
+		e_->cell_definitions.emplace_back(*e_, e_->cell_definitions.size());
 		pCD = &e_->cell_definitions.back();
 	}
 	else

@@ -16,6 +16,8 @@ private:
 	cell_data data_;
 
 public:
+	biofvm::index_t index;
+
 	biofvm::index_t type;
 	std::string name;
 
@@ -28,9 +30,9 @@ public:
 	cell_functions functions;
 	phenotype_t phenotype;
 
-	cell_definition(environment& e);
+	cell_definition(environment& e, biofvm::index_t index);
 
-	cell_definition create_copy();
+	cell_definition create_copy(biofvm::index_t new_index);
 
 	void inherit_from(cell_definition& def);
 };

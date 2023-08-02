@@ -7,6 +7,8 @@
 
 namespace physicell {
 
+struct cell_definition;
+
 class common_solver;
 struct environment;
 
@@ -25,6 +27,8 @@ class cell_container : public biofvm::agent_container_common<cell, cell_data>, p
 
 public:
 	cell_container(environment& e);
+
+	cell* create_cell(cell_definition& definition);
 };
 
 } // namespace physicell

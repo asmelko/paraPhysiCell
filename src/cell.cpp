@@ -46,14 +46,14 @@ index_t& cell::cell_definition_index() { return data_.cell_definition_indices[in
 
 uint8_t& cell::is_movable() { return data_.is_movable[index_]; }
 
-void cell::set_default(cell_definition& def, index_t def_index)
+void cell::set_default(cell_definition& def)
 {
 	is_movable() = def.is_movable;
 
-	convert(def, def_index);
+	convert(def);
 }
 
-void cell::convert(cell_definition& def, index_t def_index)
+void cell::convert(cell_definition& def)
 {
 	type = def.type;
 	type_name = def.name;
@@ -64,7 +64,7 @@ void cell::convert(cell_definition& def, index_t def_index)
 
 	def.phenotype.copy(phenotype);
 
-	cell_definition_index() = def_index;
+	cell_definition_index() = def.index;
 
 	assign_orientation();
 }
@@ -209,4 +209,28 @@ void cell::detach_cells(cell& lhs, cell& rhs)
 {
 	lhs.detach_cell(rhs);
 	rhs.detach_cell(lhs);
+}
+
+void cell::assign_position(const biofvm::point_t<biofvm::real_t, 3>& new_position)
+{
+	for (index_t d = 0; d < data_.e.m.mesh.dims; d++)
+	{
+		position()[d] = new_position[d];
+	}
+}
+
+void cell::set_total_volume(real_t volume)
+{
+	// If the new volume is significantly different than the
+	// current total volume, adjust all the sub-volumes
+	// proportionally.
+
+	// if( fabs( phenotype.volume.total - volume ) < 1e-16 )
+	if (std::abs(phenotype.volume.total() - volume) > 1e-16)
+	{
+		real_t ratio = volume / (phenotype.volume.total() + 1e-16);
+		phenotype.volume.multiply_by_factor(ratio);
+	}
+
+	phenotype.geometry.update();
 }

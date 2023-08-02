@@ -467,7 +467,7 @@ void standard_cell_transformations(cell& cell, environment& e)
 		{
 			// std::cout << "Transforming from " << pCell->type_name << " to " << cell_definitions_by_index[i]->name <<
 			// std::endl;
-			cell.convert(e.cell_definitions[i], i);
+			cell.convert(e.cell_definitions[i]);
 			break;
 		}
 	}
@@ -801,8 +801,8 @@ void initialize_default_cell_definition(environment& e)
 {
 	// If the standard models have not yet been created, do so now.
 	create_standard_cycle_and_death_models();
-
-	e.cell_definitions.emplace_back(e);
+	
+	e.cell_definitions.emplace_back(e, 0);
 
 	e.cell_defaults().type = 0;
 	e.cell_defaults().name = "breast epithelium";

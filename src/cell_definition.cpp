@@ -1,16 +1,17 @@
 #include "cell_definition.h"
 
+using namespace biofvm;
 using namespace physicell;
 
-cell_definition::cell_definition(environment& e)
-	: data_(e, 1), type(0), name("unnamed"), is_movable(true), e(e), phenotype(data_, 0)
+cell_definition::cell_definition(environment& e, index_t index)
+	: data_(e, 1), index(index), type(0), name("unnamed"), is_movable(true), e(e), phenotype(data_, 0)
 {
 	parameters.pReference_live_phenotype = &phenotype;
 }
 
-cell_definition cell_definition::create_copy()
+cell_definition cell_definition::create_copy(index_t new_index)
 {
-	cell_definition copy(e);
+	cell_definition copy(e, new_index);
 
 	copy.type = type;
 	copy.name = name;
