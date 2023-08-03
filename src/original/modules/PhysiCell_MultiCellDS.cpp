@@ -515,9 +515,8 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 								 + 1 + 3 + 1 + 3 + 1 + 1; // motility
 
 		// figure out size of 2022 phenotype items
-		extern std::unordered_map<std::string, int> cell_definition_indices_by_name;
 		int number_of_substrates = e.m.substrates_count;
-		int number_of_cell_defs = cell_definition_indices_by_name.size();
+		int number_of_cell_defs = e.cell_definitions_count;
 
 		// advanced chemotaxis
 		size_of_each_datum += number_of_substrates; // number_of_cell_defs;
@@ -760,16 +759,15 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 void add_PhysiCell_to_open_xml_pugi(pugi::xml_document& xml_dom, std::string filename_base,
 									double current_simulation_time, microenvironment& M);
 
-void save_PhysiCell_to_MultiCellDS_xml_pugi(std::string filename_base, microenvironment& M,
-											double current_simulation_time)
+void save_PhysiCell_to_MultiCellDS_xml_pugi(std::string filename_base, environment& e)
 {
 	// start with a standard biofvm save
 
-	add_BioFVM_to_open_xml_pugi(biofvm_doc, filename_base, current_simulation_time, M);
+	add_BioFVM_to_open_xml_pugi(biofvm_doc, filename_base, e.current_time, e.m);
 
 	// now, add the PhysiCell data
 
-	add_PhysiCell_cells_to_open_xml_pugi(biofvm_doc, filename_base, M);
+	add_PhysiCell_cells_to_open_xml_pugi(biofvm_doc, filename_base, e);
 	// add_PhysiCell_cells_to_open_xml_pugi_v2( biofvm_doc , filename_base , M  );
 
 	// Lastly, save to the indicated filename
@@ -782,7 +780,7 @@ void save_PhysiCell_to_MultiCellDS_xml_pugi(std::string filename_base, microenvi
 }
 
 
-void save_PhysiCell_to_MultiCellDS_v2(std::string filename_base, microenvironment& M, double current_simulation_time)
+void save_PhysiCell_to_MultiCellDS_v2(std::string filename_base, environment& e)
 {
 	// set some metadata
 
@@ -814,16 +812,16 @@ void save_PhysiCell_to_MultiCellDS_v2(std::string filename_base, microenvironmen
 	// overall XML structure
 	add_MultiCellDS_main_structure_to_open_xml_pugi(biofvm_doc);
 	// save metadata
-	BioFVM_metadata.add_to_open_xml_pugi(current_simulation_time, biofvm_doc);
+	BioFVM_metadata.add_to_open_xml_pugi(e.current_time, biofvm_doc);
 	// save diffusing substrates
-	add_BioFVM_substrates_to_open_xml_pugi(biofvm_doc, filename_base, M);
+	add_BioFVM_substrates_to_open_xml_pugi(biofvm_doc, filename_base, e.m);
 
 	// add_BioFVM_agents_to_open_xml_pugi( xml_dom , filename_base, M);
 
 	// now, add the PhysiCell data
 
 	// add_PhysiCell_cells_to_open_xml_pugi( biofvm_doc , filename_base , M  );
-	add_PhysiCell_cells_to_open_xml_pugi_v2(biofvm_doc, filename_base, M);
+	add_PhysiCell_cells_to_open_xml_pugi_v2(biofvm_doc, filename_base, e);
 
 	// Lastly, save to the indicated filename
 
@@ -1993,7 +1991,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 		node.first_child().set_value(filename_without_pathing); // filename );
 	}
 
-	write_neighbor_graph(filename);
+	write_neighbor_graph(filename, e);
 
 
 	// attached cell graph
@@ -2048,7 +2046,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 		node.first_child().set_value(filename_without_pathing); // filename );
 	}
 
-	write_attached_cells_graph(filename);
+	write_attached_cells_graph(filename, e);
 
 	return;
 }

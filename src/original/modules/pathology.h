@@ -7,6 +7,7 @@ namespace physicell {
 
 struct environment;
 class cell;
+class PhysiCell_Settings;
 
 struct PhysiCell_SVG_options_struct
 {
@@ -27,11 +28,13 @@ struct PhysiCell_SVG_options_struct
 
 extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
 
-void SVG_plot(std::string filename, environment& e, double z_slice, double time,
+void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
 			  std::vector<std::string> (*cell_coloring_function)(cell*),
-			  std::vector<std::string> (*substrate_coloring_function)(double, double, double));
+			  std::vector<std::string> (*substrate_coloring_function)(double, double, double) = nullptr);
 
 void create_plot_legend(std::string filename, std::vector<std::string> (*cell_coloring_function)(cell*),
 						environment& e);
+
+std::vector<std::string> paint_by_number_cell_coloring(cell* pCell); // done
 
 } // namespace physicell

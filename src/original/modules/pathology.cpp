@@ -5,6 +5,7 @@
 
 #include "../../cell.h"
 #include "../../environment.h"
+#include "../constants.h"
 #include "settings.h"
 #include "svg.h"
 #include "timer.h"
@@ -491,6 +492,97 @@ void create_plot_legend(std::string filename, std::vector<std::string> (*cell_co
 
 	Write_SVG_end(os);
 	os.close();
+}
+
+std::vector<std::string> paint_by_number_cell_coloring(cell* pCell)
+{
+	static std::vector<std::string> colors(0);
+	static bool setup_done = false;
+	if (setup_done == false)
+	{
+		colors.push_back("grey"); // default color will be grey
+
+		colors.push_back("red");
+		colors.push_back("yellow");
+		colors.push_back("green");
+		colors.push_back("blue");
+
+		colors.push_back("magenta");
+		colors.push_back("orange");
+		colors.push_back("lime");
+		colors.push_back("cyan");
+
+		colors.push_back("hotpink");
+		colors.push_back("peachpuff");
+		colors.push_back("darkseagreen");
+		colors.push_back("lightskyblue");
+
+		setup_done = true;
+	}
+
+	// start all black
+
+	std::vector<std::string> output = { "black", "black", "black", "black" };
+
+	// paint by number -- by cell type
+
+	std::string interior_color = "white";
+	if (pCell->type < 13)
+	{
+		interior_color = colors[pCell->type];
+	}
+
+	output[0] = interior_color; // set cytoplasm color
+
+	/*
+	if( pCell->phenotype.death.dead == false ) // if live, color nucleus same color
+	{
+		output[2] = interior_color;
+		output[3] = interior_color;
+	}
+	else
+	{
+		// apoptotic cells will retain a black nucleus
+		// if necrotic, color the nucleus brown
+		if( pCell->phenotype.cycle.current_phase().code == constants::necrotic_swelling ||
+			pCell->phenotype.cycle.current_phase().code == constants::necrotic_lysed ||
+			pCell->phenotype.cycle.current_phase().code == constants::necrotic )
+		{
+			output[2] = "rgb(139,69,19)";
+			output[3] = "rgb(139,69,19)";
+		}
+
+
+
+	}
+	*/
+
+	// new March 2023 (for better compatibility with studio)
+
+	// if dead, use live color for the outline
+	// if( pCell->phenotype.death.dead == true )
+	// { output[1] = interior_color; }
+
+	// necrotic cells are brown
+	if (pCell->phenotype.cycle.current_phase().code == constants::necrotic_swelling
+		|| pCell->phenotype.cycle.current_phase().code == constants::necrotic_lysed
+		|| pCell->phenotype.cycle.current_phase().code == constants::necrotic)
+	{
+		interior_color = "saddlebrown";
+	}
+	// apoptotic cells are white
+	if (pCell->phenotype.cycle.current_phase().code == constants::apoptotic)
+	{
+		interior_color = "black";
+	}
+
+	output[0] = interior_color; // set cytoplasm color
+	output[2] = interior_color; // set cytoplasm color
+	output[3] = interior_color; // set cytoplasm color
+
+	output[1] = "black";
+
+	return output;
 }
 
 } // namespace physicell

@@ -358,11 +358,11 @@ real_t Hypothesis_Rule::evaluate(cell* pCell, environment& e)
 	std::vector<real_t> signal_values(signals.size(), 0.0);
 	for (std::size_t i = 0; i < signals.size(); i++)
 	{
-		signal_values[i] = get_single_signal(pCell, signals[i]);
+		signal_values[i] = get_single_signal(pCell, signals[i], e);
 	}
 
 	// now, get live/dead value
-	bool dead = (bool)get_single_signal(pCell, "dead");
+	bool dead = (bool)get_single_signal(pCell, "dead", e);
 
 	real_t out = evaluate(signal_values, dead);
 
@@ -382,7 +382,7 @@ void Hypothesis_Rule::apply(cell* pCell, environment& e)
 	real_t param = evaluate(pCell, e);
 
 	// apply it ot the appropriate behavior
-	set_single_behavior(pCell, behavior, param);
+	set_single_behavior(pCell, behavior, param, e);
 
 	return;
 }
@@ -2102,11 +2102,11 @@ void stream_annotated_English_rules_HTML(std::ostream& os, environment& e)
 	return;
 }
 
-void save_annotated_English_rules(const PhysiCell_Settings& settings)
+void save_annotated_English_rules(PhysiCell_Settings& settings, environment& e)
 {
 	std::string filename = settings.folder + "/rules.txt";
 	std::ofstream of(filename, std::ios::out);
-	stream_annotated_English_rules(of);
+	stream_annotated_English_rules(of, e);
 	of.close();
 }
 
@@ -2147,27 +2147,27 @@ void stream_annotated_detailed_English_rules_HTML(std::ostream& os, environment&
 	return;
 }
 
-void save_annotated_detailed_English_rules(const PhysiCell_Settings& settings)
+void save_annotated_detailed_English_rules(PhysiCell_Settings& settings, environment& e)
 {
 	std::string filename = settings.folder + "/detailed_rules.txt";
 	std::ofstream of(filename, std::ios::out);
-	stream_annotated_detailed_English_rules(of);
+	stream_annotated_detailed_English_rules(of, e);
 	of.close();
 }
 
-void save_annotated_detailed_English_rules_HTML(const PhysiCell_Settings& settings)
+void save_annotated_detailed_English_rules_HTML(PhysiCell_Settings& settings, environment& e)
 {
 	std::string filename = settings.folder + "/detailed_rules.html";
 	std::ofstream of(filename, std::ios::out);
-	stream_annotated_detailed_English_rules_HTML(of);
+	stream_annotated_detailed_English_rules_HTML(of, e);
 	of.close();
 }
 
-void save_annotated_English_rules_HTML(const PhysiCell_Settings& settings)
+void save_annotated_English_rules_HTML(PhysiCell_Settings& settings, environment& e)
 {
 	std::string filename = settings.folder + "/rules.html";
 	std::ofstream of(filename, std::ios::out);
-	stream_annotated_English_rules_HTML(of);
+	stream_annotated_English_rules_HTML(of, e);
 	of.close();
 }
 
@@ -2449,10 +2449,10 @@ void setup_cell_rules(PhysiCell_Settings& settings, const pugi::xml_node& config
 	display_hypothesis_rulesets(std::cout, e);
 
 	// save annotations
-	save_annotated_detailed_English_rules();
-	save_annotated_detailed_English_rules_HTML();
-	save_annotated_English_rules();
-	save_annotated_English_rules_HTML();
+	save_annotated_detailed_English_rules(settings, e);
+	save_annotated_detailed_English_rules_HTML(settings, e);
+	save_annotated_English_rules(settings, e);
+	save_annotated_English_rules_HTML(settings, e);
 
 	// save dictionaries
 	std::string dictionary_file = "./" + settings.folder + "/dictionaries.txt";
@@ -2464,7 +2464,7 @@ void setup_cell_rules(PhysiCell_Settings& settings, const pugi::xml_node& config
 
 	// save rules (v1)
 	std::string rules_file = settings.folder + "/cell_rules.csv";
-	export_rules_csv_v1(rules_file);
+	export_rules_csv_v1(rules_file, e);
 
 
 	return;

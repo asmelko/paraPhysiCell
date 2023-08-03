@@ -6,6 +6,9 @@ namespace physicell {
 
 // standard entry function for the cycle models
 
+extern Cycle_Model Ki67_advanced, Ki67_basic, live, apoptosis, necrosis, cycling_quiescent, flow_cytometry_cycle_model,
+	flow_cytometry_separated_cycle_model;
+
 void standard_Ki67_positive_phase_entry_function(cell& cell, biofvm::real_t dt); // done
 void standard_Ki67_negative_phase_entry_function(cell& cell, biofvm::real_t dt); // done
 void standard_live_phase_entry_function(cell& cell, biofvm::real_t dt);			 // done
@@ -58,6 +61,6 @@ void standard_elastic_contract_function(cell& lhs, cell& rhs);
 // standard phenotype update functions
 
 void advance_bundled_phenotype_functions(environment& e);
-void standard_cell_transformations(cell& pCell, biofvm::real_t time_step);
+void standard_cell_transformations(cell& pCell, environment& e);
 
 } // namespace physicell

@@ -1,5 +1,6 @@
 #include "builder.h"
 
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 
@@ -17,7 +18,21 @@
 using namespace biofvm;
 using namespace physicell;
 
-builder::builder(const std::string& config_path) : config_path_(config_path) { get_config_root(); }
+builder::builder(int argc, char** argv)
+{
+	if (argc == 2)
+		config_path_ = argv[1];
+	else
+		config_path_ = "config/PhysiCell_settings.xml";
+
+	get_config_root();
+
+	auto& settings = get_settings();
+
+	// create directory settings.folder and copy config file there
+	std::filesystem::create_directory(settings.folder);
+	std::filesystem::copy_file(config_path_, settings.folder + "/PhysiCell_settings.xml");
+}
 
 const pugi::xml_node& builder::get_config_root()
 {
@@ -348,6 +363,28 @@ std::vector<cell_definition>& builder::get_cell_definitions()
 	}
 
 	return e_->cell_definitions;
+}
+
+biofvm::index_t builder::find_cell_definition_index(const std::string& name)
+{
+	for (auto& cd : get_cell_definitions())
+	{
+		if (cd.name == name)
+			return cd.index;
+	}
+
+	return -1;
+}
+
+cell_definition* builder::find_cell_definition(const std::string& name)
+{
+	for (auto& cd : get_cell_definitions())
+	{
+		if (cd.name == name)
+			return &cd;
+	}
+
+	return nullptr;
 }
 
 extern Cycle_Model Ki67_advanced, Ki67_basic, live, apoptosis, necrosis, cycling_quiescent, flow_cytometry_cycle_model,

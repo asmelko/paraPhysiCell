@@ -150,7 +150,7 @@ cell* process_csv_v2_line(std::string line, std::vector<std::string> labels, env
 			// if the behavior is found in the dictionary, process it
 			if (find_behavior_index(labels[k]) > -1)
 			{
-				set_single_behavior(pCell, labels[k], dval);
+				set_single_behavior(pCell, labels[k], dval, e);
 				processed = true;
 			}
 		}

@@ -175,21 +175,21 @@ std::string csv_strings_to_English_v2(std::vector<std::string> strings, bool inc
 std::string csv_strings_to_English_HTML(std::vector<std::string> strings, bool include_cell_header);
 
 // v1, v2, and v0?
-void export_rules_csv_v0(std::string filename);
-void export_rules_csv_v1(std::string filename);
-void export_rules_csv_v2(std::string filename);
+void export_rules_csv_v0(std::string filename, environment& e);
+void export_rules_csv_v1(std::string filename, environment& e);
+void export_rules_csv_v2(std::string filename, environment& e);
 
 // streamed outputs in human-readable format
 
-void stream_annotated_English_rules(std::ostream& os);
-void stream_annotated_detailed_English_rules(std::ostream& os);
-void save_annotated_English_rules();
-void save_annotated_English_rules_HTML();
+void stream_annotated_English_rules(std::ostream& os, environment& e);
+void stream_annotated_detailed_English_rules(std::ostream& os, environment& e);
+void save_annotated_English_rules(PhysiCell_Settings& settings, environment& e);
+void save_annotated_English_rules_HTML(PhysiCell_Settings& settings, environment& e);
 
-void stream_annotated_English_rules_HTML(std::ostream& os);
-void stream_annotated_detailed_English_rules_HTML(std::ostream& os);
-void save_annotated_detailed_English_rules();
-void save_annotated_detailed_English_rules_HTML();
+void stream_annotated_English_rules_HTML(std::ostream& os, environment& e);
+void stream_annotated_detailed_English_rules_HTML(std::ostream& os, environment& e);
+void save_annotated_detailed_English_rules(PhysiCell_Settings& settings, environment& e);
+void save_annotated_detailed_English_rules_HTML(PhysiCell_Settings& settings, environment& e);
 
 // add these to PhysiCell_utilities.cpp
 

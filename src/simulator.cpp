@@ -1,8 +1,15 @@
 #include "simulator.h"
 
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 
 #include "environment.h"
+#include "original/modules/BioFVM_MultiCellDS.h"
+#include "original/modules/PhysiCell_MultiCellDS.h"
+#include "original/modules/pathology.h"
+#include "original/modules/timer.h"
+#include "original/modules/various_output.h"
 #include "original/standard_models.h"
 
 using namespace biofvm;
@@ -86,4 +93,89 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		// Removal and division of flagged cells in data structures:
 		mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell);
 	}
+}
+
+void simulator::run(environment& e, PhysiCell_Settings& settings,
+					std::vector<std::string> (*cell_coloring_function)(cell*))
+{
+	// set MultiCellDS save options
+
+	set_save_biofvm_mesh_as_matlab(true);
+	set_save_biofvm_data_as_matlab(true);
+	set_save_biofvm_cell_data(true);
+	set_save_biofvm_cell_data_as_custom_matlab(true);
+
+	// save a simulation snapshot
+
+	save_PhysiCell_to_MultiCellDS_v2(settings.folder + "/initial", e);
+
+	// save a quick SVG cross section through z = 0, after setting its
+	// length bar to 200 microns
+
+	PhysiCell_SVG_options.length_bar = 200;
+
+	// for simplicity, set a pathology coloring function
+
+	SVG_plot(settings.folder + "/initial.svg", e, settings, 0.0, e.current_time, cell_coloring_function);
+
+	create_plot_legend(settings.folder + "/legend.svg", cell_coloring_function, e);
+
+	// set the performance timers
+
+	RUNTIME_TIC();
+	TIC();
+
+	real_t next_full_save_time = 0;
+	real_t next_svg_save_time = 0;
+	index_t full_output_index = 0;
+	index_t svg_output_index = 0;
+
+	while (e.current_time < settings.max_time + 0.1 * e.m.time_step)
+	{
+		// save data if it's time.
+		if (std::abs(e.current_time - next_full_save_time) < 0.01 * e.m.time_step)
+		{
+			display_simulation_status(std::cout, e, settings);
+
+			if (settings.enable_full_saves == true)
+			{
+				std::stringstream ss;
+				ss << settings.folder << std::setfill('0') << std::setw(8) << full_output_index;
+
+				save_PhysiCell_to_MultiCellDS_v2(ss.str(), e);
+			}
+
+			full_output_index++;
+			next_full_save_time += settings.full_save_interval;
+		}
+
+		// save SVG plot if it's time
+		if (fabs(e.current_time - next_svg_save_time) < 0.01 * e.m.time_step)
+		{
+			if (settings.enable_SVG_saves == true)
+			{
+				std::stringstream ss;
+				ss << settings.folder << std::setfill('0') << std::setw(8) << svg_output_index;
+				SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function);
+
+				svg_output_index++;
+				next_svg_save_time += settings.SVG_save_interval;
+			}
+		}
+
+		simulate_diffusion_and_mechanics(e);
+
+		e.current_time += e.m.time_step;
+	}
+
+	// save a final simulation snapshot
+
+	save_PhysiCell_to_MultiCellDS_v2(settings.folder + "/final", e);
+
+	SVG_plot(settings.folder + "/final.svg", e, settings, 0.0, e.current_time, cell_coloring_function);
+
+	// timer
+
+	std::cout << std::endl << "Total simulation runtime: " << std::endl;
+	display_stopwatch_value(std::cout, runtime_stopwatch_value());
 }

@@ -54,7 +54,7 @@ std::vector<biofvm::real_t> get_selected_signals(cell* pCell, std::vector<std::s
 
 // grab a single signal by its index or name
 biofvm::real_t get_single_signal(cell* pCell, biofvm::index_t index, environment& e); // done
-biofvm::real_t get_single_signal(cell* pCell, std::string name);					  // done
+biofvm::real_t get_single_signal(cell* pCell, std::string name, environment& e);	  // done
 
 /* behavior functions */
 
@@ -74,14 +74,14 @@ std::vector<biofvm::real_t> create_empty_behavior_vector(); // done
 void set_behaviors(cell* pCell, std::vector<biofvm::real_t> parameters); // done
 
 // write a selected set of behavior parameters to the cell
-void set_selected_behaviors(cell* pCell, std::vector<biofvm::index_t> indices,
-							std::vector<biofvm::real_t> parameters); // done
-void set_selected_behaviors(cell* pCell, std::vector<std::string> names,
-							std::vector<biofvm::real_t> parameters); // done
+void set_selected_behaviors(cell* pCell, std::vector<biofvm::index_t> indices, std::vector<biofvm::real_t> parameters,
+							environment& e); // done
+void set_selected_behaviors(cell* pCell, std::vector<std::string> names, std::vector<biofvm::real_t> parameters,
+							environment& e); // done
 
 // write a single behavior parameter
-void set_single_behavior(cell* pCell, biofvm::index_t index, biofvm::real_t parameter); // done
-void set_single_behavior(cell* pCell, std::string name, biofvm::real_t parameter);		// done
+void set_single_behavior(cell* pCell, biofvm::index_t index, biofvm::real_t parameter, environment& e); // done
+void set_single_behavior(cell* pCell, std::string name, biofvm::real_t parameter, environment& e);		// done
 
 /* get current behaviors */
 

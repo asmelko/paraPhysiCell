@@ -479,7 +479,7 @@ void advance_bundled_phenotype_functions(environment& e)
 	{
 		// New March 2022
 		// perform transformations
-		standard_cell_transformations(*cell, e.phenotype_time_step);
+		standard_cell_transformations(*cell, e);
 
 		// New March 2023 in Version 1.12.0
 		// call the rules-based code to update the phenotype
@@ -487,14 +487,14 @@ void advance_bundled_phenotype_functions(environment& e)
 		{
 			apply_ruleset(cell.get(), e);
 		}
-		if (get_single_signal(cell.get(), "necrotic") > 0.5)
+		if (get_single_signal(cell.get(), "necrotic", e) > 0.5)
 		{
 			real_t rupture = cell->phenotype.volume.rupture_volume();
 			real_t volume = cell->phenotype.volume.total();
 			if (volume > rupture)
 			{
 				std::cout << cell->phenotype.volume.total() << " vs " << cell->phenotype.volume.rupture_volume()
-						  << " dead: " << get_single_signal(cell.get(), "dead") << std::endl;
+						  << " dead: " << get_single_signal(cell.get(), "dead", e) << std::endl;
 				std::cout << cell->phenotype.cycle.current_phase_index() << " "
 						  << cell->phenotype.cycle.pCycle_Model->name << std::endl;
 			}
@@ -584,6 +584,9 @@ void advanced_chemotaxis_function(cell& cell)
 	// normalize
 	normalize(cell.phenotype.motility.migration_bias_direction(), cell.e().mechanics_mesh.dims);
 }
+
+template void advanced_chemotaxis_function<true>(cell& cell);
+template void advanced_chemotaxis_function<false>(cell& cell);
 
 void standard_volume_update_function(cell& cell)
 {
@@ -801,7 +804,7 @@ void initialize_default_cell_definition(environment& e)
 {
 	// If the standard models have not yet been created, do so now.
 	create_standard_cycle_and_death_models();
-	
+
 	e.cell_definitions.emplace_back(e, 0);
 
 	e.cell_defaults().type = 0;

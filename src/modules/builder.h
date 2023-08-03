@@ -30,8 +30,6 @@ class builder
 
 	biofvm::microenvironment& get_microenvironment();
 
-	environment& get_environment();
-
 	void construct_single_cell_definition(const pugi::xml_node& node);
 
 	biofvm::index_t find_cell_definition_index(const std::string& name);
@@ -41,7 +39,7 @@ class builder
 	void load_signals();
 
 public:
-	builder(const std::string& config_path);
+	builder(int argc, char** argv);
 
 	const pugi::xml_node& get_config_root();
 
@@ -59,6 +57,9 @@ public:
 
 	// for modifying cell definitions
 	std::vector<cell_definition>& get_cell_definitions();
+	cell_definition* find_cell_definition(const std::string& name);
+
+	environment& get_environment();
 
 	environment build_environment();
 };

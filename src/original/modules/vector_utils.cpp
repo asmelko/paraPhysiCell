@@ -1,5 +1,7 @@
 #include "vector_utils.h"
 
+#include <cmath>
+
 using namespace biofvm;
 
 namespace physicell {
@@ -39,6 +41,16 @@ void data_to_list(biofvm::real_t* data, std::size_t count, char*& buffer, char d
 	}
 	std::sprintf(buffer + position, "%.7e", data[count - 1]);
 	return;
+}
+
+biofvm::real_t norm(const biofvm::point_t<biofvm::real_t, 3>& v)
+{
+	real_t out = 0;
+	for (index_t i = 0; i < 3; i++)
+	{
+		out += v[i] * v[i];
+	}
+	return std::sqrt(out);
 }
 
 } // namespace physicell

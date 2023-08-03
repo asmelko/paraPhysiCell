@@ -11,6 +11,7 @@
 namespace physicell {
 
 struct cell_data;
+class cell_container;
 
 struct cell_state_t : public phenotype_data_storage
 {
@@ -49,7 +50,8 @@ public:
 
 	cell_state_t state;
 
-	const environment& e() const;
+	environment& e();
+	cell_container& container();
 
 	biofvm::real_t* velocity();
 	biofvm::index_t& cell_definition_index();
@@ -69,6 +71,8 @@ public:
 
 	static void attach_cells(cell& lhs, cell& rhs);
 	static void detach_cells(cell& lhs, cell& rhs);
+
+	void remove_all_attached_cells();
 
 	void flag_for_removal();
 	void flag_for_division();

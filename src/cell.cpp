@@ -176,7 +176,9 @@ void cell::flag_for_removal() { flag() = cell_state_flag::to_remove; }
 
 void cell::flag_for_division() { flag() = cell_state_flag::to_divide; }
 
-const environment& cell::e() const { return data_.e; }
+environment& cell::e() { return data_.e; }
+
+cell_container& cell::container() { return data_.e.cast_container<cell_container>(); }
 
 void cell::attach_cell(cell& cell)
 {
@@ -209,6 +211,12 @@ void cell::detach_cells(cell& lhs, cell& rhs)
 {
 	lhs.detach_cell(rhs);
 	rhs.detach_cell(lhs);
+}
+
+void cell::remove_all_attached_cells()
+{
+	remove_attached(index_, data_.states.attached_cells.data());
+	state.attached_cells().clear();
 }
 
 void cell::assign_position(const biofvm::point_t<biofvm::real_t, 3>& new_position)

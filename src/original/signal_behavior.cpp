@@ -5,8 +5,8 @@
 
 #include "../cell_definition.h"
 #include "../environment.h"
-#include "../utilities.h"
 #include "constants.h"
+#include "modules/vector_utils.h"
 
 using namespace biofvm;
 
@@ -1483,10 +1483,10 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	return;
 }
 
-void set_single_behavior(cell* pCell, std::string name, real_t parameter)
+void set_single_behavior(cell* pCell, std::string name, real_t parameter, environment& e)
 {
 	index_t index = find_behavior_index(name);
-	return set_single_behavior(pCell, index, parameter);
+	return set_single_behavior(pCell, index, parameter, e);
 }
 
 std::vector<real_t> get_behaviors(cell* pCell, environment& e)
@@ -1931,20 +1931,20 @@ std::vector<real_t> get_behaviors(cell* pCell, std::vector<std::string> names, e
 	return parameters;
 }
 
-void set_selected_behaviors(cell* pCell, std::vector<index_t> indices, std::vector<real_t> parameters)
+void set_selected_behaviors(cell* pCell, std::vector<index_t> indices, std::vector<real_t> parameters, environment& e)
 {
 	for (std::size_t i = 0; i < indices.size(); i++)
 	{
-		set_single_behavior(pCell, indices[i], parameters[i]);
+		set_single_behavior(pCell, indices[i], parameters[i], e);
 	}
 	return;
 }
 
-void set_selected_behaviors(cell* pCell, std::vector<std::string> names, std::vector<real_t> parameters)
+void set_selected_behaviors(cell* pCell, std::vector<std::string> names, std::vector<real_t> parameters, environment& e)
 {
 	for (std::size_t i = 0; i < names.size(); i++)
 	{
-		set_single_behavior(pCell, find_behavior_index(names[i]), parameters[i]);
+		set_single_behavior(pCell, find_behavior_index(names[i]), parameters[i], e);
 	}
 	return;
 }

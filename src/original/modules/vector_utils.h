@@ -30,4 +30,6 @@ std::ostream& operator<<(std::ostream& os, const biofvm::point_t<T, 3>& v)
 
 void data_to_list(biofvm::real_t* data, std::size_t count, char*& buffer, char delim);
 
+biofvm::real_t norm(const biofvm::point_t<biofvm::real_t, 3>& vec);
+
 } // namespace physicell
