@@ -56,7 +56,7 @@ void evaluate_interactions(environment& e);
 
 // standard contact functions
 
-void standard_elastic_contract_function(cell& lhs, cell& rhs);
+void standard_elastic_contact_function(cell& lhs, cell& rhs);
 
 // standard phenotype update functions
 

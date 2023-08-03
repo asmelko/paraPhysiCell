@@ -107,11 +107,11 @@ void create_cell_types(builder& builder)
 
 	auto pCD = builder.find_cell_definition("cargo cell");
 	pCD->functions.update_phenotype = get_cargo_cell_rule(builder.get_parameters());
-	pCD->functions.contact_function = standard_elastic_contract_function;
+	pCD->functions.contact_function = standard_elastic_contact_function;
 
 	pCD = builder.find_cell_definition("worker cell");
 	pCD->functions.update_phenotype = get_worker_cell_rule(builder.get_parameters());
-	pCD->functions.contact_function = standard_elastic_contract_function;
+	pCD->functions.contact_function = standard_elastic_contact_function;
 }
 
 void setup_microenvironment(microenvironment_builder& m_builder)

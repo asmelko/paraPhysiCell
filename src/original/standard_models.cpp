@@ -643,7 +643,7 @@ void standard_volume_update_function(cell& cell)
 	return;
 }
 
-void standard_elastic_contract_function(cell& lhs, cell& rhs)
+void standard_elastic_contact_function(cell& lhs, cell& rhs)
 {
 	const real_t adhesion = sqrt(lhs.phenotype.mechanics.attachment_elastic_constant()
 								 * rhs.phenotype.mechanics.attachment_elastic_constant()
