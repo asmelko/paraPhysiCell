@@ -25,7 +25,6 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 		auto* pCell = &c;
 
 		double director_signal = get_single_signal(pCell, "director signal", c.e());
-		double cargo_signal = get_single_signal(pCell, "cargo signal", c.e());
 
 		set_single_behavior(pCell, "cell-cell adhesion elastic constant", elastic_coefficient, c.e());
 
@@ -36,7 +35,7 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 		{
 			// set receptor = 0 for cells we're detaching from
 			// and set their cycle rate to zero
-			for (int k = 0; k < pCell->state.attached_cells().size(); k++)
+			for (std::size_t k = 0; k < pCell->state.attached_cells().size(); k++)
 			{
 				cell* pTemp = c.container().get_at(pCell->state.attached_cells()[k]);
 
@@ -55,7 +54,7 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 		// if( pCell->state.neighbors.size() == 0 ) // pre 1.8.0
 		if (pCell->state.attached_cells().size() == 0)
 		{
-			for (int i = 0; i < pCell->state.neighbors().size(); i++)
+			for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
 			{
 				auto nearby = c.container().get_at(pCell->state.neighbors()[i]);
 
@@ -97,7 +96,8 @@ void create_cell_types(builder& builder)
 
 	// This parses the cell definitions in the XML config file and builds the map of cell definitions and summarizes the
 	// setup.
-	auto& cell_definitions = builder.get_cell_definitions();
+
+	// auto& cell_definitions = builder.get_cell_definitions();
 
 	/*
 	   Put any modifications to individual cell definitions here.
@@ -114,7 +114,7 @@ void create_cell_types(builder& builder)
 	pCD->functions.contact_function = standard_elastic_contact_function;
 }
 
-void setup_microenvironment(microenvironment_builder& m_builder)
+void setup_microenvironment(microenvironment_builder&)
 {
 	// set domain parameters
 
