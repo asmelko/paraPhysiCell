@@ -21,8 +21,8 @@ void simulator::initialize(environment& e)
 	mechanics_solver_.initialize(e);
 
 	simulation_step_ = 0;
-	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.time_step);
-	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.time_step);
+	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.diffusion_time_step);
+	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.diffusion_time_step);
 	recompute_secretion_and_uptake_ = false;
 }
 
@@ -130,10 +130,10 @@ void simulator::run(environment& e, PhysiCell_Settings& settings,
 	index_t full_output_index = 0;
 	index_t svg_output_index = 0;
 
-	while (e.current_time < settings.max_time + 0.1 * e.m.time_step)
+	while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
 	{
 		// save data if it's time.
-		if (std::abs(e.current_time - next_full_save_time) < 0.01 * e.m.time_step)
+		if (std::abs(e.current_time - next_full_save_time) < 0.01 * e.m.diffusion_time_step)
 		{
 			display_simulation_status(std::cout, e, settings);
 
@@ -150,7 +150,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings,
 		}
 
 		// save SVG plot if it's time
-		if (fabs(e.current_time - next_svg_save_time) < 0.01 * e.m.time_step)
+		if (fabs(e.current_time - next_svg_save_time) < 0.01 * e.m.diffusion_time_step)
 		{
 			if (settings.enable_SVG_saves == true)
 			{
@@ -165,7 +165,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings,
 
 		simulate_diffusion_and_mechanics(e);
 
-		e.current_time += e.m.time_step;
+		e.current_time += e.m.diffusion_time_step;
 	}
 
 	// save a final simulation snapshot
