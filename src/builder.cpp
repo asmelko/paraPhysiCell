@@ -15,7 +15,7 @@
 using namespace biofvm;
 using namespace physicell;
 
-builder::builder(int argc, char** argv)
+builder::builder(int argc, char** argv) : cell_defs_initialized_(false)
 {
 	if (argc == 2)
 		config_path_ = argv[1];
@@ -358,6 +358,9 @@ std::vector<cell_definition>& builder::get_cell_definitions()
 	// first, let's pre-build the map.
 	// prebuild_cell_definition_index_maps();
 
+	if (cell_defs_initialized_)
+		return e_->cell_definitions;
+
 	get_default_cell_definition();
 
 	pugi::xml_node node = get_config_root().child("cell_definitions");
@@ -373,6 +376,8 @@ std::vector<cell_definition>& builder::get_cell_definitions()
 
 		node = node.next_sibling("cell_definition");
 	}
+
+	cell_defs_initialized_ = true;
 
 	return e_->cell_definitions;
 }

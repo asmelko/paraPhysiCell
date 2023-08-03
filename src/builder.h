@@ -24,6 +24,7 @@ class builder
 	std::optional<biofvm::microenvironment> m_;
 	std::unique_ptr<environment> e_;
 
+	bool cell_defs_initialized_;
 	std::vector<std::string> cell_definition_names_;
 
 	void peek_cell_definitions();
