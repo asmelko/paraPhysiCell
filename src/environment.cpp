@@ -15,12 +15,21 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	  mechanics_time_step(0.1),
 	  phenotype_time_step(6),
 	  current_time(0),
-	  cell_definitions_count(cell_definitions_count)
+	  cell_definitions_count(cell_definitions_count),
+	  cell_definitions_data(*this)
 {
 	cells_in_mechanics_voxels = std::make_unique<std::vector<index_t>[]>(mechanics_mesh.voxel_count());
 }
 
 cell_container_base& environment::cells() { return cast_container<cell_container_base&>(); }
+
+cell_definition& environment::create_cell_definition()
+{
+	cell_definitions_data.add();
+	cell_definition new_cell_definition(*this, cell_definitions.size());
+	cell_definitions.emplace_back(std::move(new_cell_definition));
+	return cell_definitions.back();
+}
 
 cell_definition& environment::cell_defaults() { return cell_definitions[0]; }
 

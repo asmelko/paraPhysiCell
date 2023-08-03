@@ -37,12 +37,16 @@ struct environment
 	biofvm::real_t mechanics_time_step;
 	biofvm::real_t phenotype_time_step;
 
-	biofvm::real_t current_time;
+	double current_time;
 
 	std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
 
 	biofvm::index_t cell_definitions_count;
 	std::vector<cell_definition> cell_definitions;
+	cell_data cell_definitions_data;
+
+	cell_definition& create_cell_definition();
+
 	cell_definition& cell_defaults();
 
 	cell_definition* find_cell_definition(const std::string& name);

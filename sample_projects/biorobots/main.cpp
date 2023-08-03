@@ -18,11 +18,13 @@ int main(int argc, char* argv[])
 
 		auto e = builder.build_environment();
 
-		setup_tissue(e, builder.get_parameters(), builder.get_config_root());
+		setup_tissue(*e, builder.get_parameters(), builder.get_config_root());
 
 		simulator s;
 
-		s.run(e, builder.get_settings(), my_coloring_function);
+		s.initialize(*e);
+
+		s.run(*e, builder.get_settings(), my_coloring_function);
 	}
 	catch (std::exception& e)
 	{

@@ -805,7 +805,7 @@ void initialize_default_cell_definition(environment& e)
 	// If the standard models have not yet been created, do so now.
 	create_standard_cycle_and_death_models();
 
-	e.cell_definitions.emplace_back(e, 0);
+	e.create_cell_definition();
 
 	e.cell_defaults().type = 0;
 	e.cell_defaults().name = "breast epithelium";

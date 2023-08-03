@@ -27,12 +27,17 @@ builder::builder(int argc, char** argv)
 	auto& settings = get_settings();
 
 	// create directory settings.folder and copy config file there
-	std::filesystem::create_directory(settings.folder);
+	if (!std::filesystem::exists(settings.folder))
+		std::filesystem::create_directory(settings.folder);
+	std::filesystem::remove(settings.folder + "/PhysiCell_settings.xml");
 	std::filesystem::copy_file(config_path_, settings.folder + "/PhysiCell_settings.xml");
 }
 
-const pugi::xml_node& builder::get_config_root()
+pugi::xml_node& builder::get_config_root()
 {
+	if (config_root_)
+		return *config_root_;
+
 	std::cout << "Using config file " << config_path_ << " ... " << std::endl;
 
 	pugi::xml_document config_doc;
@@ -43,28 +48,36 @@ const pugi::xml_node& builder::get_config_root()
 		throw std::runtime_error("Error loading " + config_path_);
 	}
 
-	config_root_ = config_doc.child("PhysiCell_settings");
+	config_doc_ = std::move(config_doc);
 
-	return config_root_;
+	config_root_ = config_doc_->child("PhysiCell_settings");
+
+	return *config_root_;
 }
 
 PhysiCell_Settings& builder::get_settings()
 {
 	if (!settings_)
-		settings_->read_from_pugixml(config_root_);
+	{
+		settings_.emplace();
+		settings_->read_from_pugixml(get_config_root());
+	}
 	return *settings_;
 }
 
 User_Parameters& builder::get_parameters()
 {
 	if (!parameters_)
-		parameters_->read_from_pugixml(config_root_);
+	{
+		parameters_.emplace();
+		parameters_->read_from_pugixml(get_config_root());
+	}
 	return *parameters_;
 }
 
 microenvironment_builder& builder::get_microenvironment_builder()
 {
-	auto node = xml_find_node(config_root_, "domain");
+	auto node = xml_find_node(get_config_root(), "domain");
 
 	index_t xmin = xml_get_int_value(node, "x_min");
 	index_t xmax = xml_get_int_value(node, "x_max");
@@ -96,7 +109,7 @@ microenvironment_builder& builder::get_microenvironment_builder()
 		m_builder_.set_space_units(s.space_units);
 		m_builder_.set_time_units(s.time_units);
 
-		auto node = xml_find_node(config_root_, "overall");
+		auto node = xml_find_node(get_config_root(), "overall");
 
 		// check to see if dt is specified in overall options
 		// if so, set from XML
@@ -112,7 +125,7 @@ microenvironment_builder& builder::get_microenvironment_builder()
 	// First, look for the correct XML node.
 	// If it isn't there, return false.
 
-	node = xml_find_node(config_root_, "microenvironment_setup");
+	node = xml_find_node(get_config_root(), "microenvironment_setup");
 	if (!node)
 	{
 		std::cout << "Warning: microenvironment_setup not found in config file." << std::endl;
@@ -223,7 +236,7 @@ microenvironment_builder& builder::get_microenvironment_builder()
 	// std::cout << "dc? " << default_microenvironment_options.outer_Dirichlet_conditions << std::endl;
 
 	// now, get the options
-	node = xml_find_node(config_root_, "microenvironment_setup");
+	node = xml_find_node(get_config_root(), "microenvironment_setup");
 	node = xml_find_node(node, "options");
 
 	// calculate gradients?
@@ -240,7 +253,7 @@ void builder::load_signals() { setup_signal_behavior_dictionaries(get_environmen
 
 void builder::load_rules()
 {
-	setup_cell_rules(get_settings(), config_root_, get_environment());
+	setup_cell_rules(get_settings(), get_config_root(), get_environment());
 	get_environment().rules_enabled = settings_->rules_enabled;
 };
 
@@ -250,7 +263,7 @@ void builder::peek_cell_definitions()
 		return;
 
 	// find the start of cell definitions
-	pugi::xml_node node = config_root_.child("cell_definitions");
+	pugi::xml_node node = get_config_root().child("cell_definitions");
 
 	// find the first cell definition
 	node = node.child("cell_definition");
@@ -290,11 +303,11 @@ environment& builder::get_environment()
 		return *e_;
 
 	peek_cell_definitions();
-	e_.emplace(get_microenvironment(), cell_definition_names_.size());
+	e_ = std::make_unique<environment>(get_microenvironment(), cell_definition_names_.size());
 
 	pugi::xml_node node_options;
 
-	node_options = xml_find_node(config_root_, "options");
+	node_options = xml_find_node(get_config_root(), "options");
 	if (node_options)
 	{
 		bool settings = xml_get_bool_value(node_options, "virtual_wall_at_domain_edge");
@@ -305,7 +318,7 @@ environment& builder::get_environment()
 		}
 	}
 
-	auto overall_node = xml_find_node(config_root_, "overall");
+	auto overall_node = xml_find_node(get_config_root(), "overall");
 
 	// check to see if dt is specified in overall options
 	// if so, set from XML
@@ -324,6 +337,8 @@ environment& builder::get_environment()
 
 	e_->rules_enabled = get_settings().rules_enabled;
 	e_->automated_spring_adhesion = !get_settings().disable_automated_spring_adhesions;
+
+	e_->m.agents = std::make_unique<cell_container>(*e_);
 
 	return *e_;
 }
@@ -345,7 +360,7 @@ std::vector<cell_definition>& builder::get_cell_definitions()
 
 	get_default_cell_definition();
 
-	pugi::xml_node node = config_root_.child("cell_definitions");
+	pugi::xml_node node = get_config_root().child("cell_definitions");
 
 	node = node.child("cell_definition");
 
@@ -364,10 +379,10 @@ std::vector<cell_definition>& builder::get_cell_definitions()
 
 biofvm::index_t builder::find_cell_definition_index(const std::string& name)
 {
-	for (auto& cd : get_cell_definitions())
+	for (std::size_t i = 0; i < cell_definition_names_.size(); i++)
 	{
-		if (cd.name == name)
-			return cd.index;
+		if (cell_definition_names_[i] == name)
+			return i;
 	}
 
 	return -1;
@@ -395,8 +410,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	if (std::string(cd_node.attribute("name").value()) != "default"
 		&& std::string(cd_node.attribute("ID").value()) != "0")
 	{
-		e_->cell_definitions.emplace_back(*e_, e_->cell_definitions.size());
-		pCD = &e_->cell_definitions.back();
+		pCD = &e_->create_cell_definition();
 	}
 	else
 	{
@@ -433,15 +447,18 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 	// if it's not the default and no parent stated, inherit from default
 	bool used_default = false;
-	if (pParent == nullptr)
+	if (pCD != &e_->cell_definitions.front() && pParent == nullptr)
 	{
 		used_default = true;
 		pParent = &get_environment().cell_definitions.front();
 	}
 
 	// if we found something to inherit from, then do it!
-	std::cout << "\tCopying from type " << pParent->name << " ... " << std::endl;
-	pCD->inherit_from(*pParent);
+	if (pParent != nullptr)
+	{
+		std::cout << "\tCopying from type " << pParent->name << " ... " << std::endl;
+		pCD->inherit_from(*pParent);
+	}
 
 	/* bugfix on April 24, 2022 */
 	// If we copied from cell_defaults and also wrote
@@ -450,7 +467,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	// So, let's overwrite with zeros.
 	if (used_default)
 	{
-		pugi::xml_node node_options = xml_find_node(config_root_, "options");
+		pugi::xml_node node_options = xml_find_node(get_config_root(), "options");
 		bool disable_bugfix = false;
 		if (node_options)
 		{
@@ -1613,7 +1630,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	}
 }
 
-environment builder::build_environment()
+std::unique_ptr<environment> builder::build_environment()
 {
 	get_cell_definitions();
 
@@ -1625,5 +1642,5 @@ environment builder::build_environment()
 
 	e_->display_info();
 
-	return std::move(e_.value());
+	return std::move(e_);
 };

@@ -120,7 +120,7 @@ public:
 	Parameters<biofvm::real_t> doubles;
 	Parameters<std::string> strings;
 
-	void read_from_pugixml(pugi::xml_node parent_node);
+	void read_from_pugixml(pugi::xml_node& parent_node);
 };
 
 } // namespace physicell

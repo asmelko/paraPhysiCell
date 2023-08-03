@@ -14,14 +14,15 @@ namespace physicell {
 class builder
 {
 	std::string config_path_;
-	pugi::xml_node config_root_;
+	std::optional<pugi::xml_document> config_doc_;
+	std::optional<pugi::xml_node> config_root_;
 
 	biofvm::microenvironment_builder m_builder_;
 
 	std::optional<PhysiCell_Settings> settings_;
 	std::optional<User_Parameters> parameters_;
 	std::optional<biofvm::microenvironment> m_;
-	std::optional<environment> e_;
+	std::unique_ptr<environment> e_;
 
 	std::vector<std::string> cell_definition_names_;
 
@@ -40,7 +41,7 @@ class builder
 public:
 	builder(int argc, char** argv);
 
-	const pugi::xml_node& get_config_root();
+	pugi::xml_node& get_config_root();
 
 	// for accessing the settings
 	PhysiCell_Settings& get_settings();
@@ -60,7 +61,7 @@ public:
 
 	environment& get_environment();
 
-	environment build_environment();
+	std::unique_ptr<environment> build_environment();
 };
 
 } // namespace physicell

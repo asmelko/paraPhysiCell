@@ -275,7 +275,7 @@ bool load_cells_from_pugixml(const pugi::xml_node& root, environment& e)
 	{
 		std::cout << "Loading cells from CSV file " << input_filename << " ... " << std::endl;
 		load_cells_csv(input_filename, e);
-		system("sleep 1");
+		// system("sleep 1");
 		return true;
 	}
 	if (filetype == "matlab" || filetype == "mat" || filetype == "MAT")

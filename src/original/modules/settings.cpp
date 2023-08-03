@@ -335,15 +335,14 @@ void Parameters<T>::add_parameter( std::string my_name , T my_value )
 template <class T>
 void Parameters<T>::add_parameter(std::string my_name, T my_value, std::string my_units)
 {
-	Parameter<T>* pNew;
-	pNew = new Parameter<T>;
-	pNew->name = my_name;
-	pNew->value = my_value;
-	pNew->units = my_units;
+	Parameter<T> new_param;
+	new_param.name = my_name;
+	new_param.value = my_value;
+	new_param.units = my_units;
 
 	index_t n = parameters.size();
 
-	parameters.push_back(*pNew);
+	parameters.push_back(std::move(new_param));
 
 	name_to_index_map[my_name] = n;
 	return;
@@ -386,7 +385,7 @@ std::ostream& operator<<(std::ostream& os, const User_Parameters up)
 	return os;
 }
 
-void User_Parameters::read_from_pugixml(pugi::xml_node parent_node)
+void User_Parameters::read_from_pugixml(pugi::xml_node& parent_node)
 {
 	pugi::xml_node node = xml_find_node(parent_node, "user_parameters");
 
