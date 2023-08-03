@@ -2,17 +2,12 @@
 
 #include <cmath>
 
-#include "microenvironment_builder.h"
-#include "src/cell_container.h"
-#include "src/cell_data.h"
-#include "src/modules/builder.h"
 #include "src/original/modules/geometry.h"
 #include "src/original/modules/pathology.h"
 #include "src/original/modules/settings.h"
 #include "src/original/signal_behavior.h"
 #include "src/original/standard_models.h"
 #include "src/random.h"
-
 
 std::function<void(cell&)> get_cargo_cell_rule(User_Parameters& parameters)
 {

@@ -1,7 +1,6 @@
 #include <exception>
 
 #include "custom.h"
-#include "src/modules/builder.h"
 #include "src/simulator.h"
 
 using namespace biofvm;

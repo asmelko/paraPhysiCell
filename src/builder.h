@@ -6,9 +6,8 @@
 
 #include <BioFVM/microenvironment_builder.h>
 
-#include "../environment.h"
-#include "../original/modules/settings.h"
-#include "microenvironment.h"
+#include "environment.h"
+#include "original/modules/settings.h"
 
 namespace physicell {
 

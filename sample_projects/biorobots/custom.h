@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/modules/builder.h"
+#include "src/builder.h"
 
 using namespace biofvm;
 using namespace physicell;

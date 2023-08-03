@@ -4,16 +4,13 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "../original/constants.h"
-#include "../original/modules/pugixml_helper.h"
-#include "../original/modules/vector_utils.h"
-#include "../original/rules.h"
-#include "../original/signal_behavior.h"
-#include "../original/standard_models.h"
-#include "../random.h"
-#include "microenvironment.h"
-#include "microenvironment_builder.h"
-#include "types.h"
+#include "original/constants.h"
+#include "original/modules/pugixml_helper.h"
+#include "original/modules/vector_utils.h"
+#include "original/rules.h"
+#include "original/signal_behavior.h"
+#include "original/standard_models.h"
+#include "random.h"
 
 using namespace biofvm;
 using namespace physicell;
