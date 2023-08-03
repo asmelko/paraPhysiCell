@@ -140,7 +140,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings,
 			if (settings.enable_full_saves == true)
 			{
 				std::stringstream ss;
-				ss << settings.folder << std::setfill('0') << std::setw(8) << full_output_index;
+				ss << settings.folder << "/output" << std::setfill('0') << std::setw(8) << full_output_index;
 
 				save_PhysiCell_to_MultiCellDS_v2(ss.str(), e);
 			}
@@ -155,7 +155,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings,
 			if (settings.enable_SVG_saves == true)
 			{
 				std::stringstream ss;
-				ss << settings.folder << std::setfill('0') << std::setw(8) << svg_output_index;
+				ss << settings.folder << "/snapshot" << std::setfill('0') << std::setw(8) << svg_output_index << ".svg";
 				SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function);
 
 				svg_output_index++;
