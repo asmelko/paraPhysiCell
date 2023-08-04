@@ -62,7 +62,7 @@ void cell::convert(cell_definition& def)
 	parameters = def.parameters;
 	functions = def.functions;
 
-	def.phenotype.copy(phenotype);
+	def.phenotype.copy_to(phenotype);
 
 	cell_definition_index() = def.index;
 
@@ -78,7 +78,7 @@ void cell::copy_from(cell& source)
 	parameters = source.parameters;
 	functions = source.functions;
 
-	phenotype.copy(source.phenotype);
+	source.phenotype.copy_to(phenotype);
 
 	cell_definition_index() = source.cell_definition_index();
 

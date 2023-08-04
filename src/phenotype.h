@@ -23,6 +23,6 @@ struct phenotype_t
 
 	phenotype_t(cell_data& data, biofvm::index_t index);
 
-	void copy(phenotype_t& dest);
+	void copy_to(phenotype_t& dest);
 };
 } // namespace physicell

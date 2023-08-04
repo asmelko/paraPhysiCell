@@ -25,7 +25,7 @@ void cell_definition::inherit_from(cell_definition& def)
 	custom_data = def.custom_data;
 	functions = def.functions;
 
-	def.phenotype.copy(phenotype);
+	def.phenotype.copy_to(phenotype);
 
 	parameters.pReference_live_phenotype = &phenotype;
 }

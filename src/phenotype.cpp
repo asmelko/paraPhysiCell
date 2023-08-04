@@ -15,7 +15,7 @@ phenotype_t::phenotype_t(cell_data& data, index_t index)
 	  cell_transformations(data, index)
 {}
 
-void phenotype_t::copy(phenotype_t& dest)
+void phenotype_t::copy_to(phenotype_t& dest)
 {
 	cycle.copy(dest.cycle);
 	death.copy(dest.death);
