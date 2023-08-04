@@ -19,7 +19,7 @@ constexpr void update_membrane_velocity(biofvm::real_t position, biofvm::real_t 
 	distance = std::max<biofvm::real_t>(distance, 0.00001);
 
 	biofvm::real_t repulsion = 1 - distance / radius;
-	repulsion = repulsion < 0 ? repulsion : 0;
+	repulsion = repulsion < 0 ? 0 : repulsion;
 
 	repulsion *= repulsion * repulsion_strength * sign;
 
