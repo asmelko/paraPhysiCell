@@ -18,4 +18,10 @@ real_t physicell::random::uniform(const real_t min, const real_t max)
 	return distribution(generator);
 }
 
+real_t physicell::random::normal(const real_t mean, const real_t std)
+{
+	std::normal_distribution<real_t> distribution(mean, std);
+	return distribution(generator);
+}
+
 void physicell::random::set_seed(unsigned int seed) { generator.seed(seed); }

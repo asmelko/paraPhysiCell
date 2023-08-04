@@ -95,8 +95,7 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 	}
 }
 
-void simulator::run(environment& e, PhysiCell_Settings& settings,
-					std::function<std::vector<std::string>(cell*)> cell_coloring_function)
+void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function)
 {
 	// set MultiCellDS save options
 

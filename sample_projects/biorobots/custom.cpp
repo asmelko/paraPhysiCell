@@ -24,7 +24,7 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 			elastic_coefficient = parameters.doubles("elastic_coefficient")](cell& c) {
 		auto* pCell = &c;
 
-		double director_signal = get_single_signal(pCell, "director signal", c.e());
+		real_t director_signal = get_single_signal(pCell, "director signal", c.e());
 
 		set_single_behavior(pCell, "cell-cell adhesion elastic constant", elastic_coefficient, c.e());
 
@@ -62,7 +62,7 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 				// set chemotaxis weights
 				// set migration bias
 
-				double receptor = get_single_signal(nearby, "custom:receptor", c.e());
+				real_t receptor = get_single_signal(nearby, "custom:receptor", c.e());
 				if (receptor > 0.5)
 				{
 					cell::attach_cells(*pCell, *nearby);
@@ -128,15 +128,15 @@ void create_cargo_cluster_6(const point_t<real_t, 3>& center, environment& e)
 
 	auto pCargoDef = e.find_cell_definition("cargo cell");
 
-	static double spacing = 0.95 * pCargoDef->phenotype.geometry.radius() * 2.0;
-	static double d_Theta = 1.047197551196598; // 2*pi / 6.0
+	static real_t spacing = 0.95 * pCargoDef->phenotype.geometry.radius() * 2.0;
+	static real_t d_Theta = 1.047197551196598; // 2*pi / 6.0
 
-	double theta = 6.283185307179586 * random::instance().uniform();
+	real_t theta = 6.283185307179586 * random::instance().uniform();
 
 	point_t<real_t, 3> position { 0, 0, 0 };
 
 	cell* pC;
-	for (int i = 0; i < 6; i++)
+	for (index_t i = 0; i < 6; i++)
 	{
 		pC = e.cast_container<cell_container>().create_cell(*pCargoDef);
 
@@ -166,13 +166,13 @@ void create_cargo_cluster_7(const point_t<real_t, 3>& center, environment& e)
 
 void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_node& config_root)
 {
-	double Xmin = e.m.mesh.bounding_box_mins[0];
-	double Ymin = e.m.mesh.bounding_box_mins[1];
-	double Zmin = e.m.mesh.bounding_box_mins[2];
+	real_t Xmin = e.m.mesh.bounding_box_mins[0];
+	real_t Ymin = e.m.mesh.bounding_box_mins[1];
+	real_t Zmin = e.m.mesh.bounding_box_mins[2];
 
-	double Xmax = e.m.mesh.bounding_box_maxs[0];
-	double Ymax = e.m.mesh.bounding_box_maxs[1];
-	double Zmax = e.m.mesh.bounding_box_maxs[2];
+	real_t Xmax = e.m.mesh.bounding_box_maxs[0];
+	real_t Ymax = e.m.mesh.bounding_box_maxs[1];
+	real_t Zmax = e.m.mesh.bounding_box_maxs[2];
 
 	if (e.m.mesh.dims == 2)
 	{
@@ -180,19 +180,19 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		Zmax = 0.0;
 	}
 
-	double Xrange = Xmax - Xmin;
-	double Yrange = Ymax - Ymin;
-	double Zrange = Zmax - Zmin;
+	real_t Xrange = Xmax - Xmin;
+	real_t Yrange = Ymax - Ymin;
+	real_t Zrange = Zmax - Zmin;
 
 	// create some of each type of cell
 
 	cell* pC;
 
-	for (int k = 0; k < e.cell_definitions_count; k++)
+	for (index_t k = 0; k < e.cell_definitions_count; k++)
 	{
 		auto pCD = e.cell_definitions[k];
 		std::cout << "Placing cells of type " << pCD.name << " ... " << std::endl;
-		for (int n = 0; n < parameters.ints("number_of_cells"); n++)
+		for (index_t n = 0; n < parameters.ints("number_of_cells"); n++)
 		{
 			point_t<real_t, 3> position = { 0, 0, 0 };
 			position[0] = Xmin + random::instance().uniform() * Xrange;
@@ -210,9 +210,9 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 	/* custom loading here */
 
-	int number_of_directors = parameters.ints("number_of_directors");			// 15;
-	int number_of_cargo_clusters = parameters.ints("number_of_cargo_clusters"); // 100;
-	int number_of_workers = parameters.ints("number_of_workers");				// 50;
+	index_t number_of_directors = parameters.ints("number_of_directors");			// 15;
+	index_t number_of_cargo_clusters = parameters.ints("number_of_cargo_clusters"); // 100;
+	index_t number_of_workers = parameters.ints("number_of_workers");				// 50;
 
 	auto pCargoDef = e.find_cell_definition("cargo cell");
 	auto pDirectorDef = e.find_cell_definition("director cell");
@@ -225,11 +225,11 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 	point_t<real_t, 3> position { 0, 0, 0 };
 
-	double relative_margin = 0.2;
-	double relative_outer_margin = 0.02;
+	real_t relative_margin = 0.2;
+	real_t relative_outer_margin = 0.02;
 
 	std::cout << "\tPlacing " << number_of_directors << " director cells ... " << std::endl;
-	for (int i = 0; i < number_of_directors; i++)
+	for (index_t i = 0; i < number_of_directors; i++)
 	{
 		// pick a random location
 		position[0] = Xmin + Xrange * (relative_margin + (1.0 - 2 * relative_margin) * random::instance().uniform());
@@ -246,7 +246,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	// place cargo clusters on the fringes
 
 	std::cout << "\tPlacing cargo cells ... " << std::endl;
-	for (int i = 0; i < number_of_cargo_clusters; i++)
+	for (index_t i = 0; i < number_of_cargo_clusters; i++)
 	{
 		// pick a random location
 
@@ -270,7 +270,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	// place "workersworkers"
 
 	std::cout << "\tPlacing worker cells ... " << std::endl;
-	for (int i = 0; i < number_of_workers; i++)
+	for (index_t i = 0; i < number_of_workers; i++)
 	{
 		// pick a random location
 
@@ -288,7 +288,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	std::cout << "done!" << std::endl;
 }
 
-std::function<std::vector<std::string>(cell*)> get_robot_coloring_function(User_Parameters& parameters)
+cell_coloring_funct_t get_robot_coloring_function(User_Parameters& parameters)
 {
 	return [worker_color = parameters.strings("worker_color"), cargo_color = parameters.strings("cargo_color"),
 			director_color = parameters.strings("director_color")](cell* pCell) {

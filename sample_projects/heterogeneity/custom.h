@@ -16,4 +16,4 @@ void setup_microenvironment(microenvironment_builder& m_builder);
 
 // custom pathology coloring function
 
-cell_coloring_funct_t get_robot_coloring_function(User_Parameters& parameters);
+cell_coloring_funct_t get_heterogeneity_coloring_function(User_Parameters& parameters);

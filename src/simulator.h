@@ -3,6 +3,7 @@
 #include <BioFVM/solver.h>
 
 #include "environment.h"
+#include "original/modules/pathology.h"
 #include "original/modules/settings.h"
 #include "solver/solver.h"
 
@@ -26,8 +27,7 @@ public:
 	// Called once each diffusion time ticks
 	void simulate_diffusion_and_mechanics(environment& e);
 
-	void run(environment& e, PhysiCell_Settings& settings,
-			 std::function<std::vector<std::string>(cell*)> cell_coloring_function);
+	void run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function);
 };
 
 } // namespace physicell

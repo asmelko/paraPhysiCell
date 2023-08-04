@@ -39,7 +39,7 @@ std::string formatted_minutes_to_DDHHMM(double minutes)
 }
 
 void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
-			  std::function<std::vector<std::string>(cell*)> cell_coloring_function,
+			  cell_coloring_funct_t cell_coloring_function,
 			  std::function<std::vector<std::string>(double, double, double)> substrate_coloring_function)
 {
 	double X_lower = e.m.mesh.bounding_box_mins[0];
@@ -435,8 +435,7 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 	return;
 }
 
-void create_plot_legend(std::string filename, std::function<std::vector<std::string>(cell*)> cell_coloring_function,
-						environment& e)
+void create_plot_legend(std::string filename, cell_coloring_funct_t cell_coloring_function, environment& e)
 {
 	int number_of_cell_types = e.cell_definitions_count;
 
