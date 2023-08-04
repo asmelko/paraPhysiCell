@@ -28,6 +28,8 @@ struct cell_state_t : public phenotype_data_storage
 
 	biofvm::real_t& damage();
 	biofvm::real_t& total_attack_time();
+
+	void set_defaults();
 };
 
 class cell : public biofvm::agent

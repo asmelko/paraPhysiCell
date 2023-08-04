@@ -28,6 +28,20 @@ real_t& cell_state_t::damage() { return data_.states.damage[index_]; }
 
 real_t& cell_state_t::total_attack_time() { return data_.states.total_attack_time[index_]; }
 
+void cell_state_t::set_defaults()
+{
+	neighbors().clear();
+	spring_attachments().clear();
+	attached_cells().clear();
+
+	std::fill(orientation(), orientation() + data_.e.mechanics_mesh.dims, 0);
+	simple_pressure() = 0;
+
+	number_of_nuclei() = 1;
+	damage() = 0;
+	total_attack_time() = 0;
+}
+
 cell::cell(agent_id_t id, cell_data& data, index_t index)
 	: agent(id, data.agent_data, index), data_(data), phenotype(data_, index), state(data_, index)
 {
@@ -38,6 +52,8 @@ cell::cell(agent_id_t id, cell_data& data, index_t index)
 			  data_.velocities.data() + (index_ + 1) * data_.e.mechanics_mesh.dims, 0.0);
 
 	flag() = cell_state_flag::none;
+
+	state.set_defaults();
 }
 
 real_t* cell::velocity() { return data_.velocities.data() + index_ * data_.e.m.mesh.dims; }

@@ -229,12 +229,12 @@ void cell_state_data::add(index_t size, index_t dims)
 	springs.resize(size);
 	attached_cells.resize(size);
 
-	orientation.resize(size * dims, 0);
-	simple_pressure.resize(size, 0);
-	number_of_nuclei.resize(size, 0);
+	orientation.resize(size * dims);
+	simple_pressure.resize(size);
+	number_of_nuclei.resize(size);
 
-	damage.resize(size, 0);
-	total_attack_time.resize(size, 0);
+	damage.resize(size);
+	total_attack_time.resize(size);
 }
 
 void cell_state_data::remove(index_t index, index_t size, index_t dims)
@@ -249,8 +249,6 @@ void cell_state_data::remove(index_t index, index_t size, index_t dims)
 
 	move_scalar(damage.data() + index, damage.data() + size);
 	move_scalar(total_attack_time.data() + index, total_attack_time.data() + size);
-
-	add(size - 1, dims); // cell state needs to be resized so the addition of new cell will properly assign defaults
 }
 
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
