@@ -353,7 +353,7 @@ cell_definition& builder::get_default_cell_definition()
 	return e.cell_defaults();
 }
 
-std::vector<cell_definition>& builder::get_cell_definitions()
+std::vector<std::unique_ptr<cell_definition>>& builder::get_cell_definitions()
 {
 	// first, let's pre-build the map.
 	// prebuild_cell_definition_index_maps();
@@ -395,13 +395,9 @@ biofvm::index_t builder::find_cell_definition_index(const std::string& name)
 
 cell_definition* builder::find_cell_definition(const std::string& name)
 {
-	for (auto& cd : get_cell_definitions())
-	{
-		if (cd.name == name)
-			return &cd;
-	}
+	get_cell_definitions();
 
-	return nullptr;
+	return get_environment().find_cell_definition(name);
 }
 
 extern Cycle_Model Ki67_advanced, Ki67_basic, live, apoptosis, necrosis, cycling_quiescent, flow_cytometry_cycle_model,
@@ -419,7 +415,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	}
 	else
 	{
-		pCD = &e_->cell_definitions.front();
+		pCD = e_->cell_definitions.front().get();
 	}
 
 	// set the name
@@ -441,21 +437,21 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 	{
 		std::string parent_name = cd_node.attribute("parent_type").value();
 		auto it = std::find_if(get_environment().cell_definitions.begin(), get_environment().cell_definitions.end(),
-							   [&](const cell_definition& cd) { return cd.name == parent_name; });
+							   [&](const auto& cd) { return cd->name == parent_name; });
 
 		if (it == get_environment().cell_definitions.end())
 		{
 			throw std::runtime_error("Error: unknown parent type " + parent_name + " in cell definition " + pCD->name);
 		}
-		pParent = &(*it);
+		pParent = it->get();
 	}
 
 	// if it's not the default and no parent stated, inherit from default
 	bool used_default = false;
-	if (pCD != &e_->cell_definitions.front() && pParent == nullptr)
+	if (pCD != e_->cell_definitions.front().get() && pParent == nullptr)
 	{
 		used_default = true;
-		pParent = &get_environment().cell_definitions.front();
+		pParent = get_environment().cell_definitions.front().get();
 	}
 
 	// if we found something to inherit from, then do it!

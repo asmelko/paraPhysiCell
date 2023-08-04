@@ -890,7 +890,7 @@ void intialize_hypothesis_rulesets(environment& e)
 
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		add_hypothesis_ruleset(pCD, e);
 	}
 
@@ -905,7 +905,7 @@ void display_hypothesis_rulesets(std::ostream& os, environment& e)
 {
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		hypothesis_rulesets[&e.cell_definitions[n]].display(os);
+		hypothesis_rulesets[e.cell_definitions[n].get()].display(os);
 	}
 
 	return;
@@ -915,7 +915,7 @@ void detailed_display_hypothesis_rulesets(std::ostream& os, environment& e)
 {
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		hypothesis_rulesets[&e.cell_definitions[n]].detailed_display(os);
+		hypothesis_rulesets[e.cell_definitions[n].get()].detailed_display(os);
 	}
 
 	return;
@@ -2069,7 +2069,7 @@ void stream_annotated_English_rules(std::ostream& os, environment& e)
 	os << "Cell Hypothesis Rules" << std::endl << std::endl;
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 		os << "In " << pHRS->cell_type << " cells:" << std::endl;
 
@@ -2088,7 +2088,7 @@ void stream_annotated_English_rules_HTML(std::ostream& os, environment& e)
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		os << "<p>";
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 		os << "In " << pHRS->cell_type << " cells:" << std::endl;
 		os << "<ul>" << std::endl;
@@ -2115,7 +2115,7 @@ void stream_annotated_detailed_English_rules(std::ostream& os, environment& e)
 	os << "Cell Hypothesis Rules (detailed)" << std::endl << std::endl;
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 		os << "In " << pHRS->cell_type << " cells:" << std::endl;
 		for (std::size_t k = 0; k < pHRS->rules.size(); k++)
@@ -2133,7 +2133,7 @@ void stream_annotated_detailed_English_rules_HTML(std::ostream& os, environment&
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
 		os << "<p>";
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 		os << "In " << pHRS->cell_type << " cells:" << std::endl;
 		os << "<ul>" << std::endl;
@@ -2186,7 +2186,7 @@ void export_rules_csv_v0(std::string filename, environment& e)
 
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 
 		std::string cell_type = pHRS->cell_type;
@@ -2252,7 +2252,7 @@ void export_rules_csv_v1(std::string filename, environment& e)
 
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 
 		std::string cell_type = pHRS->cell_type;
@@ -2314,7 +2314,7 @@ void export_rules_csv_v2(std::string filename, environment& e)
 
 	for (index_t n = 0; n < e.cell_definitions_count; n++)
 	{
-		cell_definition* pCD = &e.cell_definitions[n];
+		cell_definition* pCD = e.cell_definitions[n].get();
 		Hypothesis_Ruleset* pHRS = find_ruleset(pCD);
 
 		std::string cell_type = pHRS->cell_type;

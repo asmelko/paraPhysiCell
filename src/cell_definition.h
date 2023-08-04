@@ -12,12 +12,8 @@ struct environment;
 
 struct cell_definition
 {
-	friend environment;
-
 private:
 	cell_data& data_;
-
-	cell_definition(environment& e, biofvm::index_t index);
 
 public:
 	biofvm::index_t index;
@@ -34,6 +30,10 @@ public:
 	cell_functions functions;
 	phenotype_t phenotype;
 
+	cell_definition(environment& e, biofvm::index_t index);
+
+	// TODO: fix so it does not have to be always unique ptr
+	cell_definition(cell_definition&&) = delete;
 
 	void inherit_from(cell_definition& def);
 };

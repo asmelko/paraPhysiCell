@@ -463,7 +463,7 @@ void create_plot_legend(std::string filename, cell_coloring_funct_t cell_colorin
 	for (int k = 0; k < number_of_cell_types; k++)
 	{
 		// switch to the cell type
-		cell* C = e.cast_container<cell_container>().create_cell(e.cell_definitions[k]);
+		cell* C = e.cast_container<cell_container>().create_cell(*e.cell_definitions[k]);
 
 		// get the colors using the current coloring function
 		std::vector<std::string> colors = cell_coloring_function(C);
@@ -478,7 +478,7 @@ void create_plot_legend(std::string filename, cell_coloring_funct_t cell_colorin
 		cursor_x += temp_cell_radius + 2 * padding;
 		cursor_y += 0.3 * font_size;
 
-		Write_SVG_text(os, e.cell_definitions[k].name.c_str(), cursor_x, cursor_y, font_size,
+		Write_SVG_text(os, e.cell_definitions[k]->name.c_str(), cursor_x, cursor_y, font_size,
 					   PhysiCell_SVG_options.font_color.c_str(), PhysiCell_SVG_options.font.c_str());
 
 		// move the cursor down to the next row

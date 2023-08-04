@@ -26,27 +26,26 @@ cell_container_base& environment::cells() { return cast_container<cell_container
 cell_definition& environment::create_cell_definition()
 {
 	cell_definitions_data.add();
-	cell_definition new_cell_definition(*this, cell_definitions.size());
-	cell_definitions.emplace_back(std::move(new_cell_definition));
-	return cell_definitions.back();
+	cell_definitions.emplace_back(std::make_unique<cell_definition>(*this, cell_definitions.size()));
+	return *cell_definitions.back();
 }
 
-cell_definition& environment::cell_defaults() { return cell_definitions[0]; }
+cell_definition& environment::cell_defaults() { return *cell_definitions[0]; }
 
 cell_definition* environment::find_cell_definition(const std::string& name)
 {
 	auto it = std::find_if(cell_definitions.begin(), cell_definitions.end(),
-						   [&name](const cell_definition& cd) { return cd.name == name; });
+						   [&name](const std::unique_ptr<cell_definition>& cd) { return cd->name == name; });
 
-	return it == cell_definitions.end() ? nullptr : &(*it);
+	return it == cell_definitions.end() ? nullptr : it->get();
 }
 
 cell_definition* environment::find_cell_definition(index_t type)
 {
 	auto it = std::find_if(cell_definitions.begin(), cell_definitions.end(),
-						   [&type](const cell_definition& cd) { return cd.type == type; });
+						   [&type](const std::unique_ptr<cell_definition>& cd) { return cd->type == type; });
 
-	return it == cell_definitions.end() ? nullptr : &(*it);
+	return it == cell_definitions.end() ? nullptr : it->get();
 }
 
 void environment::display_info()
@@ -59,7 +58,7 @@ void environment::display_cell_definitions_info()
 {
 	for (std::size_t n = 0; n < cell_definitions.size(); n++)
 	{
-		cell_definition* pCD = &cell_definitions[n];
+		cell_definition* pCD = cell_definitions[n].get();
 		std::cout << n << " :: type:" << pCD->type << " name: " << pCD->name << std::endl;
 
 		// summarize cycle model

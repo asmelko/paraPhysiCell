@@ -15,6 +15,9 @@ struct environment
 	environment(biofvm::microenvironment& m, biofvm::index_t cell_definitions_count,
 				biofvm::point_t<biofvm::index_t, 3> mechanics_voxel_shape = default_mechanics_voxel_shape);
 
+	// TODO: fix so it does not have to be always unique ptr
+	environment(environment&&) = delete;
+
 	biofvm::microenvironment& m;
 
 	cell_container_base& cells();
@@ -42,7 +45,7 @@ struct environment
 	std::unique_ptr<std::vector<biofvm::index_t>[]> cells_in_mechanics_voxels;
 
 	biofvm::index_t cell_definitions_count;
-	std::vector<cell_definition> cell_definitions;
+	std::vector<std::unique_ptr<cell_definition>> cell_definitions;
 	cell_data cell_definitions_data;
 
 	cell_definition& create_cell_definition();

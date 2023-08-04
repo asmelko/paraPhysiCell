@@ -96,7 +96,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "contact with " + pCD->name;
 		signal_to_int[temp] = map_index;
 		// synonym
@@ -188,7 +188,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 		for( index_t i=0; i < n ; i++ )
 		{
 			map_index++;
-			cell_definition* pCD = &e.cell_definitions[i];
+			cell_definition* pCD = e.cell_definitions[i].get();
 			std::string temp =  "immunogenicity to " + pCD->name;
 			signal_to_int[temp] = map_index;
 			int_to_signal[map_index] = temp;
@@ -312,7 +312,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "adhesive affinity to " + pCD->name;
 		behavior_to_int[temp] = map_index;
 		int_to_behavior[map_index] = temp;
@@ -361,7 +361,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "phagocytose " + pCD->name;
 		behavior_to_int[temp] = map_index;
 		int_to_behavior[map_index] = temp;
@@ -379,7 +379,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "attack " + pCD->name;
 		behavior_to_int[temp] = map_index;
 		int_to_behavior[map_index] = temp;
@@ -392,7 +392,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "fuse to " + pCD->name;
 		behavior_to_int[temp] = map_index;
 		int_to_behavior[map_index] = temp;
@@ -405,7 +405,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string temp = "transform to " + pCD->name;
 		behavior_to_int[temp] = map_index;
 		int_to_behavior[map_index] = temp;
@@ -445,7 +445,7 @@ void setup_signal_behavior_dictionaries(environment& e)
 	for (index_t i = 0; i < n; i++)
 	{
 		map_index++;
-		cell_definition* pCD = &e.cell_definitions[i];
+		cell_definition* pCD = e.cell_definitions[i].get();
 		std::string map_name = "immunogenicity to " + pCD->name;
 		behavior_to_int[map_name] = map_index;
 		int_to_behavior[map_index] = map_name;
@@ -648,7 +648,7 @@ std::vector<real_t> get_signals(cell* pCell, environment& e)
 	// increment signals
 	index_t dead_cells = 0;
 	index_t live_cells = 0;
-	static index_t contact_ind = find_signal_index("contact with " + e.cell_definitions[0].name);
+	static index_t contact_ind = find_signal_index("contact with " + e.cell_definitions[0]->name);
 	for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
 	{
 		cell* pC = const_cast<cell*>(e.cast_container<cell_container>().agents()[pCell->state.neighbors()[i]].get());
@@ -727,7 +727,7 @@ std::vector<real_t> get_signals(cell* pCell, environment& e)
 	/*
 		// vector of immunogenicity signals
 		static index_t start_immunogenicity_ind = find_signal_index( "immunogenicity to " +
-	   e.cell_definitions[0].name ); std::copy( pCell->phenotype.cell_interactions.immunogenicities().begin() ,
+	   e.cell_definitions[0]->name ); std::copy( pCell->phenotype.cell_interactions.immunogenicities().begin() ,
 				   pCell->phenotype.cell_interactions.immunogenicities().end(),
 				   signals.begin()+start_immunogenicity_ind);
 	*/
@@ -769,7 +769,7 @@ std::vector<real_t> get_cell_contact_signals(cell* pCell, environment& e)
 	output[n + 1] = dead_cells;
 
 	// rescale
-	std::string search_for = "contact with " + e.cell_definitions[0].name;
+	std::string search_for = "contact with " + e.cell_definitions[0]->name;
 	static index_t scaling_start_index = find_signal_index(search_for);
 	for (index_t i = 0; i < n + 2; i++)
 	{
@@ -785,7 +785,7 @@ std::vector<real_t> get_selected_signals(cell* pCell, std::vector<index_t> indic
 	static index_t n = e.cell_definitions_count;
 
 	// contact signals start here
-	static index_t contact_start_index = find_signal_index("contact with " + e.cell_definitions[0].name);
+	static index_t contact_start_index = find_signal_index("contact with " + e.cell_definitions[0]->name);
 
 	// typically more efficient to get these first
 	std::vector<real_t> contact_signals = get_cell_contact_signals(pCell, e);
@@ -878,7 +878,7 @@ real_t get_single_signal(cell* pCell, index_t index, environment& e)
 
 	// physical contact with cells (of each type)
 	// individual contact signals are a bit costly
-	static index_t contact_ind = find_signal_index("contact with " + e.cell_definitions[0].name);
+	static index_t contact_ind = find_signal_index("contact with " + e.cell_definitions[0]->name);
 	if (contact_ind <= index && index < contact_ind + n + 2)
 	{
 		std::vector<index_t> counts(n, 0);
@@ -1008,7 +1008,7 @@ real_t get_single_signal(cell* pCell, index_t index, environment& e)
 
 	/*
 		static index_t start_immunogenicity_ind = find_signal_index( "immunogenicity to " +
-	   e.cell_definitions[0].name ); static index_t max_immunogenicity_ind = start_immunogenicity_ind+n; if(
+	   e.cell_definitions[0]->name ); static index_t max_immunogenicity_ind = start_immunogenicity_ind+n; if(
 	   start_immunogenicity_ind > -1 && index >= start_immunogenicity_ind && index < max_immunogenicity_ind )
 		{
 			index_t j = index - start_immunogenicity_ind;
@@ -1130,7 +1130,7 @@ void set_behaviors(cell* pCell, std::vector<real_t> parameters, environment& e)
 	pCell->phenotype.mechanics.attachment_elastic_constant() = parameters[cca_spring_index];
 
 	// cell adhesion affinities
-	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0].name);
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + first_affinity_index, parameters.begin() + first_affinity_index + n,
 			  pCell->phenotype.mechanics.cell_adhesion_affinities());
 
@@ -1155,22 +1155,22 @@ void set_behaviors(cell* pCell, std::vector<real_t> parameters, environment& e)
 	pCell->phenotype.cell_interactions.dead_phagocytosis_rate() = parameters[dead_phag_index];
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + first_phagocytosis_index, parameters.begin() + first_phagocytosis_index + n,
 			  pCell->phenotype.cell_interactions.live_phagocytosis_rates());
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + first_attack_index, parameters.begin() + first_attack_index + n,
 			  pCell->phenotype.cell_interactions.attack_rates());
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + first_fusion_index, parameters.begin() + first_fusion_index + n,
 			  pCell->phenotype.cell_interactions.fusion_rates());
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + first_transformation_index, parameters.begin() + first_transformation_index + n,
 			  pCell->phenotype.cell_transformations.transformation_rates());
 
@@ -1196,7 +1196,7 @@ void set_behaviors(cell* pCell, std::vector<real_t> parameters, environment& e)
 	}
 
 	// vector of immunogenicity signals
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	std::copy(parameters.begin() + start_immunogenicity_ind, parameters.begin() + start_immunogenicity_ind + n,
 			  pCell->phenotype.cell_interactions.immunogenicities());
 
@@ -1349,7 +1349,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// cell adhesion affinities
-	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0].name);
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0]->name);
 	if (index >= first_affinity_index && index < first_affinity_index + n)
 	{
 		pCell->phenotype.mechanics.cell_adhesion_affinities()[index - first_affinity_index] = parameter;
@@ -1397,7 +1397,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	if (index >= first_phagocytosis_index && index < first_phagocytosis_index + n)
 	{
 		pCell->phenotype.cell_interactions.live_phagocytosis_rates()[index - first_phagocytosis_index] = parameter;
@@ -1405,7 +1405,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	if (index >= first_attack_index && index < first_attack_index + n)
 	{
 		pCell->phenotype.cell_interactions.attack_rates()[index - first_attack_index] = parameter;
@@ -1413,7 +1413,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	if (index >= first_fusion_index && index < first_fusion_index + n)
 	{
 		pCell->phenotype.cell_interactions.fusion_rates()[index - first_fusion_index] = parameter;
@@ -1421,7 +1421,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	if (index >= first_transformation_index && index < first_transformation_index + n)
 	{
 		pCell->phenotype.cell_transformations.transformation_rates()[index - first_transformation_index] = parameter;
@@ -1451,7 +1451,7 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 	}
 
 	// immunogenicity to each cell type
-	static index_t first_immunogenicity_index = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t first_immunogenicity_index = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	if (index >= first_immunogenicity_index && index < first_immunogenicity_index + n)
 	{
 		pCell->phenotype.cell_interactions.immunogenicities()[index - first_immunogenicity_index] = parameter;
@@ -1571,7 +1571,7 @@ std::vector<real_t> get_behaviors(cell* pCell, environment& e)
 	parameters[cca_spring_index] = pCell->phenotype.mechanics.attachment_elastic_constant();
 
 	// cell adhesion affinities
-	static std::string search_for1 = "adhesive affinity to " + e.cell_definitions[0].name;
+	static std::string search_for1 = "adhesive affinity to " + e.cell_definitions[0]->name;
 	static index_t first_affinity_index = find_behavior_index(search_for1);
 	std::copy(pCell->phenotype.mechanics.cell_adhesion_affinities(),
 			  pCell->phenotype.mechanics.cell_adhesion_affinities() + n, parameters.begin() + first_affinity_index);
@@ -1597,23 +1597,23 @@ std::vector<real_t> get_behaviors(cell* pCell, environment& e)
 	parameters[dead_phag_index] = pCell->phenotype.cell_interactions.dead_phagocytosis_rate();
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	std::copy(pCell->phenotype.cell_interactions.live_phagocytosis_rates(),
 			  pCell->phenotype.cell_interactions.live_phagocytosis_rates() + n,
 			  parameters.begin() + first_phagocytosis_index);
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	std::copy(pCell->phenotype.cell_interactions.attack_rates(), pCell->phenotype.cell_interactions.attack_rates() + n,
 			  parameters.begin() + first_attack_index);
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	std::copy(pCell->phenotype.cell_interactions.fusion_rates(), pCell->phenotype.cell_interactions.fusion_rates() + n,
 			  parameters.begin() + first_fusion_index);
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	std::copy(pCell->phenotype.cell_transformations.transformation_rates(),
 			  pCell->phenotype.cell_transformations.transformation_rates() + n,
 			  parameters.begin() + first_transformation_index);
@@ -1641,7 +1641,7 @@ std::vector<real_t> get_behaviors(cell* pCell, environment& e)
 	}
 
 	// vector of immunogenicity behaviors
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	std::copy(pCell->phenotype.cell_interactions.immunogenicities(),
 			  pCell->phenotype.cell_interactions.immunogenicities() + n, parameters.begin() + start_immunogenicity_ind);
 
@@ -1784,7 +1784,7 @@ real_t get_single_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// cell adhesion affinities
-	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0].name);
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0]->name);
 	if (index >= first_affinity_index && index < first_affinity_index + n)
 	{
 		return pCell->phenotype.mechanics.cell_adhesion_affinities()[index - first_affinity_index];
@@ -1826,28 +1826,28 @@ real_t get_single_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	if (index >= first_phagocytosis_index && index < first_phagocytosis_index + n)
 	{
 		return pCell->phenotype.cell_interactions.live_phagocytosis_rates()[index - first_phagocytosis_index];
 	}
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	if (index >= first_attack_index && index < first_attack_index + n)
 	{
 		return pCell->phenotype.cell_interactions.attack_rates()[index - first_attack_index];
 	}
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	if (index >= first_fusion_index && index < first_fusion_index + n)
 	{
 		return pCell->phenotype.cell_interactions.fusion_rates()[index - first_fusion_index];
 	}
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	if (index >= first_transformation_index && index < first_transformation_index + n)
 	{
 		return pCell->phenotype.cell_transformations.transformation_rates()[index - first_transformation_index];
@@ -1876,7 +1876,7 @@ real_t get_single_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// vector of immunogenicity behaviors
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	static index_t max_immunogenicity_ind = start_immunogenicity_ind + n;
 	if (start_immunogenicity_ind > -1 && index >= start_immunogenicity_ind && index < max_immunogenicity_ind)
 	{
@@ -2034,7 +2034,7 @@ std::vector<real_t> get_base_behaviors(cell* pCell, environment& e)
 	parameters[cca_spring_index] = pCD->phenotype.mechanics.attachment_elastic_constant();
 
 	// cell adhesion affinities
-	static std::string search_for1 = "adhesive affinity to " + e.cell_definitions[0].name;
+	static std::string search_for1 = "adhesive affinity to " + e.cell_definitions[0]->name;
 	static index_t first_affinity_index = find_behavior_index(search_for1);
 	std::copy(pCD->phenotype.mechanics.cell_adhesion_affinities(),
 			  pCD->phenotype.mechanics.cell_adhesion_affinities() + n, parameters.begin() + first_affinity_index);
@@ -2060,23 +2060,23 @@ std::vector<real_t> get_base_behaviors(cell* pCell, environment& e)
 	parameters[dead_phag_index] = pCD->phenotype.cell_interactions.dead_phagocytosis_rate();
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	std::copy(pCD->phenotype.cell_interactions.live_phagocytosis_rates(),
 			  pCD->phenotype.cell_interactions.live_phagocytosis_rates() + n,
 			  parameters.begin() + first_phagocytosis_index);
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	std::copy(pCD->phenotype.cell_interactions.attack_rates(), pCD->phenotype.cell_interactions.attack_rates() + n,
 			  parameters.begin() + first_attack_index);
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	std::copy(pCD->phenotype.cell_interactions.fusion_rates(), pCD->phenotype.cell_interactions.fusion_rates() + n,
 			  parameters.begin() + first_fusion_index);
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	std::copy(pCD->phenotype.cell_transformations.transformation_rates(),
 			  pCD->phenotype.cell_transformations.transformation_rates() + n,
 			  parameters.begin() + first_transformation_index);
@@ -2104,7 +2104,7 @@ std::vector<real_t> get_base_behaviors(cell* pCell, environment& e)
 	}
 
 	// vector of immunogenicity behaviors
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	std::copy(pCD->phenotype.cell_interactions.immunogenicities(),
 			  pCD->phenotype.cell_interactions.immunogenicities() + n, parameters.begin() + start_immunogenicity_ind);
 
@@ -2250,7 +2250,7 @@ real_t get_single_base_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// cell adhesion affinities
-	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0].name);
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0]->name);
 	if (index >= first_affinity_index && index < first_affinity_index + n)
 	{
 		return pCD->phenotype.mechanics.cell_adhesion_affinities()[index - first_affinity_index];
@@ -2292,28 +2292,28 @@ real_t get_single_base_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	if (index >= first_phagocytosis_index && index < first_phagocytosis_index + n)
 	{
 		return pCD->phenotype.cell_interactions.live_phagocytosis_rates()[index - first_phagocytosis_index];
 	}
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	if (index >= first_attack_index && index < first_attack_index + n)
 	{
 		return pCD->phenotype.cell_interactions.attack_rates()[index - first_attack_index];
 	}
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	if (index >= first_fusion_index && index < first_fusion_index + n)
 	{
 		return pCD->phenotype.cell_interactions.fusion_rates()[index - first_fusion_index];
 	}
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	if (index >= first_transformation_index && index < first_transformation_index + n)
 	{
 		return pCD->phenotype.cell_transformations.transformation_rates()[index - first_transformation_index];
@@ -2342,7 +2342,7 @@ real_t get_single_base_behavior(cell* pCell, index_t index, environment& e)
 	}
 
 	// vector of immunogenicity behaviors
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	static index_t max_immunogenicity_ind = start_immunogenicity_ind + n;
 	if (start_immunogenicity_ind > -1 && index >= start_immunogenicity_ind && index < max_immunogenicity_ind)
 	{
@@ -2501,7 +2501,7 @@ real_t get_single_base_behavior(cell_definition* pCD, index_t index, environment
 	}
 
 	// cell adhesion affinities
-	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0].name);
+	static index_t first_affinity_index = find_behavior_index("adhesive affinity to " + e.cell_definitions[0]->name);
 	if (index >= first_affinity_index && index < first_affinity_index + n)
 	{
 		return pCD->phenotype.mechanics.cell_adhesion_affinities()[index - first_affinity_index];
@@ -2543,28 +2543,28 @@ real_t get_single_base_behavior(cell_definition* pCD, index_t index, environment
 	}
 
 	// phagocytosis of each live cell type
-	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0].name);
+	static index_t first_phagocytosis_index = find_behavior_index("phagocytose " + e.cell_definitions[0]->name);
 	if (index >= first_phagocytosis_index && index < first_phagocytosis_index + n)
 	{
 		return pCD->phenotype.cell_interactions.live_phagocytosis_rates()[index - first_phagocytosis_index];
 	}
 
 	// attack of each live cell type
-	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0].name);
+	static index_t first_attack_index = find_behavior_index("attack " + e.cell_definitions[0]->name);
 	if (index >= first_attack_index && index < first_attack_index + n)
 	{
 		return pCD->phenotype.cell_interactions.attack_rates()[index - first_attack_index];
 	}
 
 	// fusion
-	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0].name);
+	static index_t first_fusion_index = find_behavior_index("fuse to " + e.cell_definitions[0]->name);
 	if (index >= first_fusion_index && index < first_fusion_index + n)
 	{
 		return pCD->phenotype.cell_interactions.fusion_rates()[index - first_fusion_index];
 	}
 
 	// transformation
-	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0].name);
+	static index_t first_transformation_index = find_behavior_index("transform to " + e.cell_definitions[0]->name);
 	if (index >= first_transformation_index && index < first_transformation_index + n)
 	{
 		return pCD->phenotype.cell_transformations.transformation_rates()[index - first_transformation_index];
@@ -2593,7 +2593,7 @@ real_t get_single_base_behavior(cell_definition* pCD, index_t index, environment
 	}
 
 	// vector of immunogenicity behaviors
-	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0].name);
+	static index_t start_immunogenicity_ind = find_behavior_index("immunogenicity to " + e.cell_definitions[0]->name);
 	static index_t max_immunogenicity_ind = start_immunogenicity_ind + n;
 	if (start_immunogenicity_ind > -1 && index >= start_immunogenicity_ind && index < max_immunogenicity_ind)
 	{

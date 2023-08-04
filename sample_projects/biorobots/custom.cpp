@@ -190,7 +190,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 	for (index_t k = 0; k < e.cell_definitions_count; k++)
 	{
-		auto pCD = e.cell_definitions[k];
+		auto& pCD = *e.cell_definitions[k];
 		std::cout << "Placing cells of type " << pCD.name << " ... " << std::endl;
 		for (index_t n = 0; n < parameters.ints("number_of_cells"); n++)
 		{

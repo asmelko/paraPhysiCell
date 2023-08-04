@@ -57,7 +57,7 @@ public:
 	cell_definition& get_default_cell_definition();
 
 	// for modifying cell definitions
-	std::vector<cell_definition>& get_cell_definitions();
+	std::vector<std::unique_ptr<cell_definition>>& get_cell_definitions();
 	cell_definition* find_cell_definition(const std::string& name);
 
 	environment& get_environment();
