@@ -111,6 +111,8 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 	{
 		if (c.agents()[i]->flag() == cell_state_flag::to_divide)
 		{
+			c.agents()[i]->flag() = cell_state_flag::none;
+			
 			auto cell = c.create();
 
 			c.agents()[i]->divide(*cell);
