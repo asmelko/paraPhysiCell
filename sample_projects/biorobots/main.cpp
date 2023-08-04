@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 
 		s.initialize(*e);
 
-		s.run(*e, builder.get_settings(), my_coloring_function);
+		s.run(*e, builder.get_settings(), get_robot_coloring_function(builder.get_parameters()));
 	}
 	catch (std::exception& e)
 	{

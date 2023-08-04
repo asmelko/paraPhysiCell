@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -29,10 +30,10 @@ struct PhysiCell_SVG_options_struct
 extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
 
 void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
-			  std::vector<std::string> (*cell_coloring_function)(cell*),
-			  std::vector<std::string> (*substrate_coloring_function)(double, double, double) = nullptr);
+			  std::function<std::vector<std::string>(cell*)> cell_coloring_function,
+			  std::function<std::vector<std::string>(double, double, double)> substrate_coloring_function = nullptr);
 
-void create_plot_legend(std::string filename, std::vector<std::string> (*cell_coloring_function)(cell*),
+void create_plot_legend(std::string filename, std::function<std::vector<std::string>(cell*)> cell_coloring_function,
 						environment& e);
 
 std::vector<std::string> paint_by_number_cell_coloring(cell* pCell); // done

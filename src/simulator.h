@@ -26,7 +26,8 @@ public:
 	// Called once each diffusion time ticks
 	void simulate_diffusion_and_mechanics(environment& e);
 
-	void run(environment& e, PhysiCell_Settings& settings, std::vector<std::string> (*cell_coloring_function)(cell*));
+	void run(environment& e, PhysiCell_Settings& settings,
+			 std::function<std::vector<std::string>(cell*)> cell_coloring_function);
 };
 
 } // namespace physicell

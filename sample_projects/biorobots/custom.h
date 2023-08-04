@@ -15,4 +15,4 @@ void setup_microenvironment(microenvironment_builder& m_builder);
 
 // custom pathology coloring function
 
-std::vector<std::string> my_coloring_function(cell*);
+std::function<std::vector<std::string>(cell*)> get_robot_coloring_function(User_Parameters& parameters);

@@ -39,8 +39,8 @@ std::string formatted_minutes_to_DDHHMM(double minutes)
 }
 
 void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
-			  std::vector<std::string> (*cell_coloring_function)(cell*),
-			  std::vector<std::string> (*substrate_coloring_function)(double, double, double))
+			  std::function<std::vector<std::string>(cell*)> cell_coloring_function,
+			  std::function<std::vector<std::string>(double, double, double)> substrate_coloring_function)
 {
 	double X_lower = e.m.mesh.bounding_box_mins[0];
 	double X_upper = e.m.mesh.bounding_box_maxs[0];
@@ -70,7 +70,7 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 		exit(-1);
 	}
 
-	if (settings.enable_substrate_plot == true && (*substrate_coloring_function) != NULL)
+	if (settings.enable_substrate_plot == true && substrate_coloring_function != NULL)
 	{
 		double legend_padding = 200.0; // I have to add a margin on the left to visualize the bar plot and the values
 
@@ -128,7 +128,7 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 	// double normalizer = 78.539816339744831 / (voxel_size * voxel_size * voxel_size);
 
 	// color in the background ECM
-	if (settings.enable_substrate_plot == true && (*substrate_coloring_function) != NULL)
+	if (settings.enable_substrate_plot == true && substrate_coloring_function != NULL)
 	{
 		double dz_stroma = e.m.mesh.voxel_shape[2];
 		double max_conc;
@@ -435,7 +435,8 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 	return;
 }
 
-void create_plot_legend(std::string filename, std::vector<std::string> (*cell_coloring_function)(cell*), environment& e)
+void create_plot_legend(std::string filename, std::function<std::vector<std::string>(cell*)> cell_coloring_function,
+						environment& e)
 {
 	int number_of_cell_types = e.cell_definitions_count;
 

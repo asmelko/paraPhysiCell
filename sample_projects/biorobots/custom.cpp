@@ -288,4 +288,45 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	std::cout << "done!" << std::endl;
 }
 
-std::vector<std::string> my_coloring_function(cell* pCell) { return paint_by_number_cell_coloring(pCell); }
+std::function<std::vector<std::string>(cell*)> get_robot_coloring_function(User_Parameters& parameters)
+{
+	return [worker_color = parameters.strings("worker_color"), cargo_color = parameters.strings("cargo_color"),
+			director_color = parameters.strings("director_color")](cell* pCell) {
+		std::string color = "black";
+		std::vector<std::string> output(4, color);
+
+		// black cells if necrotic
+		if (pCell->phenotype.death.dead() == true)
+		{
+			return output;
+		}
+
+		output[3] = "none"; // no nuclear outline color
+
+		auto worker_ID = pCell->e().find_cell_definition("worker cell")->type;
+		auto cargo_ID = pCell->e().find_cell_definition("cargo cell")->type;
+		auto director_ID = pCell->e().find_cell_definition("director cell")->type;
+
+		if (pCell->type == worker_ID)
+		{
+			color = worker_color;
+		}
+		else if (pCell->type == cargo_ID)
+		{
+			color = cargo_color;
+		}
+		else if (pCell->type == director_ID)
+		{
+			color = director_color;
+		}
+		else
+		{
+			color = "white";
+		}
+
+		output[0] = color;
+		output[2] = color;
+
+		return output;
+	};
+}
