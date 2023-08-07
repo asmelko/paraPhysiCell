@@ -33,13 +33,13 @@ microenvironment default_microenv(cartesian_mesh mesh)
 	return m;
 }
 
-environment default_env(microenvironment& m)
+std::unique_ptr<environment> default_env(microenvironment& m)
 {
 	index_t cell_defs_count = 3;
 
-	environment e(m, cell_defs_count);
+	auto e = std::make_unique<environment>(m, cell_defs_count);
 
-	m.agents = std::make_unique<cell_container>(e);
+	m.agents = std::make_unique<cell_container>(*e);
 
 	return e;
 }
@@ -51,7 +51,7 @@ TEST(cell_container, add_and_remove)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	c1->volume() = 1;
@@ -142,7 +142,7 @@ TEST_P(host_velocity_solver, simple)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -154,8 +154,8 @@ TEST_P(host_velocity_solver, simple)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 70;
 
-	containers_solver::update_mechanics_mesh(e);
-	position_solver::update_cell_velocities_and_neighbors(e);
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_velocities_and_neighbors(*e);
 
 	real_t expected;
 
@@ -259,7 +259,7 @@ TEST_P(host_velocity_solver, complex)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -281,8 +281,8 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 7;
 
-	containers_solver::update_mechanics_mesh(e);
-	position_solver::update_cell_velocities_and_neighbors(e);
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_velocities_and_neighbors(*e);
 
 	EXPECT_EQ(cont.data().states.neighbors[0].size(), 1);
 	EXPECT_EQ(cont.data().states.neighbors[1].size(), 2);
