@@ -323,7 +323,7 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 		{
 			double r = pC->phenotype.geometry.radius();
 			double rn = pC->phenotype.geometry.nuclear_radius();
-			double z = fabs((pC->position())[2] - z_slice);
+			double z = fabs((pC->get_position())[2] - z_slice);
 
 			Colors = cell_coloring_function(pC);
 

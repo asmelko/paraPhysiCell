@@ -69,3 +69,4 @@ include(GoogleTest)
 gtest_discover_tests(unit_PhysiCell)
 
 add_subdirectory(sample_projects/biorobots)
+add_subdirectory(sample_projects/heterogeneity)

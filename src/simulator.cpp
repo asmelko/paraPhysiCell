@@ -23,7 +23,7 @@ void simulator::initialize(environment& e)
 	simulation_step_ = 0;
 	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.diffusion_time_step);
 	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.diffusion_time_step);
-	recompute_secretion_and_uptake_ = false;
+	recompute_secretion_and_uptake_ = true;
 }
 
 void custom_cell_rules(environment& e)

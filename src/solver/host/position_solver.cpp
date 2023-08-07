@@ -52,13 +52,16 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 
 		repulsion = 1 - distance / repulsive_distance;
 
+		repulsion = repulsion < 0 ? 0 : repulsion;
+
 		repulsion *= repulsion;
 
-		repulsion *= sqrt(cell_cell_repulsion_strength[lhs] * cell_cell_repulsion_strength[rhs]);
-	}
+		// update simple pressure
+		simple_pressure[lhs] += repulsion * simple_pressure_coefficient;
+		simple_pressure[rhs] += repulsion * simple_pressure_coefficient;
 
-	simple_pressure[lhs] += repulsion * simple_pressure_coefficient;
-	simple_pressure[rhs] += repulsion * simple_pressure_coefficient;
+		repulsion *= std::sqrt(cell_cell_repulsion_strength[lhs] * cell_cell_repulsion_strength[rhs]);
+	}
 
 	// compute adhesion
 	real_t adhesion;
@@ -67,12 +70,12 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 
 		adhesion *= adhesion;
 
-		const index_t lhs__cell_def_index = cell_definition_index[lhs];
-		const index_t rhs__cell_def_index = cell_definition_index[rhs];
+		const index_t lhs_cell_def_index = cell_definition_index[lhs];
+		const index_t rhs_cell_def_index = cell_definition_index[rhs];
 
-		adhesion *= sqrt(cell_cell_adhesion_strength[lhs] * cell_cell_adhesion_strength[rhs]
-						 * cell_adhesion_affinity[lhs * cell_defs_count + rhs__cell_def_index]
-						 * cell_adhesion_affinity[rhs * cell_defs_count + lhs__cell_def_index]);
+		adhesion *= std::sqrt(cell_cell_adhesion_strength[lhs] * cell_cell_adhesion_strength[rhs]
+							  * cell_adhesion_affinity[lhs * cell_defs_count + rhs_cell_def_index]
+							  * cell_adhesion_affinity[rhs * cell_defs_count + lhs_cell_def_index]);
 	}
 
 	real_t force = (repulsion - adhesion) / distance;
@@ -405,7 +408,7 @@ void position_solver::update_spring_attachments(environment& e)
 }
 
 template <index_t dims>
-void update_positions_internal(index_t agents_count, index_t time_step, real_t* __restrict__ position,
+void update_positions_internal(index_t agents_count, real_t time_step, real_t* __restrict__ position,
 							   real_t* __restrict__ velocity, real_t* __restrict__ previous_velocity,
 							   const std::uint8_t* __restrict__ is_movable)
 {
@@ -414,7 +417,7 @@ void update_positions_internal(index_t agents_count, index_t time_step, real_t* 
 		if (!is_movable[i])
 			continue;
 
-		const real_t factor = time_step * 0.5;
+		const real_t factor = time_step * 1.5;
 		const real_t previous_factor = time_step * -0.5;
 
 		for (index_t d = 0; d < dims; d++)

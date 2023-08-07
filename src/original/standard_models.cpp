@@ -1,5 +1,7 @@
 #include "standard_models.h"
 
+#include <limits>
+
 #include "../random.h"
 #include "../solver/host/solver_helper.h"
 #include "constants.h"
@@ -129,7 +131,7 @@ void standard_lysis_entry_function(cell& cell, real_t)
 	cell.phenotype.volume.calcification_rate() = cell.phenotype.death.current_parameters().calcification_rate;
 
 	// set the bursting volume
-	cell.phenotype.volume.relative_rupture_volume() = 9e99;
+	cell.phenotype.volume.relative_rupture_volume() = std::numeric_limits<real_t>::infinity();
 	cell.phenotype.volume.rupture_volume() =
 		cell.phenotype.volume.total() * cell.phenotype.volume.relative_rupture_volume();
 

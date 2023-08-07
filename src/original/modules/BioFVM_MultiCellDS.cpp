@@ -505,39 +505,30 @@ void write_microenvironment_to_matlab(std::string filename, microenvironment& m)
 	FILE* fp = physicell::write_matlab_header(size_of_each_datum, number_of_data_entries, filename,
 											  "multiscale_microenvironment");
 
-	double center[3] { (double)m.mesh.voxel_shape[0] / 2, (double)m.mesh.voxel_shape[1] / 2,
-					   (double)m.mesh.voxel_shape[2] / 2 };
-
 	double volume = m.mesh.voxel_volume();
 
 	// storing data as cols
-	for (std::size_t i = 0; i < number_of_data_entries; i++)
-	{
-		fwrite((char*)&(center[0]), sizeof(double), 1, fp);
-		fwrite((char*)&(center[1]), sizeof(double), 1, fp);
-		fwrite((char*)&(center[2]), sizeof(double), 1, fp);
-		fwrite((char*)&(volume), sizeof(double), 1, fp);
-
-		// densities
-
-		for (index_t j = 0; j < m.substrates_count; j++)
-		{
-			double temp = m.substrate_densities[i * m.substrates_count + j];
-			fwrite((char*)&(temp), sizeof(double), 1, fp);
-		}
-
-		center[0] += m.mesh.voxel_shape[0];
-		if (center[0] > m.mesh.bounding_box_maxs[0])
-		{
-			center[0] = (double)m.mesh.voxel_shape[0] / 2;
-			center[1] += m.mesh.voxel_shape[1];
-			if (center[1] > m.mesh.bounding_box_maxs[1])
+	for (index_t z = 0; z < m.mesh.grid_shape[2]; z++)
+		for (index_t y = 0; y < m.mesh.grid_shape[1]; y++)
+			for (index_t x = 0; x < m.mesh.grid_shape[0]; x++)
 			{
-				center[1] = (double)m.mesh.voxel_shape[1] / 2;
-				center[2] += m.mesh.voxel_shape[2];
+				auto tmp = m.mesh.voxel_center({ x, y, z });
+
+				double center[3] = { tmp[0], tmp[1], tmp[2] };
+
+				fwrite((char*)&(center[0]), sizeof(double), 1, fp);
+				fwrite((char*)&(center[1]), sizeof(double), 1, fp);
+				fwrite((char*)&(center[2]), sizeof(double), 1, fp);
+				fwrite((char*)&(volume), sizeof(double), 1, fp);
+
+				// densities
+
+				for (index_t j = 0; j < m.substrates_count; j++)
+				{
+					double temp = m.substrate_density_value({ x, y, z }, j);
+					fwrite((char*)&(temp), sizeof(double), 1, fp);
+				}
 			}
-		}
-	}
 
 	fclose(fp);
 	return;

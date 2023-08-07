@@ -158,7 +158,7 @@ void cell::divide(cell& new_cell)
 
 	for (index_t d = 0; d < data_.e.m.mesh.dims; d++)
 	{
-		new_cell.position()[d] += random_walk[d];
+		new_cell.position()[d] = position()[d] + random_walk[d];
 		position()[d] -= random_walk[d] * 0.5;
 	}
 }
