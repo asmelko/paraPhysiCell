@@ -394,17 +394,17 @@ void position_solver::update_spring_attachments(environment& e)
 		spring_contract_function<1>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.springs.data());
 	else if (e.mechanics_mesh.dims == 2)
 		spring_contract_function<2>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.springs.data());
 	else if (e.mechanics_mesh.dims == 3)
 		spring_contract_function<3>(
 			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.cell_definition_indices.data(),
 			data.mechanics.attachment_elastic_constant.data(), data.mechanics.cell_adhesion_affinities.data(),
-			data.agent_data.positions.data(), data.is_movable.data(), data.states.neighbors.data());
+			data.agent_data.positions.data(), data.is_movable.data(), data.states.springs.data());
 }
 
 template <index_t dims>

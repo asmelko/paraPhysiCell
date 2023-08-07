@@ -2053,6 +2053,10 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 
 void write_neighbor_graph(std::string filename, environment& e)
 {
+	// TODO: we are not updating neighbors indices when deleting cells 
+
+	return;
+
 	/*
 	char filename [1024];
 	sprintf( filename , "%s_cell_neighbor_graph.txt" , filename_base.c_str() );

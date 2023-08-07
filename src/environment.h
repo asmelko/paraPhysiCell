@@ -4,7 +4,6 @@
 
 #include "cell_container.h"
 #include "cell_definition.h"
-#include "types.h"
 
 namespace physicell {
 
