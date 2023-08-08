@@ -14,15 +14,15 @@ struct phenotype_data_storage
 {
 protected:
 	cell_data& data_;
-	biofvm::index_t index_;
+	const biofvm::index_t& index_;
 
 public:
-	phenotype_data_storage(cell_data& data, biofvm::index_t index);
+	phenotype_data_storage(cell_data& data, const biofvm::index_t& index);
 };
 
 struct volume_t : public phenotype_data_storage
 {
-	volume_t(cell_data& data, biofvm::index_t index);
+	volume_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t& total();
 
@@ -65,7 +65,7 @@ struct volume_t : public phenotype_data_storage
 
 struct geometry_t : public phenotype_data_storage
 {
-	geometry_t(cell_data& data, biofvm::index_t index);
+	geometry_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t& radius();
 	biofvm::real_t& nuclear_radius();
@@ -81,7 +81,7 @@ struct geometry_t : public phenotype_data_storage
 
 struct mechanics_t : public phenotype_data_storage
 {
-	mechanics_t(cell_data& data, biofvm::index_t index);
+	mechanics_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t& cell_cell_adhesion_strength();
 	biofvm::real_t& cell_BM_adhesion_strength();
@@ -110,7 +110,7 @@ struct mechanics_t : public phenotype_data_storage
 
 struct motility_t : public phenotype_data_storage
 {
-	motility_t(cell_data& data, biofvm::index_t index);
+	motility_t(cell_data& data, const biofvm::index_t& index);
 
 	std::uint8_t& is_motile();
 	biofvm::real_t& persistence_time();
@@ -134,7 +134,7 @@ struct motility_t : public phenotype_data_storage
 
 struct secretion_t : public phenotype_data_storage
 {
-	secretion_t(cell_data& data, biofvm::index_t index);
+	secretion_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t* secretion_rates();
 	biofvm::real_t* uptake_rates();
@@ -151,7 +151,7 @@ struct secretion_t : public phenotype_data_storage
 
 struct molecular_t : public phenotype_data_storage
 {
-	molecular_t(cell_data& data, biofvm::index_t index);
+	molecular_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t* internalized_total_substrates();
 	biofvm::real_t* fraction_released_at_death();
@@ -166,7 +166,7 @@ struct molecular_t : public phenotype_data_storage
 
 struct interactions_t : public phenotype_data_storage
 {
-	interactions_t(cell_data& data, biofvm::index_t index);
+	interactions_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t& dead_phagocytosis_rate();
 	biofvm::real_t* live_phagocytosis_rates();
@@ -184,7 +184,7 @@ struct interactions_t : public phenotype_data_storage
 
 struct transformations_t : public phenotype_data_storage
 {
-	transformations_t(cell_data& data, biofvm::index_t index);
+	transformations_t(cell_data& data, const biofvm::index_t& index);
 
 	biofvm::real_t* transformation_rates();
 

@@ -315,7 +315,7 @@ Death_Parameters::Death_Parameters()
 	return;
 }
 
-Death::Death(cell_data& data, index_t index) : phenotype_data_storage(data, index)
+Death::Death(cell_data& data, const index_t& index) : phenotype_data_storage(data, index)
 {
 	dead() = false;
 	current_death_model_index = 0;

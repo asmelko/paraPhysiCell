@@ -12,7 +12,7 @@ cell_definition::cell_definition(environment& e, index_t index)
 	  name("unnamed"),
 	  is_movable(true),
 	  e(e),
-	  phenotype(data_, index)
+	  phenotype(data_, this->index)
 {
 	parameters.pReference_live_phenotype = &phenotype;
 }

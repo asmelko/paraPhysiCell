@@ -121,7 +121,7 @@ void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ mo
 
 	position_helper<dims>::random_walk(restrict_to_2d, random_walk);
 
-	if (update_migration_bias_direction_f != nullptr)
+	if (update_migration_bias_direction_f[i] != nullptr)
 	{
 		update_migration_bias_direction_f[i](*cells.agents()[i]);
 	}

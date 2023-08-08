@@ -15,7 +15,7 @@ class cell_container;
 
 struct cell_state_t : public phenotype_data_storage
 {
-	cell_state_t(cell_data& data, biofvm::index_t index);
+	cell_state_t(cell_data& data, const biofvm::index_t& index);
 
 	std::vector<biofvm::index_t>& neighbors();
 

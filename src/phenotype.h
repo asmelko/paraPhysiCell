@@ -21,7 +21,7 @@ struct phenotype_t
 	interactions_t cell_interactions;
 	transformations_t cell_transformations;
 
-	phenotype_t(cell_data& data, biofvm::index_t index);
+	phenotype_t(cell_data& data, const biofvm::index_t& index);
 
 	void copy_to(phenotype_t& dest);
 };

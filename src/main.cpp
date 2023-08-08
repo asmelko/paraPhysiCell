@@ -3,6 +3,7 @@
 
 #include "BioFVM/solver.h"
 #include "environment.h"
+#include "original/standard_models.h"
 #include "solver/host/containers_solver.h"
 #include "solver/host/interactions_solver.h"
 #include "solver/host/position_solver.h"
@@ -22,7 +23,7 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 	for (index_t i = 0; i < count; i++)
 	{
-		auto a = e.cast_container<cell_container>().create();
+		auto a = e.cast_container<cell_container>().create_cell(e.cell_defaults());
 		a->position()[0] = x + 10;
 		a->position()[1] = y + 10;
 		a->position()[2] = z + 10;
@@ -108,6 +109,7 @@ int main()
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 	e.mechanics_time_step = 0.1;
+	initialize_default_cell_definition(e);
 
 	measure(make_agents(e, 2'000'000, true), cells_init_duration);
 

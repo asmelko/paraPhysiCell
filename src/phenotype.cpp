@@ -3,7 +3,7 @@
 using namespace biofvm;
 using namespace physicell;
 
-phenotype_t::phenotype_t(cell_data& data, index_t index)
+phenotype_t::phenotype_t(cell_data& data, const index_t& index)
 	: death(data, index),
 	  volume(data, index),
 	  geometry(data, index),

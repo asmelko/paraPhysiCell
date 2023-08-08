@@ -10,7 +10,7 @@
 using namespace biofvm;
 using namespace physicell;
 
-cell_state_t::cell_state_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+cell_state_t::cell_state_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 std::vector<index_t>& cell_state_t::neighbors() { return data_.states.neighbors[index_]; }
 
@@ -43,7 +43,7 @@ void cell_state_t::set_defaults()
 }
 
 cell::cell(agent_id_t id, cell_data& data, index_t index)
-	: agent(id, data.agent_data, index), data_(data), phenotype(data_, index), state(data_, index)
+	: agent(id, data.agent_data, index), data_(data), phenotype(data_, index_), state(data_, index_)
 {
 	std::fill(data_.previous_velocities.data() + index_ * data_.e.mechanics_mesh.dims,
 			  data_.previous_velocities.data() + (index_ + 1) * data_.e.mechanics_mesh.dims, 0.0);
@@ -52,6 +52,8 @@ cell::cell(agent_id_t id, cell_data& data, index_t index)
 			  data_.velocities.data() + (index_ + 1) * data_.e.mechanics_mesh.dims, 0.0);
 
 	flag() = cell_state_flag::none;
+
+	is_movable() = true;
 
 	state.set_defaults();
 }
@@ -99,11 +101,6 @@ void cell::copy_from(cell& source)
 	cell_definition_index() = source.cell_definition_index();
 
 	assign_orientation();
-
-	for (index_t d = 0; d < data_.e.m.mesh.dims; d++)
-	{
-		velocity()[d] = source.velocity()[d];
-	}
 }
 
 void cell::divide(cell& new_cell)

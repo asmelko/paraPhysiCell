@@ -18,11 +18,13 @@ class simulator
 
 	biofvm::index_t mechanics_step_interval_;
 	biofvm::index_t phenotype_step_interval_;
+	biofvm::index_t full_save_interval_;
+	biofvm::index_t svg_save_interval_;
 
 	bool recompute_secretion_and_uptake_;
 
 public:
-	void initialize(environment& e);
+	void initialize(environment& e, PhysiCell_Settings& settings);
 
 	// Called once each diffusion time ticks
 	void simulate_diffusion_and_mechanics(environment& e);

@@ -15,14 +15,18 @@
 using namespace biofvm;
 using namespace physicell;
 
-void simulator::initialize(environment& e)
+void simulator::initialize(environment& e, PhysiCell_Settings& settings)
 {
 	diffusion_solver_.initialize(e.m);
 	mechanics_solver_.initialize(e);
 
 	simulation_step_ = 0;
+
 	mechanics_step_interval_ = (index_t)std::round(e.mechanics_time_step / e.m.diffusion_time_step);
 	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.diffusion_time_step);
+	full_save_interval_ = (index_t)std::round(settings.full_save_interval / e.m.diffusion_time_step);
+	svg_save_interval_ = (index_t)std::round(settings.SVG_save_interval / e.m.diffusion_time_step);
+
 	recompute_secretion_and_uptake_ = true;
 }
 
@@ -124,41 +128,33 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 	RUNTIME_TIC();
 	TIC();
 
-	real_t next_full_save_time = 0;
-	real_t next_svg_save_time = 0;
-	index_t full_output_index = 0;
-	index_t svg_output_index = 0;
-
 	while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
 	{
 		// save data if it's time.
-		if (std::abs(e.current_time - next_full_save_time) < 0.01 * e.m.diffusion_time_step)
+		if (simulation_step_ % full_save_interval_ == 0)
 		{
 			display_simulation_status(std::cout, e, settings);
 
 			if (settings.enable_full_saves == true)
 			{
 				std::stringstream ss;
-				ss << settings.folder << "/output" << std::setfill('0') << std::setw(8) << full_output_index;
+				ss << settings.folder << "/output" << std::setfill('0') << std::setw(8)
+				   << simulation_step_ / full_save_interval_;
 
 				save_PhysiCell_to_MultiCellDS_v2(ss.str(), e);
 			}
-
-			full_output_index++;
-			next_full_save_time += settings.full_save_interval;
 		}
 
 		// save SVG plot if it's time
-		if (fabs(e.current_time - next_svg_save_time) < 0.01 * e.m.diffusion_time_step)
+		if (simulation_step_ % svg_save_interval_ == 0)
 		{
 			if (settings.enable_SVG_saves == true)
 			{
 				std::stringstream ss;
-				ss << settings.folder << "/snapshot" << std::setfill('0') << std::setw(8) << svg_output_index << ".svg";
-				SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function);
+				ss << settings.folder << "/snapshot" << std::setfill('0') << std::setw(8)
+				   << simulation_step_ / svg_save_interval_ << ".svg";
 
-				svg_output_index++;
-				next_svg_save_time += settings.SVG_save_interval;
+				SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function);
 			}
 		}
 

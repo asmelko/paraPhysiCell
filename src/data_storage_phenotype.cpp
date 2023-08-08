@@ -8,9 +8,9 @@
 using namespace biofvm;
 using namespace physicell;
 
-phenotype_data_storage::phenotype_data_storage(cell_data& data, index_t index) : data_(data), index_(index) {}
+phenotype_data_storage::phenotype_data_storage(cell_data& data, const index_t& index) : data_(data), index_(index) {}
 
-volume_t::volume_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+volume_t::volume_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t& volume_t::total() { return data_.agent_data.volumes[index_]; }
 
@@ -100,7 +100,7 @@ void volume_t::set_defaults()
 	rupture_volume() = relative_rupture_volume() * total(); // in volume units
 }
 
-geometry_t::geometry_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+geometry_t::geometry_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t& geometry_t::radius() { return data_.geometries.radius[index_]; }
 
@@ -126,7 +126,7 @@ void geometry_t::set_defaults()
 	polarity() = 0.0;
 }
 
-mechanics_t::mechanics_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+mechanics_t::mechanics_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t& mechanics_t::cell_cell_adhesion_strength() { return data_.mechanics.cell_cell_adhesion_strength[index_]; }
 
@@ -214,7 +214,7 @@ void mechanics_t::set_defaults()
 	detachment_rate() = 0;
 }
 
-motility_t::motility_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+motility_t::motility_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 std::uint8_t& motility_t::is_motile() { return data_.motilities.is_motile[index_]; }
 
@@ -267,7 +267,7 @@ motility_data::direction_update_func& motility_t::update_migration_bias_directio
 	return data_.motilities.update_migration_bias_direction[index_];
 }
 
-molecular_t::molecular_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+molecular_t::molecular_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t* molecular_t::internalized_total_substrates()
 {
@@ -292,7 +292,7 @@ void molecular_t::set_defaults()
 			  0);
 }
 
-interactions_t::interactions_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+interactions_t::interactions_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t& interactions_t::dead_phagocytosis_rate() { return data_.interactions.dead_phagocytosis_rate[index_]; }
 
@@ -329,7 +329,7 @@ void interactions_t::set_defaults()
 	std::fill(fusion_rates(), fusion_rates() + data_.e.cell_definitions_count, 0);
 }
 
-secretion_t::secretion_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+secretion_t::secretion_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t* secretion_t::secretion_rates()
 {
@@ -375,7 +375,7 @@ void secretion_t::set_defaults()
 	std::fill(net_export_rates(), net_export_rates() + data_.e.m.substrates_count, 0);
 }
 
-transformations_t::transformations_t(cell_data& data, index_t index) : phenotype_data_storage(data, index) {}
+transformations_t::transformations_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
 real_t* transformations_t::transformation_rates()
 {

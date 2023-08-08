@@ -168,7 +168,7 @@ public:
 	std::uint8_t& dead();
 	biofvm::index_t current_death_model_index;
 
-	Death(cell_data& data, biofvm::index_t index); // done
+	Death(cell_data& data, const biofvm::index_t& index); // done
 
 	biofvm::index_t add_death_model(biofvm::real_t rate, Cycle_Model* pModel); // done
 	biofvm::index_t add_death_model(biofvm::real_t rate, Cycle_Model* pModel,
