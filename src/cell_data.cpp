@@ -144,16 +144,16 @@ void motility_data::add(index_t index, index_t dims, index_t substrates_count)
 	persistence_time.resize(index);
 	migration_speed.resize(index);
 
-	migration_bias_direction.resize(index * dims, 0);
+	migration_bias_direction.resize(index * dims);
 	migration_bias.resize(index);
 
-	motility_vector.resize(index * dims, 0);
+	motility_vector.resize(index * dims);
 
-	restrict_to_2d.resize(index);
+	restrict_to_2d.resize(index, 0);
 
 	chemotaxis_index.resize(index);
 	chemotaxis_direction.resize(index);
-	chemotactic_sensitivities.resize(index * substrates_count, 0);
+	chemotactic_sensitivities.resize(index * substrates_count);
 
 	update_migration_bias_direction.resize(index, nullptr);
 }
