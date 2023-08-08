@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
 		simulator s;
 
-		s.initialize(*e);
+		s.initialize(*e, builder.get_settings());
 
 		s.run(*e, builder.get_settings(), get_robot_coloring_function(builder.get_parameters()));
 	}
