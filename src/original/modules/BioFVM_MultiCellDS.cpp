@@ -534,6 +534,34 @@ void write_microenvironment_to_matlab(std::string filename, microenvironment& m)
 	return;
 }
 
+void write_mesh_to_matlab(std::string filename, microenvironment& m)
+{
+	auto number_of_data_entries = m.mesh.voxel_count();
+	int size_of_each_datum = 3 + 1;
+
+	FILE* fp = physicell::write_matlab_header(size_of_each_datum, number_of_data_entries, filename, "mesh");
+
+	double volume = m.mesh.voxel_volume();
+
+	// storing data as cols
+	for (index_t z = 0; z < m.mesh.grid_shape[2]; z++)
+		for (index_t y = 0; y < m.mesh.grid_shape[1]; y++)
+			for (index_t x = 0; x < m.mesh.grid_shape[0]; x++)
+			{
+				auto tmp = m.mesh.voxel_center({ x, y, z });
+
+				double center[3] = { tmp[0], tmp[1], tmp[2] };
+
+				fwrite((char*)&(center[0]), sizeof(double), 1, fp);
+				fwrite((char*)&(center[1]), sizeof(double), 1, fp);
+				fwrite((char*)&(center[2]), sizeof(double), 1, fp);
+				fwrite((char*)&(volume), sizeof(double), 1, fp);
+			}
+
+	fclose(fp);
+	return;
+}
+
 void add_BioFVM_substrates_to_open_xml_pugi(pugi::xml_document& xml_dom, std::string filename_base, microenvironment& M)
 {
 	add_MultiCellDS_main_structure_to_open_xml_pugi(xml_dom);
@@ -583,11 +611,11 @@ void add_BioFVM_substrates_to_open_xml_pugi(pugi::xml_document& xml_dom, std::st
 		{
 			char temp[10240];
 			int position = 0;
-			for (int k = M.mesh.bounding_box_mins[0]; k < M.mesh.bounding_box_maxs[0]; k += M.mesh.voxel_shape[0])
+			for (int k = 0; k < M.mesh.grid_shape[0] - 1; k++)
 			{
-				position += sprintf(temp + position, "%f ", (double)k);
+				position += sprintf(temp + position, "%f ", (double)M.mesh.voxel_center({ k, 0, 0 })[0]);
 			}
-			sprintf(temp + position, "%f", (double)M.mesh.bounding_box_maxs[0]);
+			sprintf(temp + position, "%f", (double)M.mesh.voxel_center({ M.mesh.grid_shape[0] - 1, 0, 0 })[0]);
 			node = node.append_child("x_coordinates");
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			attrib = node.append_attribute("delimiter");
@@ -595,11 +623,11 @@ void add_BioFVM_substrates_to_open_xml_pugi(pugi::xml_document& xml_dom, std::st
 
 			node = node.parent();
 			position = 0;
-			for (int k = M.mesh.bounding_box_mins[1]; k < M.mesh.bounding_box_maxs[1]; k += M.mesh.voxel_shape[1])
+			for (int k = 0; k < M.mesh.grid_shape[1] - 1; k++)
 			{
-				position += sprintf(temp + position, "%f ", (double)k);
+				position += sprintf(temp + position, "%f ", (double)M.mesh.voxel_center({ 0, k, 0 })[1]);
 			}
-			sprintf(temp + position, "%f", (double)M.mesh.bounding_box_maxs[1]);
+			sprintf(temp + position, "%f", (double)M.mesh.voxel_center({ 0, M.mesh.grid_shape[1] - 1, 0 })[1]);
 			node = node.append_child("y_coordinates");
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			attrib = node.append_attribute("delimiter");
@@ -607,11 +635,11 @@ void add_BioFVM_substrates_to_open_xml_pugi(pugi::xml_document& xml_dom, std::st
 
 			node = node.parent();
 			position = 0;
-			for (int k = M.mesh.bounding_box_mins[2]; k < M.mesh.bounding_box_maxs[2]; k += M.mesh.voxel_shape[2])
+			for (int k = 0; k < M.mesh.grid_shape[2] - 1; k++)
 			{
-				position += sprintf(temp + position, "%f ", (double)k);
+				position += sprintf(temp + position, "%f ", (double)M.mesh.voxel_center({ 0, 0, k })[2]);
 			}
-			sprintf(temp + position, "%f", (double)M.mesh.bounding_box_maxs[2]);
+			sprintf(temp + position, "%f", (double)M.mesh.voxel_center({ 0, 0, M.mesh.grid_shape[2] - 1 })[2]);
 			node = node.append_child("z_coordinates");
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			attrib = node.append_attribute("delimiter");
@@ -619,69 +647,73 @@ void add_BioFVM_substrates_to_open_xml_pugi(pugi::xml_document& xml_dom, std::st
 			node = node.parent();
 		}
 		// write out the voxels -- minimal data, even if redundant for cartesian
-		// if (save_mesh_as_matlab == false)
-		// {
-		// 	node = node.append_child("voxels");
-		// 	attrib = node.append_attribute("type");
-		// 	attrib.set_value("xml");
-		// 	char temp[1024];
-		// 	for (unsigned int k = 0; k < M.mesh.voxel_count(); k++)
-		// 	{
-		// 		node = node.append_child("voxel");
+		if (save_mesh_as_matlab == false)
+		{
+			node = node.append_child("voxels");
+			attrib = node.append_attribute("type");
+			attrib.set_value("xml");
+			char temp[1024];
+			for (index_t z = 0; z < M.mesh.grid_shape[2]; z++)
+				for (index_t y = 0; y < M.mesh.grid_shape[1]; y++)
+					for (index_t x = 0; x < M.mesh.grid_shape[0]; x++)
+					{
+						node = node.append_child("voxel");
 
-		// 		attrib = node.append_attribute("ID");
-		// 		attrib.set_value(k);
-		// 		attrib = node.append_attribute("type");
-		// 		attrib.set_value("cube"); // allowed: cube or unknown
+						attrib = node.append_attribute("ID");
+						attrib.set_value(x + y * M.mesh.grid_shape[0]
+										 + z * M.mesh.grid_shape[0] * M.mesh.grid_shape[1]);
+						attrib = node.append_attribute("type");
+						attrib.set_value("cube"); // allowed: cube or unknown
 
-		// 		node = node.append_child("center");
-		// 		attrib = node.append_attribute("delimiter");
-		// 		attrib.set_value(" ");
-		// 		sprintf(temp, "%f %f %f", M.mesh.voxels[k].center[0], M.mesh.voxels[k].center[1],
-		// 				M.mesh.voxels[k].center[2]);
-		// 		node.append_child(pugi::node_pcdata).set_value(temp);
-		// 		node = node.parent();
+						node = node.append_child("center");
+						attrib = node.append_attribute("delimiter");
+						attrib.set_value(" ");
+						sprintf(temp, "%f %f %f", (double)M.mesh.voxel_center({ x, y, z })[0],
+								(double)M.mesh.voxel_center({ x, y, z })[1],
+								(double)M.mesh.voxel_center({ x, y, z })[2]);
+						node.append_child(pugi::node_pcdata).set_value(temp);
+						node = node.parent();
 
-		// 		node = node.append_child("volume");
-		// 		sprintf(temp, "%f", M.mesh.voxels[k].volume);
-		// 		node.append_child(pugi::node_pcdata).set_value(temp);
-		// 		node = node.parent();
+						node = node.append_child("volume");
+						sprintf(temp, "%f", (double)M.mesh.voxel_volume());
+						node.append_child(pugi::node_pcdata).set_value(temp);
+						node = node.parent();
 
-		// 		node = node.parent();
-		// 	}
-		// 	node = node.parent();
-		// }
-		// else
-		// {
-		// 	node = node.append_child("voxels");
-		// 	attrib = node.append_attribute("type");
-		// 	attrib.set_value("matlab");
+						node = node.parent();
+					}
+			node = node.parent();
+		}
+		else
+		{
+			node = node.append_child("voxels");
+			attrib = node.append_attribute("type");
+			attrib.set_value("matlab");
 
-		// 	char filename[1024];
-		// 	sprintf(filename, "%s_mesh%d.mat", filename_base.c_str(), 0);
-		// 	M.mesh.write_to_matlab(filename);
+			char filename[1024];
+			sprintf(filename, "%s_mesh%d.mat", filename_base.c_str(), 0);
+			write_mesh_to_matlab(filename, M);
 
-		// 	node = node.append_child("filename");
+			node = node.append_child("filename");
 
-		// 	/* store filename without the relative pathing (if any) */
-		// 	char filename_without_pathing[1024];
-		// 	char* filename_start = strrchr(filename, '/');
-		// 	if (filename_start == NULL)
-		// 	{
-		// 		filename_start = filename;
-		// 	}
-		// 	else
-		// 	{
-		// 		filename_start++;
-		// 	}
-		// 	strcpy(filename_without_pathing, filename_start);
+			/* store filename without the relative pathing (if any) */
+			char filename_without_pathing[1024];
+			char* filename_start = strrchr(filename, '/');
+			if (filename_start == NULL)
+			{
+				filename_start = filename;
+			}
+			else
+			{
+				filename_start++;
+			}
+			strcpy(filename_without_pathing, filename_start);
 
-		// 	node.append_child(pugi::node_pcdata).set_value(filename_without_pathing); // filename );
+			node.append_child(pugi::node_pcdata).set_value(filename_without_pathing); // filename );
 
-		// 	node = node.parent();
+			node = node.parent();
 
-		// 	node = node.parent();
-		// }
+			node = node.parent();
+		}
 		node = node.parent(); // back to level of "microenvironment"
 
 		// define the variables
