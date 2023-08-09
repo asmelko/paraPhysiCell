@@ -1635,9 +1635,9 @@ std::unique_ptr<environment> builder::build_environment()
 {
 	get_cell_definitions();
 
-	load_rules();
-
 	load_signals();
+
+	load_rules();
 
 	random::instance().set_seed(get_parameters().ints("random_seed"));
 
