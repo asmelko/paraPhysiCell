@@ -48,8 +48,6 @@ void custom_cell_rules(environment& e)
 
 void simulator::simulate_diffusion_and_mechanics(environment& e)
 {
-	++simulation_step_;
-
 	{
 		// Compute diffusion:
 		diffusion_solver_.diffusion.solve(e.m);
@@ -93,9 +91,9 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 
 			// Update cells neighbors:
 			mechanics_solver_.position.update_cell_neighbors(e);
-		}
 
-		recompute_secretion_and_uptake_ = true;
+			recompute_secretion_and_uptake_ = true;
+		}
 	}
 
 	if (simulation_step_ % phenotype_step_interval_ == 0)
@@ -113,6 +111,8 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 
 			// Update cells neighbors:
 			mechanics_solver_.position.update_cell_neighbors(e);
+
+			recompute_secretion_and_uptake_ = true;
 		}
 	}
 }
@@ -179,6 +179,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 		simulate_diffusion_and_mechanics(e);
 
 		e.current_time += e.m.diffusion_time_step;
+		++simulation_step_;
 	}
 
 	// save a final simulation snapshot
