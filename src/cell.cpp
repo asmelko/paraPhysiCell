@@ -124,10 +124,6 @@ void cell::divide(cell& new_cell)
 	state.damage() = 0;
 	state.total_attack_time() = 0;
 
-	// divide volume in half
-	phenotype.volume.divide();
-	phenotype.geometry.update();
-
 	// create random vector for position change
 	real_t random_walk[3];
 	{
@@ -150,6 +146,10 @@ void cell::divide(cell& new_cell)
 							 * phenotype.geometry.radius();
 		}
 	}
+
+	// divide volume in half
+	phenotype.volume.divide();
+	phenotype.geometry.update();
 
 	new_cell.copy_from(*this);
 
