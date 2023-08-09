@@ -79,6 +79,8 @@ public:
 	void flag_for_removal();
 	void flag_for_division();
 
+	std::vector<biofvm::index_t>& cells_in_my_mechanics_voxel();
+
 	void assign_position(const biofvm::point_t<biofvm::real_t, 3>& position);
 
 	void set_total_volume(biofvm::real_t volume);

@@ -112,24 +112,22 @@ void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ mo
 	if (is_motile[i] == 0)
 		return;
 
-	real_t rand = random::instance().uniform();
-
-	if (rand >= time_step / persistence_time[i])
-		return;
-
-	real_t random_walk[dims];
-
-	position_helper<dims>::random_walk(restrict_to_2d, random_walk);
-
-	if (update_migration_bias_direction_f[i] != nullptr)
+	if (random::instance().uniform() < time_step / persistence_time[i])
 	{
-		update_migration_bias_direction_f[i](*cells.agents()[i]);
+		real_t random_walk[dims];
+
+		position_helper<dims>::random_walk(restrict_to_2d, random_walk);
+
+		if (update_migration_bias_direction_f[i] != nullptr)
+		{
+			update_migration_bias_direction_f[i](*cells.agents()[i]);
+		}
+
+		position_helper<dims>::update_motility_vector(motility_vector + i * dims, random_walk,
+													  migration_bias_direction + i * dims, migration_bias[i]);
+
+		position_helper<dims>::normalize_and_scale(motility_vector + i * dims, migration_speed[i]);
 	}
-
-	position_helper<dims>::update_motility_vector(motility_vector + i * dims, random_walk,
-												  migration_bias_direction + i * dims, migration_bias[i]);
-
-	position_helper<dims>::normalize_and_scale(motility_vector + i * dims, migration_speed[i]);
 
 	position_helper<dims>::add(velocity + i * dims, motility_vector + i * dims);
 }

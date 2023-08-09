@@ -77,6 +77,9 @@ void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const re
 		rename_attached(container.data().agents_count - 1, i, attachced_cells);
 
 		container.remove_at(i);
+
+		if (i == container.data().agents_count)
+			return;
 	}
 }
 
@@ -112,7 +115,7 @@ void containers_solver::update_cell_container_for_phenotype(environment& e, cell
 		if (c.agents()[i]->flag() == cell_state_flag::to_divide)
 		{
 			c.agents()[i]->flag() = cell_state_flag::none;
-			
+
 			auto cell = c.create();
 
 			c.agents()[i]->divide(*cell);

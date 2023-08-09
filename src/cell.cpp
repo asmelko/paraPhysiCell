@@ -255,3 +255,11 @@ void cell::set_total_volume(real_t volume)
 
 	phenotype.geometry.update();
 }
+
+std::vector<index_t>& cell::cells_in_my_mechanics_voxel()
+{
+	auto pos = common_solver::get_mesh_position(position(), e().mechanics_mesh);
+	auto idx = common_solver::get_mesh_index(pos, e().mechanics_mesh);
+
+	return e().cells_in_mechanics_voxels[idx];
+}

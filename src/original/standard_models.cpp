@@ -555,8 +555,6 @@ void chemotaxis_function(cell& cell)
 
 	// normalize
 	normalize(cell.phenotype.motility.migration_bias_direction(), cell.e().mechanics_mesh.dims);
-
-	return;
 }
 
 template <bool do_normalize>
@@ -571,7 +569,7 @@ void advanced_chemotaxis_function(cell& cell)
 	for (index_t i = 0; i < cell.e().m.substrates_count; i++)
 	{
 		// get and normalize ith gradient
-		auto g = cell.nearest_gradient(cell.phenotype.motility.chemotaxis_index());
+		auto g = cell.nearest_gradient(i);
 
 		if constexpr (do_normalize)
 			normalize(g.data(), cell.e().mechanics_mesh.dims);
@@ -647,14 +645,14 @@ void standard_volume_update_function(cell& cell)
 
 void standard_elastic_contact_function(cell& lhs, cell& rhs)
 {
-	const real_t adhesion = sqrt(lhs.phenotype.mechanics.attachment_elastic_constant()
-								 * rhs.phenotype.mechanics.attachment_elastic_constant()
-								 * lhs.phenotype.mechanics.cell_adhesion_affinities()[rhs.cell_definition_index()]
-								 * rhs.phenotype.mechanics.cell_adhesion_affinities()[lhs.cell_definition_index()]);
+	const real_t adhesion = std::sqrt(
+		lhs.phenotype.mechanics.attachment_elastic_constant() * rhs.phenotype.mechanics.attachment_elastic_constant()
+		* lhs.phenotype.mechanics.cell_adhesion_affinities()[rhs.cell_definition_index()]
+		* rhs.phenotype.mechanics.cell_adhesion_affinities()[lhs.cell_definition_index()]);
 
 	for (index_t d = 0; d < lhs.e().mechanics_mesh.dims; d++)
 	{
-		lhs.velocity()[d] = adhesion * (lhs.position()[d] - rhs.position()[d]);
+		lhs.velocity()[d] += adhesion * (rhs.position()[d] - lhs.position()[d]);
 	}
 }
 

@@ -54,9 +54,9 @@ std::function<void(cell&)> get_worker_cell_rule(User_Parameters& parameters)
 		// if( pCell->state.neighbors.size() == 0 ) // pre 1.8.0
 		if (pCell->state.attached_cells().size() == 0)
 		{
-			for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
+			for (std::size_t i = 0; i < pCell->cells_in_my_mechanics_voxel().size(); i++)
 			{
-				auto nearby = c.container().get_at(pCell->state.neighbors()[i]);
+				auto nearby = c.container().get_at(pCell->cells_in_my_mechanics_voxel()[i]);
 
 				// if it is expressing the receptor, dock with it
 				// set chemotaxis weights
