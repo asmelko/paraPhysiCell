@@ -109,6 +109,8 @@ int main()
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 	e.mechanics_time_step = 0.1;
+	e.virtual_wall_at_domain_edges = true;
+	e.automated_spring_adhesion = true;
 	initialize_default_cell_definition(e);
 
 	measure(make_agents(e, 2'000'000, true), cells_init_duration);
