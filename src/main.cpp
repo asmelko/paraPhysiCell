@@ -124,14 +124,15 @@ int main()
 		for (index_t i = 0; i < 100; ++i)
 		{
 			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_update_mesh,
-				velocity_interactions_duration, velocity_motility_duration, velocity_membrane_duration,
+				velocity_forces_duration, neighbors_duration, velocity_motility_duration, velocity_membrane_duration,
 				velocity_attachments_duration, position_duration, interactions_duration, delete_duration;
 
 			measure(s.diffusion.solve(m), diffusion_duration);
 			measure(s.gradient.solve(m), gradient_duration);
 			measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
 			measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
-			measure(position_solver::update_cell_velocities_and_neighbors(e), velocity_interactions_duration);
+			measure(position_solver::update_cell_neighbors(e), neighbors_duration);
+			measure(position_solver::update_cell_forces(e), velocity_forces_duration);
 			measure(position_solver::update_motility(e), velocity_motility_duration);
 			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
 			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
@@ -141,10 +142,10 @@ int main()
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
-					  << " ms,\t Positions[mech,cells,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
-					  << velocity_interactions_duration << "," << velocity_motility_duration << ","
-					  << velocity_membrane_duration << "," << velocity_attachments_duration << "," << position_duration
-					  << " ms,\t Interactions time: " << interactions_duration
+					  << " ms,\t Positions[mech,cells,nei,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
+					  << velocity_forces_duration << "," << neighbors_duration << "," << velocity_motility_duration
+					  << "," << velocity_membrane_duration << "," << velocity_attachments_duration << ","
+					  << position_duration << " ms,\t Interactions time: " << interactions_duration
 					  << " ms,\t Delete time: " << delete_duration << " ms" << std::endl;
 
 			std::cout << "Number of cells: " << e.cast_container<cell_container>().data().agents_count << std::endl;
@@ -153,7 +154,8 @@ int main()
 	for (index_t i = 0; i < 5; i++)
 	{
 		containers_solver::update_mechanics_mesh(e);
-		position_solver::update_cell_velocities_and_neighbors(e);
+		position_solver::update_cell_neighbors(e);
+		position_solver::update_cell_forces(e);
 		position_solver::update_motility(e);
 		position_solver::update_basement_membrane_interactions(e);
 		position_solver::update_spring_attachments(e);

@@ -28,6 +28,9 @@ void simulator::initialize(environment& e, PhysiCell_Settings& settings)
 	svg_save_interval_ = (index_t)std::round(settings.SVG_save_interval / e.m.diffusion_time_step);
 
 	recompute_secretion_and_uptake_ = true;
+	
+	mechanics_solver_.containers.update_cell_container_for_mechanics(e);
+	mechanics_solver_.containers.update_mechanics_mesh(e);
 }
 
 void custom_cell_rules(environment& e)
@@ -62,18 +65,15 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		// Compute gradient:
 		diffusion_solver_.gradient.solve(e.m);
 
-		// Update mechanics mesh with new cell positions:
-		mechanics_solver_.containers.update_mechanics_mesh(e);
-
-		// custom attached cells adhesion:
-		evaluate_interactions(e);
-
 		// custom cell rules:
 		custom_cell_rules(e);
 
 		// Compute velocities and update the positions:
 		{
-			mechanics_solver_.position.update_cell_velocities_and_neighbors(e);
+			// custom attached cells adhesion:
+			evaluate_interactions(e);
+
+			mechanics_solver_.position.update_cell_forces(e);
 			mechanics_solver_.position.update_motility(e);
 			mechanics_solver_.position.update_basement_membrane_interactions(e);
 			mechanics_solver_.position.update_spring_attachments(e);
@@ -83,8 +83,17 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		// Standard cell-cell interactions:
 		mechanics_solver_.interactions.update_cell_cell_interactions(e);
 
-		// Removal of flagged cells from data structures:
-		mechanics_solver_.containers.update_cell_container_for_mechanics(e);
+		// housekeeping
+		{
+			// Removal of flagged cells from data structures:
+			mechanics_solver_.containers.update_cell_container_for_mechanics(e);
+
+			// Update mechanics mesh with new cell positions:
+			mechanics_solver_.containers.update_mechanics_mesh(e);
+
+			// Update cells neighbors:
+			mechanics_solver_.position.update_cell_neighbors(e);
+		}
 
 		recompute_secretion_and_uptake_ = true;
 	}
@@ -94,8 +103,14 @@ void simulator::simulate_diffusion_and_mechanics(environment& e)
 		// Update phenotype:
 		advance_bundled_phenotype_functions(e);
 
-		// Removal and division of flagged cells in data structures:
-		mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell);
+		// housekeeping
+		{
+			// Removal and division of flagged cells in data structures:
+			mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell);
+
+			// Update cells neighbors:
+			mechanics_solver_.position.update_cell_neighbors(e);
+		}
 	}
 }
 

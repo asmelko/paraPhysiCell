@@ -155,7 +155,8 @@ TEST_P(host_velocity_solver, simple)
 		c3->position()[i] = 70;
 
 	containers_solver::update_mechanics_mesh(*e);
-	position_solver::update_cell_velocities_and_neighbors(*e);
+	position_solver::update_cell_neighbors(*e);
+	position_solver::update_cell_forces(*e);
 
 	real_t expected;
 
@@ -282,7 +283,8 @@ TEST_P(host_velocity_solver, complex)
 		c3->position()[i] = 7;
 
 	containers_solver::update_mechanics_mesh(*e);
-	position_solver::update_cell_velocities_and_neighbors(*e);
+	position_solver::update_cell_neighbors(*e);
+	position_solver::update_cell_forces(*e);
 
 	EXPECT_EQ(cont.data().states.neighbors[0].size(), 1);
 	EXPECT_EQ(cont.data().states.neighbors[1].size(), 2);

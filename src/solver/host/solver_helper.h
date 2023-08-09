@@ -50,6 +50,12 @@ struct position_helper
 template <>
 struct position_helper<1>
 {
+	static constexpr biofvm::real_t distance(const biofvm::real_t* __restrict__ lhs,
+											 const biofvm::real_t* __restrict__ rhs)
+	{
+		return std::abs(lhs[0] - rhs[0]);
+	}
+
 	static constexpr biofvm::real_t difference_and_distance(const biofvm::real_t* __restrict__ lhs,
 															const biofvm::real_t* __restrict__ rhs,
 															biofvm::real_t* __restrict__ difference)
@@ -111,6 +117,12 @@ struct position_helper<1>
 template <>
 struct position_helper<2>
 {
+	static constexpr biofvm::real_t distance(const biofvm::real_t* __restrict__ lhs,
+											 const biofvm::real_t* __restrict__ rhs)
+	{
+		return std::sqrt((lhs[0] - rhs[0]) * (lhs[0] - rhs[0]) + (lhs[1] - rhs[1]) * (lhs[1] - rhs[1]));
+	}
+
 	static constexpr biofvm::real_t difference_and_distance(const biofvm::real_t* __restrict__ lhs,
 															const biofvm::real_t* __restrict__ rhs,
 															biofvm::real_t* __restrict__ difference)
@@ -183,6 +195,13 @@ struct position_helper<2>
 template <>
 struct position_helper<3>
 {
+	static constexpr biofvm::real_t distance(const biofvm::real_t* __restrict__ lhs,
+											 const biofvm::real_t* __restrict__ rhs)
+	{
+		return std::sqrt((lhs[0] - rhs[0]) * (lhs[0] - rhs[0]) + (lhs[1] - rhs[1]) * (lhs[1] - rhs[1])
+						 + (lhs[2] - rhs[2]) * (lhs[2] - rhs[2]));
+	}
+
 	static constexpr biofvm::real_t difference_and_distance(const biofvm::real_t* __restrict__ lhs,
 															const biofvm::real_t* __restrict__ rhs,
 															biofvm::real_t* __restrict__ difference)

@@ -24,26 +24,13 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 				const real_t* __restrict__ radius, const real_t* __restrict__ cell_cell_repulsion_strength,
 				const real_t* __restrict__ cell_cell_adhesion_strength,
 				const real_t* __restrict__ relative_maximum_adhesion_distance,
-				const real_t* __restrict__ cell_adhesion_affinity, const index_t* __restrict__ cell_definition_index,
-				std::vector<index_t>* __restrict__ neighbors)
+				const real_t* __restrict__ cell_adhesion_affinity, const index_t* __restrict__ cell_definition_index)
 {
 	real_t position_difference[dims];
 
-	real_t distance = position_helper<dims>::difference_and_distance(position + lhs * dims, position + rhs * dims,
-																	 position_difference);
-
-	const real_t adhesion_distance =
-		relative_maximum_adhesion_distance[lhs] * radius[lhs] + relative_maximum_adhesion_distance[rhs] * radius[rhs];
-
-	if (distance > adhesion_distance)
-	{
-		return;
-	}
-
-	distance = std::max<real_t>(distance, 0.00001);
-
-	neighbors[lhs].push_back(rhs);
-	neighbors[rhs].push_back(lhs);
+	const real_t distance = std::max<real_t>(position_helper<dims>::difference_and_distance(
+												 position + lhs * dims, position + rhs * dims, position_difference),
+											 0.00001);
 
 	// compute repulsion
 	real_t repulsion;
@@ -66,6 +53,9 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 	// compute adhesion
 	real_t adhesion;
 	{
+		const real_t adhesion_distance = relative_maximum_adhesion_distance[lhs] * radius[lhs]
+										 + relative_maximum_adhesion_distance[rhs] * radius[rhs];
+
 		adhesion = 1 - distance / adhesion_distance;
 
 		adhesion *= adhesion;
@@ -84,20 +74,41 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 }
 
 template <index_t dims>
-void update_cell_forces_and_neighbors_single(
-	environment& e, index_t i, index_t cell_def_count, real_t* __restrict__ velocity,
-	real_t* __restrict__ simple_pressure, const real_t* __restrict__ position, const real_t* __restrict__ radius,
+void update_cell_neighbors_single(environment& e, index_t i, const real_t* __restrict__ position,
+								  const real_t* __restrict__ radius,
+								  const real_t* __restrict__ relative_maximum_adhesion_distance,
+								  std::vector<index_t>* __restrict__ neighbors)
+{
+	common_solver::for_each_in_mech_neighborhood(
+		e, common_solver::get_mesh_position(position + dims * i, e.mechanics_mesh), i, [=](index_t j) {
+			const real_t adhesion_distance =
+				relative_maximum_adhesion_distance[i] * radius[i] + relative_maximum_adhesion_distance[j] * radius[j];
+
+			const real_t distance = position_helper<dims>::distance(position + i * dims, position + j * dims);
+
+			if (distance <= adhesion_distance)
+			{
+				neighbors[i].push_back(j);
+				neighbors[j].push_back(i);
+			}
+		});
+}
+
+template <index_t dims>
+void update_cell_forces_single(
+	index_t i, index_t cell_def_count, real_t* __restrict__ velocity, real_t* __restrict__ simple_pressure,
+	const real_t* __restrict__ position, const real_t* __restrict__ radius,
 	const real_t* __restrict__ cell_cell_repulsion_strength, const real_t* __restrict__ cell_cell_adhesion_strength,
 	const real_t* __restrict__ relative_maximum_adhesion_distance, const index_t* __restrict__ cell_definition_index,
 	const real_t* __restrict__ cell_adhesion_affinities, std::vector<index_t>* __restrict__ neighbors)
 {
-	common_solver::for_each_in_mech_neighborhood(
-		e, common_solver::get_mesh_position(position + dims * i, e.mechanics_mesh), i, [=](index_t j) {
+	for (const index_t j : neighbors[i])
+	{
+		if (j > i)
 			solve_pair<dims>(i, j, cell_def_count, velocity, simple_pressure, position, radius,
 							 cell_cell_repulsion_strength, cell_cell_adhesion_strength,
-							 relative_maximum_adhesion_distance, cell_adhesion_affinities, cell_definition_index,
-							 neighbors);
-		});
+							 relative_maximum_adhesion_distance, cell_adhesion_affinities, cell_definition_index);
+	}
 }
 
 template <index_t dims>
@@ -144,9 +155,9 @@ void update_basement_membrane_interactions_single(index_t i, real_t* __restrict_
 }
 
 template <index_t dims>
-void update_cell_velocities_and_neighbors_internal(
-	environment& e, index_t agents_count, index_t cell_def_count, real_t* __restrict__ velocity,
-	real_t* __restrict__ simple_pressure, const real_t* __restrict__ position, const real_t* __restrict__ radius,
+void update_cell_forces_internal(
+	index_t agents_count, index_t cell_def_count, real_t* __restrict__ velocity, real_t* __restrict__ simple_pressure,
+	const real_t* __restrict__ position, const real_t* __restrict__ radius,
 	const real_t* __restrict__ cell_cell_repulsion_strength, const real_t* __restrict__ cell_cell_adhesion_strength,
 	const real_t* __restrict__ relative_maximum_adhesion_distance, const index_t* __restrict__ cell_definition_index,
 	const real_t* __restrict__ cell_adhesion_affinities, const std::uint8_t* __restrict__ is_movable,
@@ -157,10 +168,26 @@ void update_cell_velocities_and_neighbors_internal(
 		if (is_movable[i] == 0)
 			continue;
 
-		update_cell_forces_and_neighbors_single<dims>(e, i, cell_def_count, velocity, simple_pressure, position, radius,
-													  cell_cell_repulsion_strength, cell_cell_adhesion_strength,
-													  relative_maximum_adhesion_distance, cell_definition_index,
-													  cell_adhesion_affinities, neighbors);
+		update_cell_forces_single<dims>(i, cell_def_count, velocity, simple_pressure, position, radius,
+										cell_cell_repulsion_strength, cell_cell_adhesion_strength,
+										relative_maximum_adhesion_distance, cell_definition_index,
+										cell_adhesion_affinities, neighbors);
+	}
+}
+
+template <index_t dims>
+void update_cell_neighbors_internal(environment& e, index_t agents_count, const real_t* __restrict__ position,
+									const real_t* __restrict__ radius,
+									const real_t* __restrict__ relative_maximum_adhesion_distance,
+									const std::uint8_t* __restrict__ is_movable,
+									std::vector<index_t>* __restrict__ neighbors)
+{
+	for (index_t i = 0; i < agents_count; i++)
+	{
+		if (is_movable[i] == 0)
+			continue;
+
+		update_cell_neighbors_single<dims>(e, i, position, radius, relative_maximum_adhesion_distance, neighbors);
 	}
 }
 
@@ -198,37 +225,58 @@ void update_basement_membrane_interactions_internal(index_t agents_count, real_t
 	}
 }
 
-void position_solver::update_cell_velocities_and_neighbors(environment& e)
+void position_solver::update_cell_forces(environment& e)
 {
 	auto& data = get_cell_data(e);
 
 	clear_simple_pressure(data.states.simple_pressure.data(), data.agents_count);
+
+	if (e.m.mesh.dims == 1)
+		update_cell_forces_internal<1>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
+			data.agent_data.positions.data(), data.geometries.radius.data(),
+			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
+			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+	else if (e.m.mesh.dims == 2)
+		update_cell_forces_internal<2>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
+			data.agent_data.positions.data(), data.geometries.radius.data(),
+			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
+			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+	else if (e.m.mesh.dims == 3)
+		update_cell_forces_internal<3>(
+			data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
+			data.agent_data.positions.data(), data.geometries.radius.data(),
+			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
+			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
+			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+}
+
+void position_solver::update_cell_neighbors(environment& e)
+{
+	auto& data = get_cell_data(e);
 
 	// clear neighbors
 	for (index_t i = 0; i < data.agents_count; i++)
 		data.states.neighbors[i].clear();
 
 	if (e.m.mesh.dims == 1)
-		update_cell_velocities_and_neighbors_internal<1>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
-			data.agent_data.positions.data(), data.geometries.radius.data(),
-			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
-			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+		update_cell_neighbors_internal<1>(e, data.agents_count, data.agent_data.positions.data(),
+										  data.geometries.radius.data(),
+										  data.mechanics.relative_maximum_adhesion_distance.data(),
+										  data.is_movable.data(), data.states.neighbors.data());
 	else if (e.m.mesh.dims == 2)
-		update_cell_velocities_and_neighbors_internal<2>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
-			data.agent_data.positions.data(), data.geometries.radius.data(),
-			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
-			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+		update_cell_neighbors_internal<2>(e, data.agents_count, data.agent_data.positions.data(),
+										  data.geometries.radius.data(),
+										  data.mechanics.relative_maximum_adhesion_distance.data(),
+										  data.is_movable.data(), data.states.neighbors.data());
 	else if (e.m.mesh.dims == 3)
-		update_cell_velocities_and_neighbors_internal<3>(
-			e, data.agents_count, e.cell_definitions_count, data.velocities.data(), data.states.simple_pressure.data(),
-			data.agent_data.positions.data(), data.geometries.radius.data(),
-			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
-			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
-			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+		update_cell_neighbors_internal<3>(e, data.agents_count, data.agent_data.positions.data(),
+										  data.geometries.radius.data(),
+										  data.mechanics.relative_maximum_adhesion_distance.data(),
+										  data.is_movable.data(), data.states.neighbors.data());
 }
 
 void position_solver::update_motility(environment& e)

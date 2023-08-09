@@ -7,7 +7,9 @@ namespace physicell {
 class position_solver : public common_solver
 {
 public:
-	static void update_cell_velocities_and_neighbors(environment& e);
+	static void update_cell_forces(environment& e);
+
+	static void update_cell_neighbors(environment& e);
 
 	static void update_motility(environment& e);
 
