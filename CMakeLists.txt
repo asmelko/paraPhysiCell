@@ -70,3 +70,4 @@ gtest_discover_tests(unit_PhysiCell)
 
 add_subdirectory(sample_projects/biorobots)
 add_subdirectory(sample_projects/heterogeneity)
+add_subdirectory(sample_projects/template)
