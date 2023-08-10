@@ -83,7 +83,6 @@ void simulator_durations::print_durations()
 		std::cout << durations[i].second << ": " << durations[i].first / 1000. << "ms ";
 	}
 	std::cout << std::endl;
-	std::cout << std::endl;
 
 	// zero them out
 	diffusion = 0;
@@ -279,8 +278,8 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 		{
 			measure(save_full(e, settings), durations_.full_save);
 
-			display_simulation_status(std::cout, e, settings);
 			durations_.print_durations();
+			display_simulation_status(std::cout, e, settings);
 		}
 
 		simulate_diffusion_and_mechanics(e);
