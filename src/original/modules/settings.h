@@ -71,7 +71,6 @@ public:
 
 	void operator=(T& rhs);
 	void operator=(T rhs);
-	void operator=(Parameter& p);
 };
 
 template <class T>

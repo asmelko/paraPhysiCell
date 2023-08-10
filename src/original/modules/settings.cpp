@@ -197,15 +197,6 @@ void Parameter<T>::operator=(T rhs)
 }
 
 template <class T>
-void Parameter<T>::operator=(Parameter& p)
-{
-	name = p.name;
-	units = p.units;
-	value = p.value;
-	return;
-}
-
-template <class T>
 std::ostream& operator<<(std::ostream& os, const Parameter<T>& param)
 {
 	os << param.name << ": " << param.value << " [" << param.units << "]";
