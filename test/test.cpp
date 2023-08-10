@@ -3,8 +3,11 @@
 #include <gtest/gtest.h>
 
 #include "cell.h"
+#include "cell_data.h"
 #include "environment.h"
-#include "solver/host/mechanics_solver.h"
+#include "original/standard_models.h"
+#include "solver/host/containers_solver.h"
+#include "solver/host/interactions_solver.h"
 #include "solver/host/position_solver.h"
 
 using namespace biofvm;
@@ -27,20 +30,24 @@ microenvironment default_microenv(cartesian_mesh mesh)
 	initial_conds[1] = 1;
 
 	microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get());
-	m.diffustion_coefficients = std::move(diff_coefs);
+	m.diffusion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 
 	return m;
 }
 
-environment default_env(microenvironment& m, cartesian_mesh mesh)
+std::unique_ptr<environment> default_env(microenvironment& m, index_t cell_defs_count = 3)
 {
-	index_t cell_defs_count = 3;
+	auto e = std::make_unique<environment>(m, cell_defs_count);
+	initialize_default_cell_definition(*e);
 
-	environment e(m, mesh);
-	e.cell_definitions_count = cell_defs_count;
+	for (index_t i = 1; i < cell_defs_count; i++)
+	{
+		e->create_cell_definition();
+		e->cell_definitions.back()->inherit_from(e->cell_defaults());
+	}
 
-	m.agents = std::make_unique<cell_container>(e);
+	m.agents = std::make_unique<cell_container>(*e);
 
 	return e;
 }
@@ -50,9 +57,9 @@ TEST(cell_container, add_and_remove)
 	cartesian_mesh mesh(1, { 0, 0, 0 }, { 80, 0, 0 }, { 20, 0, 0 });
 
 	auto m = default_microenv(mesh);
-	auto e = default_env(m, mesh);
+	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	c1->volume() = 1;
@@ -141,9 +148,9 @@ TEST_P(host_velocity_solver, simple)
 	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 80, 80, 80 }, { 20, 20, 20 });
 
 	auto m = default_microenv(mesh);
-	auto e = default_env(m, mesh);
+	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -155,8 +162,9 @@ TEST_P(host_velocity_solver, simple)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 70;
 
-	mechanics_solver::update_mechanics_mesh(e);
-	position_solver::update_cell_velocities_and_neighbors(e);
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+	position_solver::update_cell_forces(*e);
 
 	real_t expected;
 
@@ -258,9 +266,9 @@ TEST_P(host_velocity_solver, complex)
 	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 80, 80, 80 }, { 20, 20, 20 });
 
 	auto m = default_microenv(mesh);
-	auto e = default_env(m, mesh);
+	auto e = default_env(m);
 
-	cell_container& cont = e.cast_container<cell_container>();
+	cell_container& cont = e->cast_container<cell_container>();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -282,12 +290,13 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 7;
 
-	mechanics_solver::update_mechanics_mesh(e);
-	position_solver::update_cell_velocities_and_neighbors(e);
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+	position_solver::update_cell_forces(*e);
 
-	EXPECT_EQ(cont.data().neighbors[0].size(), 1);
-	EXPECT_EQ(cont.data().neighbors[1].size(), 2);
-	EXPECT_EQ(cont.data().neighbors[2].size(), 1);
+	EXPECT_EQ(cont.data().states.neighbors[0].size(), 1);
+	EXPECT_EQ(cont.data().states.neighbors[1].size(), 2);
+	EXPECT_EQ(cont.data().states.neighbors[2].size(), 1);
 
 	auto expected_velocities = compute_expected_velocities(cont.agents(), dims);
 
@@ -299,4 +308,211 @@ TEST_P(host_velocity_solver, complex)
 
 	for (index_t i = 0; i < dims; i++)
 		EXPECT_FLOAT_EQ(c3->velocity()[i], expected_velocities[2 * dims + i]);
+}
+
+point_t<index_t, 3> get_coords_from_index(index_t index, const cartesian_mesh& m)
+{
+	if (m.dims == 1)
+		return { index, 0, 0 };
+	else if (m.dims == 2)
+		return { index % m.grid_shape[0], index / m.grid_shape[1], 0 };
+	else
+		return { index % m.grid_shape[0], (index / m.grid_shape[0]) % m.grid_shape[1],
+				 index / (m.grid_shape[0] * m.grid_shape[1]) };
+}
+
+class host_neighbors_solver : public testing::TestWithParam<std::tuple<index_t, index_t, index_t>>
+{};
+
+INSTANTIATE_TEST_SUITE_P(neis, host_neighbors_solver,
+						 testing::Combine(testing::Values(1, 2, 3), testing::Values(1, 5), testing::Values(1, 3)));
+
+TEST_P(host_neighbors_solver, grid)
+{
+	auto dims = std::get<0>(GetParam());
+	auto cells_in_one_voxel = std::get<1>(GetParam());
+	// 1 - no reach for neighbors
+	// 2 - reach to direct neighbors - not tested
+	// 3 - reach to diagonal neighbors
+	auto adhesion = std::get<2>(GetParam());
+
+	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
+	{
+		auto coords = get_coords_from_index(i, e->mechanics_mesh);
+
+		for (index_t j = 0; j < cells_in_one_voxel; j++)
+		{
+			auto pos = e->mechanics_mesh.voxel_center(coords);
+
+			auto a = cont.create();
+			a->assign_position(pos);
+			a->phenotype.geometry.radius() = 9;
+			a->phenotype.mechanics.relative_maximum_adhesion_distance() = adhesion;
+		}
+	}
+
+	containers_solver::update_mechanics_mesh(*e);
+
+	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
+		ASSERT_EQ(e->cells_in_mechanics_voxels[i].size(), cells_in_one_voxel);
+
+	position_solver::update_cell_neighbors(*e);
+
+	for (index_t i = 0; i < cont.data().agents_count; i++)
+	{
+		index_t expected = cells_in_one_voxel - 1;
+
+		auto pos =
+			common_solver::get_mesh_position(cont.data().agent_data.positions.data() + i * dims, e->mechanics_mesh);
+
+		if (adhesion == 3)
+			for (index_t z = -1; z <= 1; z++)
+				for (index_t y = -1; y <= 1; y++)
+					for (index_t x = -1; x <= 1; x++)
+						if (!(pos[0] + x < 0 || pos[0] + x >= e->mechanics_mesh.grid_shape[0] || pos[1] + y < 0
+							  || pos[1] + y >= e->mechanics_mesh.grid_shape[1] || pos[2] + z < 0
+							  || pos[2] + z >= e->mechanics_mesh.grid_shape[2] || (x == 0 && y == 0 && z == 0)))
+							expected += cells_in_one_voxel;
+
+		ASSERT_EQ(cont.data().states.neighbors[i].size(), expected);
+	}
+}
+
+TEST(host_interactions_solver, attack)
+{
+	cartesian_mesh mesh(3, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	auto c1 = cont.create_cell(e->cell_defaults());
+	c1->assign_position({ 10, 10, 10 });
+	c1->state.set_defaults();
+	c1->phenotype.cell_interactions.attack_rates()[0] = 1000000000;
+
+	auto c2 = cont.create_cell(e->cell_defaults());
+	c2->assign_position({ 10, 10, 10 });
+	c2->state.set_defaults();
+	c2->phenotype.cell_interactions.attack_rates()[0] = 0;
+	c2->phenotype.cell_interactions.immunogenicities()[0] = 0;
+
+	auto c3 = cont.create_cell(e->cell_defaults());
+	c3->assign_position({ 10, 10, 10 });
+	c3->state.set_defaults();
+	c3->phenotype.cell_interactions.attack_rates()[0] = 0;
+	c3->phenotype.cell_interactions.immunogenicities()[0] = 1;
+
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+
+	interactions_solver::update_cell_cell_interactions(*e);
+
+	ASSERT_EQ(c1->state.damage(), 0);
+	ASSERT_EQ(c2->state.damage(), 0);
+	ASSERT_NE(c3->state.damage(), 0);
+}
+
+TEST(host_interactions_solver, dead_phagocytosis)
+{
+	cartesian_mesh mesh(3, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	auto c1 = cont.create_cell(e->cell_defaults());
+	c1->assign_position({ 10, 10, 10 });
+	c1->state.set_defaults();
+	c1->phenotype.cell_interactions.dead_phagocytosis_rate() = 1000000000;
+
+	auto c2 = cont.create_cell(e->cell_defaults());
+	c2->assign_position({ 10, 10, 10 });
+	c2->phenotype.death.dead() = 1;
+
+	auto c3 = cont.create_cell(e->cell_defaults());
+	c3->assign_position({ 10, 10, 10 });
+	c3->phenotype.death.dead() = 0;
+
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+
+	interactions_solver::update_cell_cell_interactions(*e);
+
+	ASSERT_EQ(c1->flag(), cell_state_flag::none);
+	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
+	ASSERT_EQ(c3->flag(), cell_state_flag::none);
+}
+
+TEST(host_interactions_solver, phagocytosis)
+{
+	cartesian_mesh mesh(3, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	auto c1 = cont.create_cell(*e->cell_definitions[0]);
+	c1->assign_position({ 10, 10, 10 });
+	c1->state.set_defaults();
+	c1->phenotype.cell_interactions.live_phagocytosis_rates()[0] = 0;
+	c1->phenotype.cell_interactions.live_phagocytosis_rates()[1] = 1000000000;
+
+	auto c2 = cont.create_cell(*e->cell_definitions[1]);
+	c2->assign_position({ 10, 10, 10 });
+
+	auto c3 = cont.create_cell(*e->cell_definitions[0]);
+	c3->assign_position({ 10, 10, 10 });
+
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+
+	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver::update_cell_cell_interactions(*e);
+
+	ASSERT_EQ(c1->flag(), cell_state_flag::none);
+	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
+	ASSERT_EQ(c3->flag(), cell_state_flag::none);
+}
+
+TEST(host_interactions_solver, fusion)
+{
+	cartesian_mesh mesh(3, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	auto c1 = cont.create_cell(*e->cell_definitions[0]);
+	c1->assign_position({ 10, 10, 10 });
+	c1->state.set_defaults();
+	c1->phenotype.cell_interactions.fusion_rates()[0] = 0;
+	c1->phenotype.cell_interactions.fusion_rates()[1] = 1000000000;
+
+	auto c2 = cont.create_cell(*e->cell_definitions[1]);
+	c2->assign_position({ 10, 10, 10 });
+
+	auto c3 = cont.create_cell(*e->cell_definitions[0]);
+	c3->assign_position({ 10, 10, 10 });
+
+	containers_solver::update_mechanics_mesh(*e);
+	position_solver::update_cell_neighbors(*e);
+
+	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver::update_cell_cell_interactions(*e);
+
+	ASSERT_EQ(c1->flag(), cell_state_flag::none);
+	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
+	ASSERT_EQ(c3->flag(), cell_state_flag::none);
 }

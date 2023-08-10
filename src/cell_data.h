@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 #include <BioFVM/agent_data.h>
@@ -8,6 +9,7 @@
 namespace physicell {
 
 struct environment;
+class cell;
 
 struct volume_data
 {
@@ -29,9 +31,15 @@ struct volume_data
 
 	std::vector<biofvm::real_t> rupture_volume;
 
+	std::vector<biofvm::real_t> cytoplasmic_biomass_change_rate; 
+	std::vector<biofvm::real_t> nuclear_biomass_change_rate; 
+	std::vector<biofvm::real_t> fluid_change_rate;
+	std::vector<biofvm::real_t> calcification_rate; 
 	std::vector<biofvm::real_t> target_solid_cytoplasmic;
 	std::vector<biofvm::real_t> target_solid_nuclear;
 	std::vector<biofvm::real_t> target_fluid_fraction;
+	std::vector<biofvm::real_t> target_cytoplasmic_to_nuclear_ratio;
+	std::vector<biofvm::real_t> relative_rupture_volume; 
 
 	void add(biofvm::index_t size);
 	void remove(biofvm::index_t index, biofvm::index_t size);
@@ -72,6 +80,8 @@ struct mechanics_data
 
 struct motility_data
 {
+	using direction_update_func = std::function<void(cell&)>;
+
 	std::vector<std::uint8_t> is_motile;
 	std::vector<biofvm::real_t> persistence_time;
 	std::vector<biofvm::real_t> migration_speed;
@@ -87,6 +97,8 @@ struct motility_data
 	std::vector<biofvm::index_t> chemotaxis_direction;
 	std::vector<biofvm::real_t> chemotactic_sensitivities;
 
+	std::vector<direction_update_func> update_migration_bias_direction;
+
 	void add(biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims, biofvm::index_t substrates_count);
 };
@@ -100,7 +112,15 @@ struct interactions_data
 	std::vector<biofvm::real_t> attack_rates;
 	std::vector<biofvm::real_t> immunogenicities;
 
-	std::vector<biofvm::real_t> fussion_rates;
+	std::vector<biofvm::real_t> fusion_rates;
+
+	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
+};
+
+struct transformations_data
+{
+	std::vector<biofvm::real_t> transformation_rates;
 
 	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
@@ -114,6 +134,31 @@ struct death_data
 	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
+struct cell_state_data
+{
+	std::vector<std::vector<biofvm::index_t>> neighbors;
+
+	std::vector<std::vector<biofvm::index_t>> springs;
+	std::vector<std::vector<biofvm::index_t>> attached_cells;
+
+	std::vector<biofvm::real_t> orientation;
+	std::vector<biofvm::real_t> simple_pressure;
+	std::vector<biofvm::index_t> number_of_nuclei;
+
+	std::vector<biofvm::real_t> damage;
+	std::vector<biofvm::real_t> total_attack_time;
+
+	void add(biofvm::index_t size, biofvm::index_t dims);
+	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t dims);
+};
+
+enum class cell_state_flag : std::uint8_t
+{
+	none = 0,
+	to_remove = 1,
+	to_divide = 2
+};
+
 struct cell_data
 {
 	// BioFVM phenotype data: secretion + total volume + molecular
@@ -123,24 +168,20 @@ struct cell_data
 	volume_data volumes;
 	geometry_data geometries;
 	mechanics_data mechanics;
-	motility_data motility;
-	death_data death;
+	motility_data motilities;
+	death_data deaths;
 
 	interactions_data interactions;
+	transformations_data transformations;
+
+	cell_state_data states;
 
 	std::vector<biofvm::real_t> previous_velocities;
 	std::vector<biofvm::real_t> velocities;
 	std::vector<biofvm::index_t> cell_definition_indices;
-	std::vector<biofvm::real_t> simple_pressures;
 	std::vector<std::uint8_t> is_movable;
-	std::vector<biofvm::index_t> number_of_nuclei;
-	std::vector<biofvm::real_t> damage;
-	std::vector<biofvm::real_t> total_attack_time;
 
-	std::vector<std::vector<biofvm::index_t>> neighbors;
-	std::vector<std::vector<biofvm::index_t>> springs;
-
-	std::vector<std::uint8_t> to_remove;
+	std::vector<cell_state_flag> flags;
 
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;
@@ -148,6 +189,7 @@ struct cell_data
 	environment& e;
 
 	cell_data(environment& e);
+	cell_data(environment& e, biofvm::index_t agents_count);
 
 	void add();
 	void remove(biofvm::index_t index);

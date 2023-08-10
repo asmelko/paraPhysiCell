@@ -3,8 +3,9 @@
 
 #include "BioFVM/solver.h"
 #include "environment.h"
+#include "original/standard_models.h"
+#include "solver/host/containers_solver.h"
 #include "solver/host/interactions_solver.h"
-#include "solver/host/mechanics_solver.h"
 #include "solver/host/position_solver.h"
 
 using namespace biofvm;
@@ -22,7 +23,7 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 	for (index_t i = 0; i < count; i++)
 	{
-		auto a = e.cast_container<cell_container>().create();
+		auto a = e.cast_container<cell_container>().create_cell(e.cell_defaults());
 		a->position()[0] = x + 10;
 		a->position()[1] = y + 10;
 		a->position()[2] = z + 10;
@@ -47,9 +48,9 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 		a->phenotype.mechanics.cell_BM_repulsion_strength() = 100;
 
-		a->phenotype.interactions.attack_rates()[0] = .01;
-		a->phenotype.interactions.fussion_rates()[0] = .01;
-		a->phenotype.interactions.live_phagocytosis_rates()[0] = .01;
+		a->phenotype.cell_interactions.attack_rates()[0] = .01;
+		a->phenotype.cell_interactions.fusion_rates()[0] = .01;
+		a->phenotype.cell_interactions.live_phagocytosis_rates()[0] = .01;
 
 		x += e.m.mesh.voxel_shape[0];
 		if (x >= e.m.mesh.bounding_box_maxs[0])
@@ -85,7 +86,6 @@ int main()
 	std::size_t microenv_init_duration, env_init_duration, cells_init_duration, solver_init_duration;
 
 	cartesian_mesh mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 20, 20, 20 });
-	cartesian_mesh mechanics_mesh(3, { 0, 0, 0 }, { 10000, 10000, 10000 }, { 40, 40, 40 });
 
 	real_t diffusion_time_step = 0.01;
 	index_t substrates_count = 2;
@@ -101,14 +101,17 @@ int main()
 
 	measure(microenvironment m(mesh, substrates_count, diffusion_time_step, initial_conds.get()),
 			microenv_init_duration);
-	m.diffustion_coefficients = std::move(diff_coefs);
+	m.diffusion_coefficients = std::move(diff_coefs);
 	m.decay_rates = std::move(decay_rates);
 	m.compute_internalized_substrates = true;
 
-	measure(environment e(m, mechanics_mesh), env_init_duration);
+	measure(environment e(m, cell_defs_count, { 40, 40, 40 }), env_init_duration);
 	e.cell_definitions_count = cell_defs_count;
 	m.agents = std::make_unique<cell_container>(e);
 	e.mechanics_time_step = 0.1;
+	e.virtual_wall_at_domain_edges = true;
+	e.automated_spring_adhesion = true;
+	initialize_default_cell_definition(e);
 
 	measure(make_agents(e, 2'000'000, true), cells_init_duration);
 
@@ -123,36 +126,38 @@ int main()
 		for (index_t i = 0; i < 100; ++i)
 		{
 			std::size_t diffusion_duration, gradient_duration, secretion_duration, velocity_update_mesh,
-				velocity_interactions_duration, velocity_motility_duration, velocity_membrane_duration,
+				velocity_forces_duration, neighbors_duration, velocity_motility_duration, velocity_membrane_duration,
 				velocity_attachments_duration, position_duration, interactions_duration, delete_duration;
 
 			measure(s.diffusion.solve(m), diffusion_duration);
 			measure(s.gradient.solve(m), gradient_duration);
 			measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
-			measure(mechanics_solver::update_mechanics_mesh(e), velocity_update_mesh);
-			measure(position_solver::update_cell_velocities_and_neighbors(e), velocity_interactions_duration);
+			measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
+			measure(position_solver::update_cell_neighbors(e), neighbors_duration);
+			measure(position_solver::update_cell_forces(e), velocity_forces_duration);
 			measure(position_solver::update_motility(e), velocity_motility_duration);
 			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
 			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
 			measure(position_solver::update_positions(e), position_duration);
 			measure(interactions_solver::update_cell_cell_interactions(e), interactions_duration);
-			measure(mechanics_solver::update_cell_container(e), delete_duration);
+			measure(containers_solver::update_cell_container_for_mechanics(e), delete_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration
-					  << " ms,\t Positions[mech,cells,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
-					  << velocity_interactions_duration << "," << velocity_motility_duration << ","
-					  << velocity_membrane_duration << "," << velocity_attachments_duration << "," << position_duration
-					  << " ms,\t Interactions time: " << interactions_duration
+					  << " ms,\t Positions[mech,cells,nei,motil,membr,spring,upd] time: " << velocity_update_mesh << ","
+					  << velocity_forces_duration << "," << neighbors_duration << "," << velocity_motility_duration
+					  << "," << velocity_membrane_duration << "," << velocity_attachments_duration << ","
+					  << position_duration << " ms,\t Interactions time: " << interactions_duration
 					  << " ms,\t Delete time: " << delete_duration << " ms" << std::endl;
 
 			std::cout << "Number of cells: " << e.cast_container<cell_container>().data().agents_count << std::endl;
 		}
 
-	for (int i = 0; i < 5; i++)
+	for (index_t i = 0; i < 5; i++)
 	{
-		mechanics_solver::update_mechanics_mesh(e);
-		position_solver::update_cell_velocities_and_neighbors(e);
+		containers_solver::update_mechanics_mesh(e);
+		position_solver::update_cell_neighbors(e);
+		position_solver::update_cell_forces(e);
 		position_solver::update_motility(e);
 		position_solver::update_basement_membrane_interactions(e);
 		position_solver::update_spring_attachments(e);

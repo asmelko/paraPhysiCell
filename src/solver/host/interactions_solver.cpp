@@ -1,8 +1,6 @@
 #include "interactions_solver.h"
 
-#include <cmath>
-
-#include "../../random.h"
+#include "solver_helper.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -24,8 +22,8 @@ void ingest_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t*
 	cytoplasmic[lhs] += fluid[rhs] + solid[rhs];
 	total[lhs] += fluid[rhs] + solid[rhs];
 
-	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + 1e-16);
-	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + 1e-16);
+	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + zero_threshold);
+	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + zero_threshold);
 }
 
 void fuse_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t* __restrict__ fluid,
@@ -52,8 +50,8 @@ void fuse_volume(index_t lhs, index_t rhs, real_t* __restrict__ total, real_t* _
 	cytoplasmic[lhs] = cytoplasmic_fluid[lhs] + cytoplasmic_solid[lhs];
 	total[lhs] = nuclear[lhs] + cytoplasmic[lhs];
 
-	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + 1e-16);
-	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + 1e-16);
+	fluid_fraction[lhs] = fluid[lhs] / (total[lhs] + zero_threshold);
+	cytoplasmic_to_nuclear_ratio[lhs] = cytoplasmic_solid[lhs] / (nuclear_solid[lhs] + zero_threshold);
 }
 
 void ingest_internalized(index_t lhs, index_t rhs, index_t substrates_count,
@@ -81,16 +79,16 @@ void fuse_position(index_t lhs, index_t rhs, index_t dims, real_t* __restrict__ 
 {
 	const real_t both_volume = total_volume[lhs] + total_volume[rhs];
 
-	for (int i = 0; i < dims; i++)
+	for (index_t i = 0; i < dims; i++)
 	{
 		position[lhs * dims + i] =
 			(position[lhs * dims + i] * total_volume[lhs] + position[rhs * dims + i] * total_volume[rhs]) / both_volume;
 	}
 }
 
-void update_geometry(index_t i, real_t* __restrict__ radius, real_t* __restrict__ nuclear_radius,
-					 real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
-					 const real_t* __restrict__ nuclear_volume)
+void physicell::update_geometry(index_t i, real_t* __restrict__ radius, real_t* __restrict__ nuclear_radius,
+								real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
+								const real_t* __restrict__ nuclear_volume)
 {
 	radius[i] = std::cbrt(total_volume[i] / (M_PI * 4.0 / 3.0));
 	nuclear_radius[i] = std::cbrt(nuclear_volume[i] / (M_PI * 4.0 / 3.0));
@@ -110,7 +108,7 @@ void ingest(index_t lhs, index_t rhs, cell_data& data)
 	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
 					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
-	data.to_remove[rhs] = 1;
+	data.flags[rhs] = cell_state_flag::to_remove;
 }
 
 void fuse(index_t lhs, index_t rhs, cell_data& data)
@@ -130,9 +128,9 @@ void fuse(index_t lhs, index_t rhs, cell_data& data)
 	update_geometry(lhs, data.geometries.radius.data(), data.geometries.nuclear_radius.data(),
 					data.geometries.surface_area.data(), data.agent_data.volumes.data(), data.volumes.nuclear.data());
 
-	data.number_of_nuclei[lhs] += data.number_of_nuclei[rhs];
+	data.states.number_of_nuclei[lhs] += data.states.number_of_nuclei[rhs];
 
-	data.to_remove[rhs] = 1;
+	data.flags[rhs] = cell_state_flag::to_remove;
 }
 
 void attack(index_t lhs, index_t rhs, real_t time_step, const real_t* __restrict__ damage_rate,
@@ -147,7 +145,7 @@ void update_cell_cell_interactions_internal(
 	const index_t* __restrict__ cell_definition_indices, const real_t* __restrict__ dead_phagocytosis_rate,
 	const real_t* __restrict__ live_phagocytosis_rate, const real_t* __restrict__ attack_rate,
 	const real_t* __restrict__ fusion_rate, const real_t* __restrict__ immunogenicity,
-	const std::vector<index_t>* __restrict__ neighbors, const std::uint8_t* __restrict__ to_remove, cell_data& data)
+	const std::vector<index_t>* __restrict__ neighbors, const cell_state_flag* __restrict__ flag, cell_data& data)
 {
 	for (index_t cell_index = 0; cell_index < n; cell_index++)
 	{
@@ -155,7 +153,7 @@ void update_cell_cell_interactions_internal(
 		bool phagocytosed_once = false;
 		bool fused_once = false;
 
-		if (dead[cell_index] == 1 || to_remove[cell_index] == 1)
+		if (dead[cell_index] == 1 || flag[cell_index] == cell_state_flag::to_remove)
 		{
 			continue;
 		}
@@ -164,7 +162,7 @@ void update_cell_cell_interactions_internal(
 		{
 			const index_t neighbor_index = neighbors[cell_index][i];
 
-			if (to_remove[neighbor_index] == 1)
+			if (flag[neighbor_index] == cell_state_flag::to_remove)
 			{
 				continue;
 			}
@@ -201,8 +199,8 @@ void update_cell_cell_interactions_internal(
 
 				if (!attacked_once && random_number < attack_r * immuno_r * time_step)
 				{
-					attack(cell_index, neighbor_index, time_step, data.damage.data(),
-						   data.interactions.damage_rate.data(), data.total_attack_time.data());
+					attack(cell_index, neighbor_index, time_step, data.interactions.damage_rate.data(),
+						   data.states.damage.data(), data.states.total_attack_time.data());
 
 					attacked_once = true;
 
@@ -228,9 +226,9 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 	auto& data = get_cell_data(e);
 
 	update_cell_cell_interactions_internal(
-		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.death.dead.data(),
+		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.deaths.dead.data(),
 		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
-		data.interactions.fussion_rates.data(), data.interactions.immunogenicities.data(), data.neighbors.data(),
-		data.to_remove.data(), data);
+		data.interactions.fusion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
+		data.flags.data(), data);
 }

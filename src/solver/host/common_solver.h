@@ -31,27 +31,43 @@ public:
 				f(*it);
 		}
 
-		// now we process the surrounding voxels with increasing indices
-		for (biofvm::index_t z = 0; z <= 1; z++)
+		if (position[2] + 1 < e.mechanics_mesh.grid_shape[2])
 		{
-			if (position[2] + z >= e.mechanics_mesh.grid_shape[2])
-				continue;
-
-			for (biofvm::index_t y = 0; y <= 1; y++)
+			for (biofvm::index_t y = -1; y <= 1; y++)
 			{
-				if (position[1] + y >= e.mechanics_mesh.grid_shape[1])
+				if (position[1] + y >= e.mechanics_mesh.grid_shape[1] || position[1] + y < 0)
 					continue;
 
-				for (biofvm::index_t x = 0; x <= 1; x++)
+				for (biofvm::index_t x = -1; x <= 1; x++)
 				{
-					if (position[0] + x >= e.mechanics_mesh.grid_shape[0] || (x == 0 && y == 0 && z == 0))
+					if (position[0] + x >= e.mechanics_mesh.grid_shape[0] || position[0] + x < 0)
 						continue;
 
 					for (auto& cell_idx : e.cells_in_mechanics_voxels[get_mesh_index(
-							 { position[0] + x, position[1] + y, position[2] + z }, e.mechanics_mesh)])
+							 { position[0] + x, position[1] + y, position[2] + 1 }, e.mechanics_mesh)])
 						f(cell_idx);
 				}
 			}
+		}
+
+		if (position[1] + 1 < e.mechanics_mesh.grid_shape[1])
+		{
+			for (biofvm::index_t x = -1; x <= 1; x++)
+			{
+				if (position[0] + x >= e.mechanics_mesh.grid_shape[0] || position[0] + x < 0)
+					continue;
+
+				for (auto& cell_idx : e.cells_in_mechanics_voxels[get_mesh_index(
+						 { position[0] + x, position[1] + 1, position[2] }, e.mechanics_mesh)])
+					f(cell_idx);
+			}
+		}
+
+		if (position[0] + 1 < e.mechanics_mesh.grid_shape[0])
+		{
+			for (auto& cell_idx : e.cells_in_mechanics_voxels[get_mesh_index(
+					 { position[0] + 1, position[1], position[2] }, e.mechanics_mesh)])
+				f(cell_idx);
 		}
 	}
 };

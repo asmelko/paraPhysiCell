@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(paraPhysiCell VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -25,15 +25,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(paraBioFVM)
 
+# Fetch pugixml
+FetchContent_Declare(
+  pugixml
+  URL https://github.com/zeux/pugixml/archive/refs/tags/v1.13.zip
+)
+FetchContent_MakeAvailable(pugixml)
+
 # Target PhysiCellCore
 file(GLOB_RECURSE src_files "src/*")
 list(FILTER src_files EXCLUDE REGEX ".*main\\..*")
 
 add_library(PhysiCellCore ${src_files})
 
-target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include)
+target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include ${pugixml_SOURCE_DIR}/src)
 
-target_link_libraries(PhysiCellCore PUBLIC BioFVMCore)
+target_link_libraries(PhysiCellCore PUBLIC BioFVMCore pugixml-static)
 
 # Target unit_PhysiCell
 file(GLOB_RECURSE test_files "test/*")
@@ -60,3 +67,7 @@ endforeach()
 enable_testing()
 include(GoogleTest)
 gtest_discover_tests(unit_PhysiCell)
+
+add_subdirectory(sample_projects/biorobots)
+add_subdirectory(sample_projects/heterogeneity)
+add_subdirectory(sample_projects/template)

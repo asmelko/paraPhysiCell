@@ -23,27 +23,33 @@ void move_vector(T* dst, const T* src, biofvm::index_t size)
 
 void volume_data::add(index_t size)
 {
-	solid.resize(size, 0);
-	fluid.resize(size, 0);
-	fluid_fraction.resize(size, 0);
+	solid.resize(size);
+	fluid.resize(size);
+	fluid_fraction.resize(size);
 
-	nuclear.resize(size, 0);
-	nuclear_fluid.resize(size, 0);
-	nuclear_solid.resize(size, 0);
+	nuclear.resize(size);
+	nuclear_fluid.resize(size);
+	nuclear_solid.resize(size);
 
-	cytoplasmic.resize(size, 0);
-	cytoplasmic_fluid.resize(size, 0);
-	cytoplasmic_solid.resize(size, 0);
+	cytoplasmic.resize(size);
+	cytoplasmic_fluid.resize(size);
+	cytoplasmic_solid.resize(size);
 
-	calcified_fraction.resize(size, 0);
+	calcified_fraction.resize(size);
 
-	cytoplasmic_to_nuclear_ratio.resize(size, 0);
+	cytoplasmic_to_nuclear_ratio.resize(size);
 
-	rupture_volume.resize(size, 0);
+	rupture_volume.resize(size);
 
-	target_solid_cytoplasmic.resize(size, 0);
-	target_solid_nuclear.resize(size, 0);
-	target_fluid_fraction.resize(size, 0);
+	cytoplasmic_biomass_change_rate.resize(size);
+	nuclear_biomass_change_rate.resize(size);
+	fluid_change_rate.resize(size);
+	calcification_rate.resize(size);
+	target_solid_cytoplasmic.resize(size);
+	target_solid_nuclear.resize(size);
+	target_fluid_fraction.resize(size);
+	target_cytoplasmic_to_nuclear_ratio.resize(size);
+	relative_rupture_volume.resize(size);
 }
 
 void volume_data::remove(index_t index, index_t size)
@@ -66,17 +72,23 @@ void volume_data::remove(index_t index, index_t size)
 
 	move_scalar(rupture_volume.data() + index, rupture_volume.data() + size);
 
+	move_scalar(cytoplasmic_biomass_change_rate.data() + index, cytoplasmic_biomass_change_rate.data() + size);
+	move_scalar(nuclear_biomass_change_rate.data() + index, nuclear_biomass_change_rate.data() + size);
+	move_scalar(fluid_change_rate.data() + index, fluid_change_rate.data() + size);
+	move_scalar(calcification_rate.data() + index, calcification_rate.data() + size);
 	move_scalar(target_solid_cytoplasmic.data() + index, target_solid_cytoplasmic.data() + size);
 	move_scalar(target_solid_nuclear.data() + index, target_solid_nuclear.data() + size);
 	move_scalar(target_fluid_fraction.data() + index, target_fluid_fraction.data() + size);
+	move_scalar(target_cytoplasmic_to_nuclear_ratio.data() + index, target_cytoplasmic_to_nuclear_ratio.data() + size);
+	move_scalar(relative_rupture_volume.data() + index, relative_rupture_volume.data() + size);
 }
 
 void geometry_data::add(index_t size)
 {
-	radius.resize(size, 0);
-	nuclear_radius.resize(size, 0);
-	surface_area.resize(size, 0);
-	polarity.resize(size, 0);
+	radius.resize(size);
+	nuclear_radius.resize(size);
+	surface_area.resize(size);
+	polarity.resize(size);
 }
 
 void geometry_data::remove(index_t index, index_t size)
@@ -89,21 +101,21 @@ void geometry_data::remove(index_t index, index_t size)
 
 void mechanics_data::add(index_t size, index_t cell_definitions_count)
 {
-	cell_cell_adhesion_strength.resize(size, 0);
-	cell_BM_adhesion_strength.resize(size, 0);
+	cell_cell_adhesion_strength.resize(size);
+	cell_BM_adhesion_strength.resize(size);
 
-	cell_cell_repulsion_strength.resize(size, 0);
-	cell_BM_repulsion_strength.resize(size, 0);
+	cell_cell_repulsion_strength.resize(size);
+	cell_BM_repulsion_strength.resize(size);
 
-	cell_adhesion_affinities.resize(size * cell_definitions_count, 0);
+	cell_adhesion_affinities.resize(size * cell_definitions_count);
 
-	relative_maximum_adhesion_distance.resize(size, 0);
+	relative_maximum_adhesion_distance.resize(size);
 
-	maximum_number_of_attachments.resize(size, 0);
-	attachment_elastic_constant.resize(size, 0);
+	maximum_number_of_attachments.resize(size);
+	attachment_elastic_constant.resize(size);
 
-	attachment_rate.resize(size, 0);
-	detachment_rate.resize(size, 0);
+	attachment_rate.resize(size);
+	detachment_rate.resize(size);
 }
 
 void mechanics_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -128,20 +140,22 @@ void mechanics_data::remove(index_t index, index_t size, index_t cell_definition
 
 void motility_data::add(index_t index, index_t dims, index_t substrates_count)
 {
-	is_motile.resize(index, 0);
-	persistence_time.resize(index, 0);
-	migration_speed.resize(index, 0);
+	is_motile.resize(index);
+	persistence_time.resize(index);
+	migration_speed.resize(index);
 
-	migration_bias_direction.resize(index * dims, 0);
-	migration_bias.resize(index, 0);
+	migration_bias_direction.resize(index * dims);
+	migration_bias.resize(index);
 
-	motility_vector.resize(index * dims, 0);
+	motility_vector.resize(index * dims);
 
 	restrict_to_2d.resize(index, 0);
 
-	chemotaxis_index.resize(index, 0);
-	chemotaxis_direction.resize(index, 0);
-	chemotactic_sensitivities.resize(index * substrates_count, 0);
+	chemotaxis_index.resize(index);
+	chemotaxis_direction.resize(index);
+	chemotactic_sensitivities.resize(index * substrates_count);
+
+	update_migration_bias_direction.resize(index, nullptr);
 }
 
 void motility_data::remove(index_t index, index_t size, index_t dims, index_t substrates_count)
@@ -161,18 +175,20 @@ void motility_data::remove(index_t index, index_t size, index_t dims, index_t su
 	move_scalar(chemotaxis_direction.data() + index, chemotaxis_direction.data() + size);
 	move_vector(chemotactic_sensitivities.data() + index * substrates_count,
 				chemotactic_sensitivities.data() + size * substrates_count, substrates_count);
+
+	move_scalar(update_migration_bias_direction.data() + index, update_migration_bias_direction.data() + size);
 }
 
 void interactions_data::add(index_t size, index_t cell_definitions_count)
 {
-	dead_phagocytosis_rate.resize(size, 0);
-	live_phagocytosis_rates.resize(size * cell_definitions_count, 0);
+	dead_phagocytosis_rate.resize(size);
+	live_phagocytosis_rates.resize(size * cell_definitions_count);
 
-	damage_rate.resize(size, 0);
-	attack_rates.resize(size * cell_definitions_count, 0);
-	immunogenicities.resize(size * cell_definitions_count, 0);
+	damage_rate.resize(size);
+	attack_rates.resize(size * cell_definitions_count);
+	immunogenicities.resize(size * cell_definitions_count);
 
-	fussion_rates.resize(size * cell_definitions_count, 0);
+	fusion_rates.resize(size * cell_definitions_count);
 }
 
 void interactions_data::remove(index_t index, index_t size, index_t cell_definitions_count)
@@ -187,15 +203,61 @@ void interactions_data::remove(index_t index, index_t size, index_t cell_definit
 	move_vector(immunogenicities.data() + index * cell_definitions_count,
 				immunogenicities.data() + size * cell_definitions_count, cell_definitions_count);
 
-	move_vector(fussion_rates.data() + index * cell_definitions_count,
-				fussion_rates.data() + size * cell_definitions_count, cell_definitions_count);
+	move_vector(fusion_rates.data() + index * cell_definitions_count,
+				fusion_rates.data() + size * cell_definitions_count, cell_definitions_count);
 }
 
-void death_data::add(index_t size) { dead.resize(size, 0); }
+void death_data::add(index_t size) { dead.resize(size); }
 
 void death_data::remove(index_t index, index_t size) { move_scalar(dead.data() + index, dead.data() + size); }
 
+void transformations_data::add(index_t size, index_t cell_definitions_count)
+{
+	transformation_rates.resize(size * cell_definitions_count);
+}
+
+void transformations_data::remove(index_t index, index_t size, index_t cell_definitions_count)
+{
+	move_vector(transformation_rates.data() + index * cell_definitions_count,
+				transformation_rates.data() + size * cell_definitions_count, cell_definitions_count);
+}
+
+void cell_state_data::add(index_t size, index_t dims)
+{
+	neighbors.resize(size);
+
+	springs.resize(size);
+	attached_cells.resize(size);
+
+	orientation.resize(size * dims);
+	simple_pressure.resize(size);
+	number_of_nuclei.resize(size);
+
+	damage.resize(size);
+	total_attack_time.resize(size);
+}
+
+void cell_state_data::remove(index_t index, index_t size, index_t dims)
+{
+	neighbors[index] = std::move(neighbors[size]);
+	springs[index] = std::move(springs[size]);
+	attached_cells[index] = std::move(attached_cells[size]);
+
+	move_vector(orientation.data() + index * dims, orientation.data() + size * dims, dims);
+	move_scalar(simple_pressure.data() + index, simple_pressure.data() + size);
+	move_scalar(number_of_nuclei.data() + index, number_of_nuclei.data() + size);
+
+	move_scalar(damage.data() + index, damage.data() + size);
+	move_scalar(total_attack_time.data() + index, total_attack_time.data() + size);
+}
+
 cell_data::cell_data(environment& e) : agent_data(e.m), agents_count(agent_data.agents_count), e(e) {}
+
+cell_data::cell_data(environment& e, index_t count) : agent_data(e.m), agents_count(agent_data.agents_count), e(e)
+{
+	for (index_t i = 0; i < count; ++i)
+		add();
+}
 
 void cell_data::add()
 {
@@ -204,24 +266,20 @@ void cell_data::add()
 	volumes.add(agents_count);
 	geometries.add(agents_count);
 	mechanics.add(agents_count, e.cell_definitions_count);
-	motility.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
-	death.add(agents_count);
+	motilities.add(agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
+	deaths.add(agents_count);
+
+	states.add(agents_count, e.m.mesh.dims);
 
 	interactions.add(agents_count, e.cell_definitions_count);
+	transformations.add(agents_count, e.cell_definitions_count);
 
-	neighbors.resize(agents_count);
-	springs.resize(agents_count);
+	previous_velocities.resize(agents_count * e.m.mesh.dims);
+	velocities.resize(agents_count * e.m.mesh.dims);
+	cell_definition_indices.resize(agents_count);
+	is_movable.resize(agents_count);
 
-	previous_velocities.resize(agents_count * e.m.mesh.dims, 0);
-	velocities.resize(agents_count * e.m.mesh.dims, 0);
-	cell_definition_indices.resize(agents_count, 0);
-	simple_pressures.resize(agents_count, 0);
-	is_movable.resize(agents_count, 0);
-	number_of_nuclei.resize(agents_count, 0);
-	damage.resize(agents_count, 0);
-	total_attack_time.resize(agents_count, 0);
-
-	to_remove.resize(agents_count, 0);
+	flags.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -236,24 +294,20 @@ void cell_data::remove(index_t index)
 	volumes.remove(index, agents_count);
 	geometries.remove(index, agents_count);
 	mechanics.remove(index, agents_count, e.cell_definitions_count);
-	motility.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
-	death.remove(index, agents_count);
+	motilities.remove(index, agents_count, e.mechanics_mesh.dims, e.m.substrates_count);
+	deaths.remove(index, agents_count);
+
+	states.remove(index, agents_count, e.mechanics_mesh.dims);
 
 	interactions.remove(index, agents_count, e.cell_definitions_count);
-
-	neighbors[index] = std::move(neighbors[agents_count]);
-	springs[index] = std::move(springs[agents_count]);
+	transformations.remove(index, agents_count, e.cell_definitions_count);
 
 	move_vector(previous_velocities.data() + index * e.m.mesh.dims,
 				previous_velocities.data() + agents_count * e.m.mesh.dims, e.m.mesh.dims);
 	move_vector(velocities.data() + index * e.m.mesh.dims, velocities.data() + agents_count * e.m.mesh.dims,
 				e.m.mesh.dims);
 	move_scalar(cell_definition_indices.data() + index, cell_definition_indices.data() + agents_count);
-	move_scalar(simple_pressures.data() + index, simple_pressures.data() + agents_count);
 	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
-	move_scalar(number_of_nuclei.data() + index, number_of_nuclei.data() + agents_count);
-	move_scalar(damage.data() + index, damage.data() + agents_count);
-	move_scalar(total_attack_time.data() + index, total_attack_time.data() + agents_count);
 
-	move_scalar(to_remove.data() + index, to_remove.data() + agents_count);
+	move_scalar(flags.data() + index, flags.data() + agents_count);
 }
