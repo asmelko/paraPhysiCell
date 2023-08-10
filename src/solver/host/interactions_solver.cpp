@@ -199,8 +199,8 @@ void update_cell_cell_interactions_internal(
 
 				if (!attacked_once && random_number < attack_r * immuno_r * time_step)
 				{
-					attack(cell_index, neighbor_index, time_step, data.states.damage.data(),
-						   data.interactions.damage_rate.data(), data.states.total_attack_time.data());
+					attack(cell_index, neighbor_index, time_step, data.interactions.damage_rate.data(),
+						   data.states.damage.data(), data.states.total_attack_time.data());
 
 					attacked_once = true;
 

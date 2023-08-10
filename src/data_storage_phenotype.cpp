@@ -199,8 +199,7 @@ void mechanics_t::set_defaults()
 	cell_cell_repulsion_strength() = 10.0;
 	cell_BM_repulsion_strength() = 10.0;
 
-	std::fill(cell_adhesion_affinities(), cell_adhesion_affinities() + data_.e.cell_definitions_count, 0);
-	cell_adhesion_affinities()[0] = 1;
+	std::fill(cell_adhesion_affinities(), cell_adhesion_affinities() + data_.e.cell_definitions_count, 1);
 
 	// this is a multiple of the cell (equivalent) radius
 	relative_maximum_adhesion_distance() = 1.25;
@@ -324,8 +323,7 @@ void interactions_t::set_defaults()
 	std::fill(live_phagocytosis_rates(), live_phagocytosis_rates() + data_.e.cell_definitions_count, 0);
 	damage_rate() = 1.0;
 	std::fill(attack_rates(), attack_rates() + data_.e.cell_definitions_count, 0);
-	std::fill(immunogenicities(), immunogenicities() + data_.e.cell_definitions_count, 0);
-	immunogenicities()[0] = 1;
+	std::fill(immunogenicities(), immunogenicities() + data_.e.cell_definitions_count, 1);
 	std::fill(fusion_rates(), fusion_rates() + data_.e.cell_definitions_count, 0);
 }
 
