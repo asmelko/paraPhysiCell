@@ -301,3 +301,78 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; i++)
 		EXPECT_FLOAT_EQ(c3->velocity()[i], expected_velocities[2 * dims + i]);
 }
+
+point_t<index_t, 3> get_coords_from_index(index_t index, const cartesian_mesh& m)
+{
+	if (m.dims == 1)
+		return { index, 0, 0 };
+	else if (m.dims == 2)
+		return { index % m.grid_shape[0], index / m.grid_shape[1], 0 };
+	else
+		return { index % m.grid_shape[0], (index / m.grid_shape[0]) % m.grid_shape[1],
+				 index / (m.grid_shape[0] * m.grid_shape[1]) };
+}
+
+class host_neighbors_solver : public testing::TestWithParam<std::tuple<index_t, index_t, index_t>>
+{};
+
+INSTANTIATE_TEST_SUITE_P(neis, host_neighbors_solver,
+						 testing::Combine(testing::Values(1, 2, 3), testing::Values(1, 5), testing::Values(1, 3)));
+
+TEST_P(host_neighbors_solver, grid)
+{
+	auto dims = std::get<0>(GetParam());
+	auto cells_in_one_voxel = std::get<1>(GetParam());
+	// 1 - no reach for neighbors
+	// 2 - reach to direct neighbors - not tested
+	// 3 - reach to diagonal neighbors
+	auto adhesion = std::get<2>(GetParam());
+
+	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+
+	auto m = default_microenv(mesh);
+	auto e = default_env(m);
+
+	cell_container& cont = e->cast_container<cell_container>();
+
+	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
+	{
+		auto coords = get_coords_from_index(i, e->mechanics_mesh);
+
+		for (index_t j = 0; j < cells_in_one_voxel; j++)
+		{
+			auto pos = e->mechanics_mesh.voxel_center(coords);
+
+			auto a = cont.create();
+			a->assign_position(pos);
+			a->phenotype.geometry.radius() = 9;
+			a->phenotype.mechanics.relative_maximum_adhesion_distance() = adhesion;
+		}
+	}
+
+	containers_solver::update_mechanics_mesh(*e);
+
+	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
+		ASSERT_EQ(e->cells_in_mechanics_voxels[i].size(), cells_in_one_voxel);
+
+	position_solver::update_cell_neighbors(*e);
+
+	for (index_t i = 0; i < cont.data().agents_count; i++)
+	{
+		index_t expected = cells_in_one_voxel - 1;
+
+		auto pos =
+			common_solver::get_mesh_position(cont.data().agent_data.positions.data() + i * dims, e->mechanics_mesh);
+
+		if (adhesion == 3)
+			for (index_t z = -1; z <= 1; z++)
+				for (index_t y = -1; y <= 1; y++)
+					for (index_t x = -1; x <= 1; x++)
+						if (!(pos[0] + x < 0 || pos[0] + x >= e->mechanics_mesh.grid_shape[0] || pos[1] + y < 0
+							  || pos[1] + y >= e->mechanics_mesh.grid_shape[1] || pos[2] + z < 0
+							  || pos[2] + z >= e->mechanics_mesh.grid_shape[2] || (x == 0 && y == 0 && z == 0)))
+							expected += cells_in_one_voxel;
+
+		ASSERT_EQ(cont.data().states.neighbors[i].size(), expected);
+	}
+}
