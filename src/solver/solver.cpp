@@ -2,4 +2,4 @@
 
 using namespace physicell;
 
-void solver::initialize(environment&) {}
+void solver::initialize(environment& e) { containers.initialize(e); }

@@ -162,9 +162,12 @@ TEST_P(host_velocity_solver, simple)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 70;
 
+	containers_solver cs;
+	cs.initialize(*e);
+
 #pragma omp parallel
 	{
-		containers_solver::update_mechanics_mesh(*e);
+		cs.update_mechanics_mesh(*e);
 		position_solver::update_cell_neighbors(*e);
 		position_solver::update_cell_forces(*e);
 	}
@@ -293,9 +296,12 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 7;
 
+	containers_solver cs;
+	cs.initialize(*e);
+
 #pragma omp parallel
 	{
-		containers_solver::update_mechanics_mesh(*e);
+		cs.update_mechanics_mesh(*e);
 		position_solver::update_cell_neighbors(*e);
 		position_solver::update_cell_forces(*e);
 	}
@@ -331,7 +337,7 @@ class host_neighbors_solver : public testing::TestWithParam<std::tuple<index_t, 
 {};
 
 INSTANTIATE_TEST_SUITE_P(neis, host_neighbors_solver,
-						 testing::Combine(testing::Values(1, 2, 3), testing::Values(1, 5), testing::Values(1, 3)));
+						 testing::Combine(testing::Values(1, 2, 3), testing::Values(1, 5, 50), testing::Values(1, 3)));
 
 TEST_P(host_neighbors_solver, grid)
 {
@@ -342,7 +348,7 @@ TEST_P(host_neighbors_solver, grid)
 	// 3 - reach to diagonal neighbors
 	auto adhesion = std::get<2>(GetParam());
 
-	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 100, 100, 100 }, { 20, 20, 20 });
+	cartesian_mesh mesh(dims, { 0, 0, 0 }, { 200, 200, 200 }, { 20, 20, 20 });
 
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
@@ -364,7 +370,11 @@ TEST_P(host_neighbors_solver, grid)
 		}
 	}
 
-	containers_solver::update_mechanics_mesh(*e);
+	containers_solver cs;
+	cs.initialize(*e);
+
+#pragma omp parallel
+	cs.update_mechanics_mesh(*e);
 
 	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
 		ASSERT_EQ(e->cells_in_mechanics_voxels[i].size(), cells_in_one_voxel);
@@ -418,7 +428,10 @@ TEST(host_interactions_solver, attack)
 	c3->phenotype.cell_interactions.attack_rates()[0] = 0;
 	c3->phenotype.cell_interactions.immunogenicities()[0] = 1;
 
-	containers_solver::update_mechanics_mesh(*e);
+	containers_solver cs;
+	cs.initialize(*e);
+
+	cs.update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
 	interactions_solver is;
@@ -453,7 +466,10 @@ TEST(host_interactions_solver, dead_phagocytosis)
 	c3->assign_position({ 10, 10, 10 });
 	c3->phenotype.death.dead() = 0;
 
-	containers_solver::update_mechanics_mesh(*e);
+	containers_solver cs;
+	cs.initialize(*e);
+
+	cs.update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
 	interactions_solver is;
@@ -487,7 +503,10 @@ TEST(host_interactions_solver, phagocytosis)
 	auto c3 = cont.create_cell(*e->cell_definitions[0]);
 	c3->assign_position({ 10, 10, 10 });
 
-	containers_solver::update_mechanics_mesh(*e);
+	containers_solver cs;
+	cs.initialize(*e);
+
+	cs.update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
 	interactions_solver is;
@@ -524,7 +543,10 @@ TEST(host_interactions_solver, fusion)
 	auto c3 = cont.create_cell(*e->cell_definitions[0]);
 	c3->assign_position({ 10, 10, 10 });
 
-	containers_solver::update_mechanics_mesh(*e);
+	containers_solver cs;
+	cs.initialize(*e);
+
+	cs.update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
 	interactions_solver is;

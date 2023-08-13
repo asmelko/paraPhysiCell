@@ -119,6 +119,7 @@ int main()
 	solver s;
 	interactions_solver is;
 	containers_solver cs;
+	cs.initialize(e);
 
 	measure(s.initialize(m), solver_init_duration);
 
@@ -137,7 +138,7 @@ int main()
 				measure(s.diffusion.solve(m), diffusion_duration);
 				measure(s.gradient.solve(m), gradient_duration);
 				measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
-				measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
+				measure(cs.update_mechanics_mesh(e), velocity_update_mesh);
 				measure(position_solver::update_cell_neighbors(e), neighbors_duration);
 				measure(position_solver::update_cell_forces(e), velocity_forces_duration);
 				measure(position_solver::update_motility(e), velocity_motility_duration);
@@ -161,7 +162,7 @@ int main()
 
 	for (index_t i = 0; i < 5; i++)
 	{
-		containers_solver::update_mechanics_mesh(e);
+		cs.update_mechanics_mesh(e);
 		position_solver::update_cell_neighbors(e);
 		position_solver::update_cell_forces(e);
 		position_solver::update_motility(e);

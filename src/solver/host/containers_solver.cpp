@@ -8,21 +8,51 @@
 using namespace biofvm;
 using namespace physicell;
 
+void containers_solver::initialize(environment& e)
+{
+	cells_in_voxels_sizes_ = std::make_unique<std::atomic<index_t>[]>(e.mechanics_mesh.voxel_count());
+}
+
 void containers_solver::update_mechanics_mesh(environment& e)
 {
 #pragma omp for
 	for (std::size_t i = 0; i < e.mechanics_mesh.voxel_count(); i++)
+	{
 		e.cells_in_mechanics_voxels[i].clear();
+		cells_in_voxels_sizes_[i].store(0, std::memory_order_relaxed);
+	}
 
 	const auto& data = get_cell_data(e);
 
-#pragma omp single
+	// first we count how many cells are in each voxel
+#pragma omp for
 	for (index_t i = 0; i < data.agents_count; i++)
 	{
 		auto mech_pos =
 			get_mesh_position(data.agent_data.positions.data() + i * e.mechanics_mesh.dims, e.mechanics_mesh);
 
-		e.cells_in_mechanics_voxels[get_mesh_index(mech_pos, e.mechanics_mesh)].push_back(i);
+		cells_in_voxels_sizes_[get_mesh_index(mech_pos, e.mechanics_mesh)].fetch_add(1, std::memory_order_relaxed);
+	}
+
+	// second we allocate memory for each voxel
+#pragma omp for
+	for (std::size_t i = 0; i < e.mechanics_mesh.voxel_count(); i++)
+	{
+		e.cells_in_mechanics_voxels[i].resize(cells_in_voxels_sizes_[i].load(std::memory_order_relaxed));
+	}
+
+	// third we assign cells to voxels
+#pragma omp for
+	for (index_t i = 0; i < data.agents_count; i++)
+	{
+		auto mech_pos =
+			get_mesh_position(data.agent_data.positions.data() + i * e.mechanics_mesh.dims, e.mechanics_mesh);
+
+		auto mech_idx = get_mesh_index(mech_pos, e.mechanics_mesh);
+
+		auto in_voxel_index = cells_in_voxels_sizes_[mech_idx].fetch_sub(1, std::memory_order_relaxed) - 1;
+
+		e.cells_in_mechanics_voxels[mech_idx][in_voxel_index] = i;
 	}
 }
 
