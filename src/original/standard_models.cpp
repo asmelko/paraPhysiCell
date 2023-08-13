@@ -475,71 +475,68 @@ void standard_cell_transformations(cell& cell, environment& e)
 	}
 }
 
-void advance_bundled_phenotype_functions(environment& e)
+void advance_bundled_phenotype_functions(cell& cell, environment& e)
 {
-	for (auto& cell : e.cast_container<cell_container>().agents())
+	// New March 2022
+	// perform transformations
+	standard_cell_transformations(cell, e);
+
+	// New March 2023 in Version 1.12.0
+	// call the rules-based code to update the phenotype
+	if (e.rules_enabled)
 	{
-		// New March 2022
-		// perform transformations
-		standard_cell_transformations(*cell, e);
-
-		// New March 2023 in Version 1.12.0
-		// call the rules-based code to update the phenotype
-		if (e.rules_enabled)
-		{
-			apply_ruleset(cell.get(), e);
-		}
-		if (get_single_signal(cell.get(), "necrotic", e) > 0.5)
-		{
-			real_t rupture = cell->phenotype.volume.rupture_volume();
-			real_t volume = cell->phenotype.volume.total();
-			if (volume > rupture)
-			{
-				std::cout << cell->phenotype.volume.total() << " vs " << cell->phenotype.volume.rupture_volume()
-						  << " dead: " << get_single_signal(cell.get(), "dead", e) << std::endl;
-				std::cout << cell->phenotype.cycle.current_phase_index() << " "
-						  << cell->phenotype.cycle.pCycle_Model->name << std::endl;
-			}
-		}
-
-		// call the custom code to update the phenotype
-		if (cell->functions.update_phenotype)
-		{
-			cell->functions.update_phenotype(*cell);
-		}
-
-		// update volume
-		if (cell->functions.volume_update_function)
-		{
-			cell->functions.volume_update_function(*cell);
-		}
-
-		// update geometry
-		cell->phenotype.geometry.update();
-
-		// check for new death events
-		if (cell->phenotype.death.check_for_death(e.phenotype_time_step) == true)
-		{
-			// if so, change the cycle model to the current death model
-			cell->phenotype.cycle.sync_to_cycle_model(cell->phenotype.death.current_model());
-
-			// also, turn off motility.
-			cell->phenotype.motility.is_motile() = false;
-
-			// turn off secretion, and reduce uptake by a factor of 10
-			cell->phenotype.secretion.set_all_secretion_to_zero();
-			cell->phenotype.secretion.scale_all_uptake_by_factor(0.10);
-
-			// make sure to run the death entry function
-			if (cell->phenotype.cycle.current_phase().entry_function)
-			{
-				cell->phenotype.cycle.current_phase().entry_function(*cell, e.phenotype_time_step);
-			}
-		}
-
-		// advance cycle model (for both cell cycle and death cycle models)
-		cell->phenotype.cycle.advance_cycle(*cell, e.phenotype_time_step);
+		apply_ruleset(&cell, e);
 	}
+	if (get_single_signal(&cell, "necrotic", e) > 0.5)
+	{
+		real_t rupture = cell.phenotype.volume.rupture_volume();
+		real_t volume = cell.phenotype.volume.total();
+		if (volume > rupture)
+		{
+			std::cout << cell.phenotype.volume.total() << " vs " << cell.phenotype.volume.rupture_volume()
+					  << " dead: " << get_single_signal(&cell, "dead", e) << std::endl;
+			std::cout << cell.phenotype.cycle.current_phase_index() << " " << cell.phenotype.cycle.pCycle_Model->name
+					  << std::endl;
+		}
+	}
+
+	// call the custom code to update the phenotype
+	if (cell.functions.update_phenotype)
+	{
+		cell.functions.update_phenotype(cell);
+	}
+
+	// update volume
+	if (cell.functions.volume_update_function)
+	{
+		cell.functions.volume_update_function(cell);
+	}
+
+	// update geometry
+	cell.phenotype.geometry.update();
+
+	// check for new death events
+	if (cell.phenotype.death.check_for_death(e.phenotype_time_step) == true)
+	{
+		// if so, change the cycle model to the current death model
+		cell.phenotype.cycle.sync_to_cycle_model(cell.phenotype.death.current_model());
+
+		// also, turn off motility.
+		cell.phenotype.motility.is_motile() = false;
+
+		// turn off secretion, and reduce uptake by a factor of 10
+		cell.phenotype.secretion.set_all_secretion_to_zero();
+		cell.phenotype.secretion.scale_all_uptake_by_factor(0.10);
+
+		// make sure to run the death entry function
+		if (cell.phenotype.cycle.current_phase().entry_function)
+		{
+			cell.phenotype.cycle.current_phase().entry_function(cell, e.phenotype_time_step);
+		}
+	}
+
+	// advance cycle model (for both cell cycle and death cycle models)
+	cell.phenotype.cycle.advance_cycle(cell, e.phenotype_time_step);
 }
 
 void chemotaxis_function(cell& cell)
@@ -653,24 +650,6 @@ void standard_elastic_contact_function(cell& lhs, cell& rhs)
 	for (index_t d = 0; d < lhs.e().mechanics_mesh.dims; d++)
 	{
 		lhs.velocity()[d] += adhesion * (rhs.position()[d] - lhs.position()[d]);
-	}
-}
-
-void evaluate_interactions(environment& e)
-{
-	auto& cells = e.cast_container<cell_container>();
-
-	for (auto& cell : cells.agents())
-	{
-		if (cell->functions.contact_function)
-		{
-			for (auto& other : cell->state.attached_cells())
-			{
-				auto& other_cell = *cells.agents()[other];
-
-				cell->functions.contact_function(*cell, other_cell);
-			}
-		}
 	}
 }
 

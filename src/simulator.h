@@ -41,28 +41,24 @@ struct simulator_durations
 
 class simulator
 {
-	simulator_durations durations_;
-
 	biofvm::solver diffusion_solver_;
 	physicell::solver mechanics_solver_;
-
-	biofvm::index_t simulation_step_;
 
 	biofvm::index_t mechanics_step_interval_;
 	biofvm::index_t phenotype_step_interval_;
 	biofvm::index_t full_save_interval_;
 	biofvm::index_t svg_save_interval_;
 
-	bool recompute_secretion_and_uptake_;
-
-	void save_full(environment& e, PhysiCell_Settings& settings);
-	void save_svg(environment& e, PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function);
+	void save_full(environment& e, const PhysiCell_Settings& settings, biofvm::index_t simulation_step);
+	void save_svg(environment& e, const PhysiCell_Settings& settings,
+				  const cell_coloring_funct_t& cell_coloring_function, biofvm::index_t simulation_step);
 
 public:
 	void initialize(environment& e, PhysiCell_Settings& settings);
 
 	// Called once each diffusion time ticks
-	void simulate_diffusion_and_mechanics(environment& e);
+	void simulate_diffusion_and_mechanics(environment& e, simulator_durations& durations,
+										  biofvm::index_t simulation_step, bool recompute_secretion_and_uptake);
 
 	void run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function);
 };

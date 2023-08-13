@@ -12,6 +12,7 @@ constexpr real_t simple_pressure_coefficient = 36.64504274775163; // 1 / (12 * (
 
 void clear_simple_pressure(real_t* __restrict__ simple_pressure, index_t count)
 {
+#pragma omp for
 	for (index_t i = 0; i < count; i++)
 	{
 		simple_pressure[i] = 0;
@@ -70,7 +71,7 @@ void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __res
 
 	real_t force = (repulsion - adhesion) / distance;
 
-	position_helper<dims>::update_velocities(velocity + lhs * dims, velocity + rhs * dims, position_difference, force);
+	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force);
 }
 
 template <index_t dims>
@@ -89,7 +90,6 @@ void update_cell_neighbors_single(environment& e, index_t i, const real_t* __res
 			if (distance <= adhesion_distance)
 			{
 				neighbors[i].push_back(j);
-				neighbors[j].push_back(i);
 			}
 		});
 }
@@ -104,10 +104,9 @@ void update_cell_forces_single(
 {
 	for (const index_t j : neighbors[i])
 	{
-		if (j > i)
-			solve_pair<dims>(i, j, cell_def_count, velocity, simple_pressure, position, radius,
-							 cell_cell_repulsion_strength, cell_cell_adhesion_strength,
-							 relative_maximum_adhesion_distance, cell_adhesion_affinities, cell_definition_index);
+		solve_pair<dims>(i, j, cell_def_count, velocity, simple_pressure, position, radius,
+						 cell_cell_repulsion_strength, cell_cell_adhesion_strength, relative_maximum_adhesion_distance,
+						 cell_adhesion_affinities, cell_definition_index);
 	}
 }
 
@@ -163,6 +162,7 @@ void update_cell_forces_internal(
 	const real_t* __restrict__ cell_adhesion_affinities, const std::uint8_t* __restrict__ is_movable,
 	std::vector<index_t>* __restrict__ neighbors)
 {
+#pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
 		if (is_movable[i] == 0)
@@ -182,6 +182,7 @@ void update_cell_neighbors_internal(environment& e, index_t agents_count, const 
 									const std::uint8_t* __restrict__ is_movable,
 									std::vector<index_t>* __restrict__ neighbors)
 {
+#pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
 		if (is_movable[i] == 0)
@@ -199,6 +200,7 @@ void update_motility_internal(
 	const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
 	const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f, cell_container& cells)
 {
+#pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
 		update_motility_single<dims>(i, time_step, motility_vector, velocity, persistence_time, migration_bias,
@@ -215,6 +217,7 @@ void update_basement_membrane_interactions_internal(index_t agents_count, real_t
 													const std::uint8_t* __restrict__ is_movable,
 													const cartesian_mesh& mesh)
 {
+#pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
 		if (is_movable[i] == 0)
@@ -259,6 +262,7 @@ void position_solver::update_cell_neighbors(environment& e)
 	auto& data = get_cell_data(e);
 
 	// clear neighbors
+#pragma omp for
 	for (index_t i = 0; i < data.agents_count; i++)
 		data.states.neighbors[i].clear();
 
@@ -335,6 +339,7 @@ void spring_contract_function(index_t agents_count, index_t cell_defs_count, rea
 							  const real_t* __restrict__ cell_adhesion_affinity, const real_t* __restrict__ position,
 							  const std::uint8_t* __restrict__ is_movable, std::vector<index_t>* __restrict__ springs)
 {
+#pragma omp for
 	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
 	{
 		if (is_movable[this_cell_index] == 0)
@@ -343,9 +348,6 @@ void spring_contract_function(index_t agents_count, index_t cell_defs_count, rea
 		for (std::size_t j = 0; j < springs[this_cell_index].size(); j++)
 		{
 			const index_t other_cell_index = springs[this_cell_index][j];
-
-			if (other_cell_index < this_cell_index)
-				continue;
 
 			const index_t this_cell_def_index = cell_definition_index[this_cell_index];
 			const index_t other_cell_def_index = cell_definition_index[other_cell_index];
@@ -360,11 +362,12 @@ void spring_contract_function(index_t agents_count, index_t cell_defs_count, rea
 			position_helper<dims>::subtract(difference, position + other_cell_index * dims,
 											position + this_cell_index * dims);
 
-			position_helper<dims>::update_velocities(velocity + this_cell_index * dims,
-													 velocity + other_cell_index * dims, difference, adhesion);
+			position_helper<dims>::update_velocity(velocity + this_cell_index * dims, difference, adhesion);
 		}
 	}
 }
+
+constexpr index_t erased_spring = -1;
 
 void update_spring_attachments_internal(
 	index_t agents_count, real_t time_step, index_t cell_defs_count, const real_t* __restrict__ detachment_rate,
@@ -372,52 +375,72 @@ void update_spring_attachments_internal(
 	const index_t* __restrict__ maximum_number_of_attachments, const index_t* __restrict__ cell_definition_index,
 	const std::vector<index_t>* __restrict__ neighbors, std::vector<index_t>* __restrict__ springs)
 {
-	// detach cells from springs
+// mark springs for detachment
+#pragma omp for
 	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
 	{
 		for (index_t j = 0; j < (index_t)springs[this_cell_index].size(); j++)
 		{
 			if (random::instance().uniform() <= detachment_rate[this_cell_index] * time_step)
 			{
-				const index_t other_cell_index = springs[this_cell_index][j];
+#pragma omp critical
+				{
+					const index_t other_cell_index = springs[this_cell_index][j];
 
-				springs[this_cell_index][j] = springs[this_cell_index].back();
-				springs[this_cell_index].pop_back();
+					if (other_cell_index != erased_spring)
+					{
+						springs[this_cell_index][j] = erased_spring;
 
-				auto it =
-					std::find(springs[other_cell_index].begin(), springs[other_cell_index].end(), this_cell_index);
-
-				*it = springs[other_cell_index].back();
-				springs[other_cell_index].pop_back();
-
-				j--;
+						*std::find(springs[other_cell_index].begin(), springs[other_cell_index].end(),
+								   this_cell_index) = erased_spring;
+					}
+				}
 			}
 		}
 	}
 
+// remove marked springs
+#pragma omp for
+	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
+	{
+		auto it = std::remove(springs[this_cell_index].begin(), springs[this_cell_index].end(), erased_spring);
+
+		springs[this_cell_index].erase(it, springs[this_cell_index].end());
+	}
+
 	// attach cells to springs
+
+#pragma omp for
 	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
 	{
 		for (std::size_t j = 0; j < neighbors[this_cell_index].size(); j++)
 		{
-			// if this cell has already reached the maximum number of attachments, skip
-			if ((index_t)springs[this_cell_index].size() >= maximum_number_of_attachments[this_cell_index])
-				break;
-
 			const index_t other_cell_index = neighbors[this_cell_index][j];
 
-			if ((index_t)springs[other_cell_index].size() >= maximum_number_of_attachments[other_cell_index])
+			if (other_cell_index < this_cell_index)
 				continue;
 
-			const real_t affinity =
+			const real_t affinity_l =
 				cell_adhesion_affinities[this_cell_index * cell_defs_count + cell_definition_index[other_cell_index]];
 
-			const real_t attachment_prob = attachment_rate[this_cell_index] * time_step * affinity;
+			const real_t attachment_prob_l = attachment_rate[this_cell_index] * time_step * affinity_l;
 
-			if (random::instance().uniform() <= attachment_prob)
+			const real_t affinity_r =
+				cell_adhesion_affinities[other_cell_index * cell_defs_count + cell_definition_index[this_cell_index]];
+
+			const real_t attachment_prob_r = attachment_rate[other_cell_index] * time_step * affinity_r;
+
+			if (random::instance().uniform() <= attachment_prob_l || random::instance().uniform() <= attachment_prob_r)
 			{
-				springs[this_cell_index].push_back(other_cell_index);
-				springs[other_cell_index].push_back(this_cell_index);
+#pragma omp critical
+				{
+					if ((index_t)springs[this_cell_index].size() < maximum_number_of_attachments[this_cell_index]
+						&& (index_t)springs[other_cell_index].size() < maximum_number_of_attachments[other_cell_index])
+					{
+						springs[this_cell_index].push_back(other_cell_index);
+						springs[other_cell_index].push_back(this_cell_index);
+					}
+				}
 			}
 		}
 	}
@@ -458,6 +481,7 @@ void update_positions_internal(index_t agents_count, real_t time_step, real_t* _
 							   real_t* __restrict__ velocity, real_t* __restrict__ previous_velocity,
 							   const std::uint8_t* __restrict__ is_movable)
 {
+#pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
 		if (!is_movable[i])

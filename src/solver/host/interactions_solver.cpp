@@ -145,27 +145,22 @@ void update_cell_cell_interactions_internal(
 	const index_t* __restrict__ cell_definition_indices, const real_t* __restrict__ dead_phagocytosis_rate,
 	const real_t* __restrict__ live_phagocytosis_rate, const real_t* __restrict__ attack_rate,
 	const real_t* __restrict__ fusion_rate, const real_t* __restrict__ immunogenicity,
-	const std::vector<index_t>* __restrict__ neighbors, const cell_state_flag* __restrict__ flag, cell_data& data)
+	const std::vector<index_t>* __restrict__ neighbors, const cell_state_flag* __restrict__ flag, cell_data& data,
+	std::mutex& m)
 {
+#pragma omp for
 	for (index_t cell_index = 0; cell_index < n; cell_index++)
 	{
 		bool attacked_once = false;
 		bool phagocytosed_once = false;
 		bool fused_once = false;
 
-		if (dead[cell_index] == 1 || flag[cell_index] == cell_state_flag::to_remove)
-		{
+		if (dead[cell_index] == 1)
 			continue;
-		}
 
 		for (std::size_t i = 0; i < neighbors[cell_index].size(); i++)
 		{
 			const index_t neighbor_index = neighbors[cell_index][i];
-
-			if (flag[neighbor_index] == cell_state_flag::to_remove)
-			{
-				continue;
-			}
 
 			const index_t neighbor_cell_def_index = cell_definition_indices[neighbor_index];
 
@@ -175,7 +170,16 @@ void update_cell_cell_interactions_internal(
 			{
 				if (random_number < dead_phagocytosis_rate[cell_index] * time_step)
 				{
-					ingest(cell_index, neighbor_index, data);
+					{
+						std::lock_guard<std::mutex> l(m);
+
+						if (flag[cell_index] == cell_state_flag::to_remove)
+							break;
+						if (flag[neighbor_index] == cell_state_flag::to_remove)
+							continue;
+
+						ingest(cell_index, neighbor_index, data);
+					}
 				}
 
 				continue;
@@ -185,7 +189,16 @@ void update_cell_cell_interactions_internal(
 				&& random_number
 					   < live_phagocytosis_rate[cell_index * cell_defs_count + neighbor_cell_def_index] * time_step)
 			{
-				ingest(cell_index, neighbor_index, data);
+				{
+					std::lock_guard<std::mutex> l(m);
+
+					if (flag[cell_index] == cell_state_flag::to_remove)
+						break;
+					if (flag[neighbor_index] == cell_state_flag::to_remove)
+						continue;
+
+					ingest(cell_index, neighbor_index, data);
+				}
 
 				phagocytosed_once = true;
 
@@ -199,8 +212,17 @@ void update_cell_cell_interactions_internal(
 
 				if (!attacked_once && random_number < attack_r * immuno_r * time_step)
 				{
-					attack(cell_index, neighbor_index, time_step, data.interactions.damage_rate.data(),
-						   data.states.damage.data(), data.states.total_attack_time.data());
+					{
+						std::lock_guard<std::mutex> l(m);
+
+						if (flag[cell_index] == cell_state_flag::to_remove)
+							break;
+						if (flag[neighbor_index] == cell_state_flag::to_remove)
+							continue;
+
+						attack(cell_index, neighbor_index, time_step, data.interactions.damage_rate.data(),
+							   data.states.damage.data(), data.states.total_attack_time.data());
+					}
 
 					attacked_once = true;
 
@@ -211,7 +233,16 @@ void update_cell_cell_interactions_internal(
 			if (!fused_once
 				&& random_number < fusion_rate[cell_index * cell_defs_count + neighbor_cell_def_index] * time_step)
 			{
-				fuse(cell_index, neighbor_index, data);
+				{
+					std::lock_guard<std::mutex> l(m);
+
+					if (flag[cell_index] == cell_state_flag::to_remove)
+						break;
+					if (flag[neighbor_index] == cell_state_flag::to_remove)
+						continue;
+
+					fuse(cell_index, neighbor_index, data);
+				}
 
 				fused_once = true;
 
@@ -230,5 +261,5 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
 		data.interactions.fusion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
-		data.flags.data(), data);
+		data.flags.data(), data, mtx_);
 }

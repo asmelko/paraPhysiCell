@@ -162,9 +162,12 @@ TEST_P(host_velocity_solver, simple)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 70;
 
-	containers_solver::update_mechanics_mesh(*e);
-	position_solver::update_cell_neighbors(*e);
-	position_solver::update_cell_forces(*e);
+#pragma omp parallel
+	{
+		containers_solver::update_mechanics_mesh(*e);
+		position_solver::update_cell_neighbors(*e);
+		position_solver::update_cell_forces(*e);
+	}
 
 	real_t expected;
 
@@ -290,9 +293,12 @@ TEST_P(host_velocity_solver, complex)
 	for (index_t i = 0; i < dims; ++i)
 		c3->position()[i] = 7;
 
-	containers_solver::update_mechanics_mesh(*e);
-	position_solver::update_cell_neighbors(*e);
-	position_solver::update_cell_forces(*e);
+#pragma omp parallel
+	{
+		containers_solver::update_mechanics_mesh(*e);
+		position_solver::update_cell_neighbors(*e);
+		position_solver::update_cell_forces(*e);
+	}
 
 	EXPECT_EQ(cont.data().states.neighbors[0].size(), 1);
 	EXPECT_EQ(cont.data().states.neighbors[1].size(), 2);
@@ -363,6 +369,7 @@ TEST_P(host_neighbors_solver, grid)
 	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
 		ASSERT_EQ(e->cells_in_mechanics_voxels[i].size(), cells_in_one_voxel);
 
+#pragma omp parallel
 	position_solver::update_cell_neighbors(*e);
 
 	for (index_t i = 0; i < cont.data().agents_count; i++)
@@ -414,7 +421,10 @@ TEST(host_interactions_solver, attack)
 	containers_solver::update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
-	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver is;
+
+#pragma omp parallel
+	is.update_cell_cell_interactions(*e);
 
 	ASSERT_EQ(c1->state.damage(), 0);
 	ASSERT_EQ(c2->state.damage(), 0);
@@ -446,7 +456,10 @@ TEST(host_interactions_solver, dead_phagocytosis)
 	containers_solver::update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
-	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver is;
+
+#pragma omp parallel
+	is.update_cell_cell_interactions(*e);
 
 	ASSERT_EQ(c1->flag(), cell_state_flag::none);
 	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
@@ -477,8 +490,13 @@ TEST(host_interactions_solver, phagocytosis)
 	containers_solver::update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
-	interactions_solver::update_cell_cell_interactions(*e);
-	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver is;
+
+#pragma omp parallel
+	{
+		is.update_cell_cell_interactions(*e);
+		is.update_cell_cell_interactions(*e);
+	}
 
 	ASSERT_EQ(c1->flag(), cell_state_flag::none);
 	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
@@ -509,8 +527,13 @@ TEST(host_interactions_solver, fusion)
 	containers_solver::update_mechanics_mesh(*e);
 	position_solver::update_cell_neighbors(*e);
 
-	interactions_solver::update_cell_cell_interactions(*e);
-	interactions_solver::update_cell_cell_interactions(*e);
+	interactions_solver is;
+
+#pragma omp parallel
+	{
+		is.update_cell_cell_interactions(*e);
+		is.update_cell_cell_interactions(*e);
+	}
 
 	ASSERT_EQ(c1->flag(), cell_state_flag::none);
 	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);

@@ -116,6 +116,7 @@ int main()
 	measure(make_agents(e, 2'000'000, true), cells_init_duration);
 
 	solver s;
+	interactions_solver is;
 
 	measure(s.initialize(m), solver_init_duration);
 
@@ -129,17 +130,20 @@ int main()
 				velocity_forces_duration, neighbors_duration, velocity_motility_duration, velocity_membrane_duration,
 				velocity_attachments_duration, position_duration, interactions_duration, delete_duration;
 
-			measure(s.diffusion.solve(m), diffusion_duration);
-			measure(s.gradient.solve(m), gradient_duration);
-			measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
-			measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
-			measure(position_solver::update_cell_neighbors(e), neighbors_duration);
-			measure(position_solver::update_cell_forces(e), velocity_forces_duration);
-			measure(position_solver::update_motility(e), velocity_motility_duration);
-			measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
-			measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
-			measure(position_solver::update_positions(e), position_duration);
-			measure(interactions_solver::update_cell_cell_interactions(e), interactions_duration);
+#pragma omp parallel
+			{
+				measure(s.diffusion.solve(m), diffusion_duration);
+				measure(s.gradient.solve(m), gradient_duration);
+				measure(s.cell.simulate_secretion_and_uptake(m, i % 10 == 0), secretion_duration);
+				measure(containers_solver::update_mechanics_mesh(e), velocity_update_mesh);
+				measure(position_solver::update_cell_neighbors(e), neighbors_duration);
+				measure(position_solver::update_cell_forces(e), velocity_forces_duration);
+				measure(position_solver::update_motility(e), velocity_motility_duration);
+				measure(position_solver::update_basement_membrane_interactions(e), velocity_membrane_duration);
+				measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
+				measure(position_solver::update_positions(e), position_duration);
+				measure(is.update_cell_cell_interactions(e), interactions_duration);
+			}
 			measure(containers_solver::update_cell_container_for_mechanics(e), delete_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration

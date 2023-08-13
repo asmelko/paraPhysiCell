@@ -1,13 +1,17 @@
 #pragma once
 
+#include <mutex>
+
 #include "common_solver.h"
 
 namespace physicell {
 
 class interactions_solver : public common_solver
 {
+	std::mutex mtx_;
+
 public:
-	static void update_cell_cell_interactions(environment& e);
+	void update_cell_cell_interactions(environment& e);
 };
 
 void update_geometry(biofvm::index_t i, biofvm::real_t* __restrict__ radius,

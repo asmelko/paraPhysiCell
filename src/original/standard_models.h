@@ -38,6 +38,7 @@ void standard_volume_update_function(cell& cell);
 // THESE ARE OPTIMIZED:
 // standard mechanics functions
 // bounary avoidance functions
+// standard cell-cell interactions
 
 // standard o2-based phenotype changes
 
@@ -50,17 +51,13 @@ void chemotaxis_function(cell& cell);
 template <bool do_normalize>
 void advanced_chemotaxis_function(cell& cell);
 
-// automated cell phagocytosis, attack, and fusion
-
-void evaluate_interactions(environment& e);
-
 // standard contact functions
 
 void standard_elastic_contact_function(cell& lhs, cell& rhs);
 
 // standard phenotype update functions
 
-void advance_bundled_phenotype_functions(environment& e);
+void advance_bundled_phenotype_functions(cell& cell, environment& e);
 void standard_cell_transformations(cell& pCell, environment& e);
 
 } // namespace physicell

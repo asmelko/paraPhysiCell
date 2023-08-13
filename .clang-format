@@ -47,7 +47,7 @@ IncludeCategories:
     Priority:        2
 
 IndentCaseLabels: true
-IndentPPDirectives: AfterHash
+IndentPPDirectives: BeforeHash
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 3
 NamespaceIndentation: None

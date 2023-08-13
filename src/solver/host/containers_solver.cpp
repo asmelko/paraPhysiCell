@@ -10,11 +10,13 @@ using namespace physicell;
 
 void containers_solver::update_mechanics_mesh(environment& e)
 {
+#pragma omp for
 	for (std::size_t i = 0; i < e.mechanics_mesh.voxel_count(); i++)
 		e.cells_in_mechanics_voxels[i].clear();
 
 	const auto& data = get_cell_data(e);
 
+#pragma omp single
 	for (index_t i = 0; i < data.agents_count; i++)
 	{
 		auto mech_pos =
@@ -96,39 +98,45 @@ void update_cell_container_internal(const cell_state_flag* __restrict__ flag, co
 
 void containers_solver::update_cell_container_for_mechanics(environment& e)
 {
-	auto& data = get_cell_data(e);
+#pragma omp single
+	{
+		auto& data = get_cell_data(e);
 
-	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
-								   e.deaths_count);
+		update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+									   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
+									   e.deaths_count);
+	}
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
 {
-	auto& data = get_cell_data(e);
-	auto& c = e.cast_container<cell_container>();
-
-	const auto n = c.agents().size();
-
-	for (std::size_t i = 0; i < n; i++)
+#pragma omp single
 	{
-		if (c.agents()[i]->flag() == cell_state_flag::to_divide)
+		auto& data = get_cell_data(e);
+		auto& c = e.cast_container<cell_container>();
+
+		const auto n = c.agents().size();
+
+		for (std::size_t i = 0; i < n; i++)
 		{
-			c.agents()[i]->flag() = cell_state_flag::none;
+			if (c.agents()[i]->flag() == cell_state_flag::to_divide)
+			{
+				c.agents()[i]->flag() = cell_state_flag::none;
 
-			auto cell = c.create();
+				auto cell = c.create();
 
-			c.agents()[i]->divide(*cell);
+				c.agents()[i]->divide(*cell);
 
-			e.divisions_count++;
+				e.divisions_count++;
+			}
 		}
-	}
 
-	for (index_t i = 0; i < data.agents_count; i++)
-	{
-		s.release_internalized_substrates(e.m, i);
+		for (index_t i = 0; i < data.agents_count; i++)
+		{
+			s.release_internalized_substrates(e.m, i);
 
-		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-					  data.states.attached_cells.data(), e.m.mesh, c, e.deaths_count);
+			remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+						  data.states.attached_cells.data(), e.m.mesh, c, e.deaths_count);
+		}
 	}
 }

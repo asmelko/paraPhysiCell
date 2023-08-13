@@ -72,6 +72,12 @@ struct position_helper<1>
 		rhs[0] -= force * difference[0];
 	}
 
+	static constexpr void update_velocity(biofvm::real_t* __restrict__ velocity,
+										  const biofvm::real_t* __restrict__ difference, const biofvm::real_t force)
+	{
+		velocity[0] += force * difference[0];
+	}
+
 	static void random_walk(bool, biofvm::real_t* __restrict__ walk)
 	{
 		biofvm::real_t rand = random::instance().uniform();
@@ -141,6 +147,13 @@ struct position_helper<2>
 
 		rhs[0] -= force * difference[0];
 		rhs[1] -= force * difference[1];
+	}
+
+	static constexpr void update_velocity(biofvm::real_t* __restrict__ velocity,
+										  const biofvm::real_t* __restrict__ difference, const biofvm::real_t force)
+	{
+		velocity[0] += force * difference[0];
+		velocity[1] += force * difference[1];
 	}
 
 	static void random_walk(bool, biofvm::real_t* __restrict__ walk)
@@ -223,6 +236,14 @@ struct position_helper<3>
 		rhs[0] -= force * difference[0];
 		rhs[1] -= force * difference[1];
 		rhs[2] -= force * difference[2];
+	}
+
+	static constexpr void update_velocity(biofvm::real_t* __restrict__ velocity,
+										  const biofvm::real_t* __restrict__ difference, const biofvm::real_t force)
+	{
+		velocity[0] += force * difference[0];
+		velocity[1] += force * difference[1];
+		velocity[2] += force * difference[2];
 	}
 
 	static void random_walk(bool restrict_to_2d, biofvm::real_t* __restrict__ walk)
