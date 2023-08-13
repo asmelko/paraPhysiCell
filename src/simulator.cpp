@@ -323,7 +323,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 			simulate_diffusion_and_mechanics(e, durations, simulation_step, recompute_secretion_and_uptake);
 
-#pragma omp single
+#pragma omp master
 			e.current_time += e.m.diffusion_time_step;
 
 			++simulation_step;
