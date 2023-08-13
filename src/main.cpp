@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "BioFVM/solver.h"
+#include "cell_container.h"
 #include "environment.h"
 #include "original/standard_models.h"
 #include "solver/host/containers_solver.h"
@@ -117,6 +118,7 @@ int main()
 
 	solver s;
 	interactions_solver is;
+	containers_solver cs;
 
 	measure(s.initialize(m), solver_init_duration);
 
@@ -143,8 +145,8 @@ int main()
 				measure(position_solver::update_spring_attachments(e), velocity_attachments_duration);
 				measure(position_solver::update_positions(e), position_duration);
 				measure(is.update_cell_cell_interactions(e), interactions_duration);
+				measure(cs.update_cell_container_for_mechanics(e), delete_duration);
 			}
-			measure(containers_solver::update_cell_container_for_mechanics(e), delete_duration);
 
 			std::cout << "Diffusion time: " << diffusion_duration << " ms,\t Gradient time: " << gradient_duration
 					  << " ms,\t Secretion time: " << secretion_duration

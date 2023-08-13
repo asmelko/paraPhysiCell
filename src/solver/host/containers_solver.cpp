@@ -51,7 +51,7 @@ void rename_attached(index_t old_index, index_t new_index, std::vector<index_t>*
 
 void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
 				   std::vector<index_t>* __restrict__ springs, std::vector<index_t>* __restrict__ attachced_cells,
-				   const cartesian_mesh& mesh, cell_container& container, index_t& counter)
+				   const cartesian_mesh& mesh, cell_container& container, index_t& counter, std::mutex& m)
 {
 	while (true)
 	{
@@ -69,74 +69,91 @@ void remove_single(index_t i, const cell_state_flag* __restrict__ flag, const re
 		if (out_of_bounds == false && flag[i] != cell_state_flag::to_remove)
 			return;
 
-		if (flag[i] == cell_state_flag::to_remove)
-			counter++;
+		{
+			std::lock_guard<std::mutex> l(m);
 
-		remove_attached(i, springs);
-		rename_attached(container.data().agents_count - 1, i, springs);
+			// this can happen, it is safe because we are not deallocating memory for removed elements
+			if (i >= container.data().agents_count)
+				return;
 
-		remove_attached(i, attachced_cells);
-		rename_attached(container.data().agents_count - 1, i, attachced_cells);
+			if (flag[i] == cell_state_flag::to_remove)
+				counter++;
 
-		container.remove_at(i);
+			remove_attached(i, springs);
+			rename_attached(container.data().agents_count - 1, i, springs);
 
-		if (i == container.data().agents_count)
-			return;
+			remove_attached(i, attachced_cells);
+			rename_attached(container.data().agents_count - 1, i, attachced_cells);
+
+			container.remove_at(i);
+
+			if (i == container.data().agents_count)
+				return;
+		}
 	}
 }
 
 void update_cell_container_internal(const cell_state_flag* __restrict__ flag, const real_t* __restrict__ positions,
 									std::vector<index_t>* __restrict__ springs,
 									std::vector<index_t>* __restrict__ attached_cells, const cartesian_mesh& mesh,
-									cell_container& container, index_t& counter)
+									cell_container& container, index_t& counter, std::mutex& m)
 {
-	for (index_t i = 0; i < container.data().agents_count; i++)
+	auto n = container.data().agents_count;
+#pragma omp barrier
+
+#pragma omp for
+	for (index_t i = 0; i < n; i++)
 	{
-		remove_single(i, flag, positions, springs, attached_cells, mesh, container, counter);
+		remove_single(i, flag, positions, springs, attached_cells, mesh, container, counter, m);
 	}
 }
 
 void containers_solver::update_cell_container_for_mechanics(environment& e)
 {
-#pragma omp single
-	{
-		auto& data = get_cell_data(e);
+	auto& data = get_cell_data(e);
 
-		update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-									   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
-									   e.deaths_count);
-	}
+	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
+								   e.deaths_count, removal_mtx_);
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
 {
-#pragma omp single
+	auto& data = get_cell_data(e);
+	auto& c = e.cast_container<cell_container>();
+
+	const auto n = c.agents().size();
+#pragma omp barrier
+
+#pragma omp for
+	for (std::size_t i = 0; i < n; i++)
 	{
-		auto& data = get_cell_data(e);
-		auto& c = e.cast_container<cell_container>();
-
-		const auto n = c.agents().size();
-
-		for (std::size_t i = 0; i < n; i++)
+		if (c.agents()[i]->flag() == cell_state_flag::to_divide)
 		{
-			if (c.agents()[i]->flag() == cell_state_flag::to_divide)
+			c.agents()[i]->flag() = cell_state_flag::none;
+
+			cell* cell;
 			{
-				c.agents()[i]->flag() = cell_state_flag::none;
+				std::unique_lock<std::shared_mutex> l(division_mtx_);
 
-				auto cell = c.create();
-
-				c.agents()[i]->divide(*cell);
-
+				cell = c.create();
 				e.divisions_count++;
 			}
-		}
 
-		for (index_t i = 0; i < data.agents_count; i++)
-		{
-			s.release_internalized_substrates(e.m, i);
+			{
+				std::shared_lock<std::shared_mutex> l(division_mtx_);
 
-			remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-						  data.states.attached_cells.data(), e.m.mesh, c, e.deaths_count);
+				c.agents()[i]->divide(*cell);
+			}
 		}
+	}
+
+#pragma omp for
+	for (std::size_t i = 0; i < n; i++)
+	{
+		s.release_internalized_substrates(e.m, i);
+
+		remove_single(i, data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
+					  data.states.attached_cells.data(), e.m.mesh, c, e.deaths_count, removal_mtx_);
 	}
 }
