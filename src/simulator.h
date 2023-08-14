@@ -51,7 +51,8 @@ class simulator
 
 	void save_full(environment& e, const PhysiCell_Settings& settings, biofvm::index_t simulation_step);
 	void save_svg(environment& e, const PhysiCell_Settings& settings,
-				  const cell_coloring_funct_t& cell_coloring_function, biofvm::index_t simulation_step);
+				  const cell_coloring_funct_t& cell_coloring_function,
+				  const substrate_coloring_funct_t& substrate_coloring_function, biofvm::index_t simulation_step);
 
 public:
 	void initialize(environment& e, PhysiCell_Settings& settings);
@@ -60,7 +61,8 @@ public:
 	void simulate_diffusion_and_mechanics(environment& e, simulator_durations& durations,
 										  biofvm::index_t simulation_step, bool recompute_secretion_and_uptake);
 
-	void run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function);
+	void run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function,
+			 substrate_coloring_funct_t substrate_coloring_function = nullptr);
 };
 
 } // namespace physicell

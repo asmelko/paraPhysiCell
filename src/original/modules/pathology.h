@@ -30,13 +30,17 @@ struct PhysiCell_SVG_options_struct
 extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
 
 using cell_coloring_funct_t = std::function<std::vector<std::string>(cell*)>;
+using substrate_coloring_funct_t =
+	std::function<std::vector<std::string>(double concentration, double max_conc, double min_conc)>;
 
 void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
 			  cell_coloring_funct_t cell_coloring_function,
-			  std::function<std::vector<std::string>(double, double, double)> substrate_coloring_function = nullptr);
+			  substrate_coloring_funct_t substrate_coloring_function = nullptr);
 
 void create_plot_legend(std::string filename, cell_coloring_funct_t cell_coloring_function, environment& e);
 
 std::vector<std::string> paint_by_number_cell_coloring(cell* pCell); // done
+
+std::vector<std::string> paint_by_density_percentage(double concentration, double max_conc, double min_conc); // done
 
 } // namespace physicell

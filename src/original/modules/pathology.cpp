@@ -39,8 +39,7 @@ std::string formatted_minutes_to_DDHHMM(double minutes)
 }
 
 void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& settings, double z_slice, double time,
-			  cell_coloring_funct_t cell_coloring_function,
-			  std::function<std::vector<std::string>(double, double, double)> substrate_coloring_function)
+			  cell_coloring_funct_t cell_coloring_function, substrate_coloring_funct_t substrate_coloring_function)
 {
 	double X_lower = e.m.mesh.bounding_box_mins[0];
 	double X_upper = e.m.mesh.bounding_box_maxs[0];
@@ -581,6 +580,21 @@ std::vector<std::string> paint_by_number_cell_coloring(cell* pCell)
 	output[3] = interior_color; // set cytoplasm color
 
 	output[1] = "black";
+
+	return output;
+}
+
+std::vector<std::string> paint_by_density_percentage(double concentration, double max_conc, double min_conc)
+{
+	std::vector<std::string> output(4, "black");
+	int color = (int)round(((concentration - min_conc) / (max_conc - min_conc)) * 255);
+	if (color > 255)
+	{
+		color = 255;
+	}
+	char szTempString[128];
+	sprintf(szTempString, "rgb(%u,234,197)", 255 - color);
+	output[0].assign(szTempString);
 
 	return output;
 }

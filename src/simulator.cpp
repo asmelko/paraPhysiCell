@@ -254,7 +254,8 @@ void simulator::save_full(environment& e, const PhysiCell_Settings& settings, in
 }
 
 void simulator::save_svg(environment& e, const PhysiCell_Settings& settings,
-						 const cell_coloring_funct_t& cell_coloring_function, index_t simulation_step)
+						 const cell_coloring_funct_t& cell_coloring_function,
+						 const substrate_coloring_funct_t& substrate_coloring_function, index_t simulation_step)
 {
 	if (settings.enable_SVG_saves == true)
 	{
@@ -262,11 +263,12 @@ void simulator::save_svg(environment& e, const PhysiCell_Settings& settings,
 		ss << settings.folder << "/snapshot" << std::setfill('0') << std::setw(8)
 		   << simulation_step / svg_save_interval_ << ".svg";
 
-		SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function);
+		SVG_plot(ss.str(), e, settings, 0.0, e.current_time, cell_coloring_function, substrate_coloring_function);
 	}
 }
 
-void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function)
+void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function,
+					substrate_coloring_funct_t substrate_coloring_function)
 {
 	// set MultiCellDS save options
 
@@ -286,7 +288,8 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 	// for simplicity, set a pathology coloring function
 
-	SVG_plot(settings.folder + "/initial.svg", e, settings, 0.0, e.current_time, cell_coloring_function);
+	SVG_plot(settings.folder + "/initial.svg", e, settings, 0.0, e.current_time, cell_coloring_function,
+			 substrate_coloring_function);
 
 	create_plot_legend(settings.folder + "/legend.svg", cell_coloring_function, e);
 
@@ -308,7 +311,8 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 				// save SVG plot if it's time
 				if (simulation_step % svg_save_interval_ == 0)
 				{
-					measure(save_svg(e, settings, cell_coloring_function, simulation_step), durations.svg_save);
+					measure(save_svg(e, settings, cell_coloring_function, substrate_coloring_function, simulation_step),
+							durations.svg_save);
 				}
 
 				// save data if it's time.
@@ -334,7 +338,8 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 	save_PhysiCell_to_MultiCellDS_v2(settings.folder + "/final", e);
 
-	SVG_plot(settings.folder + "/final.svg", e, settings, 0.0, e.current_time, cell_coloring_function);
+	SVG_plot(settings.folder + "/final.svg", e, settings, 0.0, e.current_time, cell_coloring_function,
+			 substrate_coloring_function);
 
 	// timer
 
