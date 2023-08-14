@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <numbers>
 
 #include <BioFVM/mesh.h>
 
@@ -158,7 +159,7 @@ struct position_helper<2>
 
 	static void random_walk(bool, biofvm::real_t* __restrict__ walk)
 	{
-		biofvm::real_t theta = random::instance().uniform(0, 2 * M_PI);
+		biofvm::real_t theta = random::instance().uniform(0, 2 * std::numbers::pi_v<biofvm::real_t>);
 		walk[0] = std::cos(theta);
 		walk[1] = std::sin(theta);
 	}
@@ -255,7 +256,7 @@ struct position_helper<3>
 		}
 		else
 		{
-			const biofvm::real_t theta = random::instance().uniform(0, 2 * M_PI);
+			const biofvm::real_t theta = random::instance().uniform(0, 2 * std::numbers::pi_v<biofvm::real_t>);
 			const biofvm::real_t z = random::instance().uniform(-1, 1);
 			const biofvm::real_t r = std::sqrt(1 - z * z);
 

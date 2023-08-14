@@ -90,9 +90,9 @@ void physicell::update_geometry(index_t i, real_t* __restrict__ radius, real_t* 
 								real_t* __restrict__ surface_area, const real_t* __restrict__ total_volume,
 								const real_t* __restrict__ nuclear_volume)
 {
-	radius[i] = std::cbrt(total_volume[i] / (M_PI * 4.0 / 3.0));
-	nuclear_radius[i] = std::cbrt(nuclear_volume[i] / (M_PI * 4.0 / 3.0));
-	surface_area[i] = 4.0 * M_PI * radius[i] * radius[i];
+	radius[i] = std::cbrt(total_volume[i] / (std::numbers::pi_v<real_t> * 4.0 / 3.0));
+	nuclear_radius[i] = std::cbrt(nuclear_volume[i] / (std::numbers::pi_v<real_t> * 4.0 / 3.0));
+	surface_area[i] = 4.0 * std::numbers::pi_v<real_t> * radius[i] * radius[i];
 }
 
 void ingest(index_t lhs, index_t rhs, cell_data& data)
