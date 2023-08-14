@@ -470,6 +470,11 @@ void setup_signal_behavior_dictionaries(environment& e)
 	behavior_to_int[map_name] = map_index;
 	int_to_behavior[map_index] = map_name;
 
+	map_index++;
+	map_name = "damage rate";
+	behavior_to_int[map_name] = map_index;
+	int_to_behavior[map_index] = map_name;
+
 	/* add new behaviors above this line */
 
 	// resize scales;
@@ -1212,6 +1217,10 @@ void set_behaviors(cell* pCell, std::vector<real_t> parameters, environment& e)
 	static index_t max_attachments_ind = find_behavior_index("maximum number of cell attachments");
 	pCell->phenotype.mechanics.maximum_number_of_attachments() = (index_t)parameters[max_attachments_ind];
 
+	// cell damage rate (for effector attack)
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	pCell->phenotype.cell_interactions.damage_rate() = parameters[damage_rate_ind];
+
 	return;
 }
 
@@ -1480,6 +1489,13 @@ void set_single_behavior(cell* pCell, index_t index, real_t parameter, environme
 		pCell->phenotype.mechanics.maximum_number_of_attachments() = (index_t)parameter;
 	}
 
+	// cell damage rate (for effector attack)
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	if (index == damage_rate_ind)
+	{
+		pCell->phenotype.cell_interactions.damage_rate() = parameter;
+	}
+
 	return;
 }
 
@@ -1656,6 +1672,10 @@ std::vector<real_t> get_behaviors(cell* pCell, environment& e)
 	// maximum number of cell attachments
 	static index_t max_attachments_ind = find_behavior_index("maximum number of cell attachments");
 	parameters[max_attachments_ind] = pCell->phenotype.mechanics.maximum_number_of_attachments();
+
+	// get damage rate
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	parameters[damage_rate_ind] = pCell->phenotype.cell_interactions.damage_rate();
 
 	return parameters;
 }
@@ -1903,6 +1923,13 @@ real_t get_single_behavior(cell* pCell, index_t index, environment& e)
 		return pCell->phenotype.mechanics.maximum_number_of_attachments();
 	}
 
+	// get damage rate
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	if (index == damage_rate_ind)
+	{
+		return pCell->phenotype.cell_interactions.damage_rate();
+	}
+
 	return -1;
 }
 
@@ -2120,6 +2147,10 @@ std::vector<real_t> get_base_behaviors(cell* pCell, environment& e)
 	// maximum number of cell attachments
 	static index_t max_attachments_ind = find_behavior_index("maximum number of cell attachments");
 	parameters[max_attachments_ind] = pCD->phenotype.mechanics.maximum_number_of_attachments();
+
+	// cell damage rate (effector attack)
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	parameters[damage_rate_ind] = pCD->phenotype.cell_interactions.damage_rate();
 
 	return parameters;
 }
@@ -2371,6 +2402,13 @@ real_t get_single_base_behavior(cell* pCell, index_t index, environment& e)
 		return pCD->phenotype.mechanics.maximum_number_of_attachments();
 	}
 
+	// cell damage rate (effector attack)
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	if (index == damage_rate_ind)
+	{
+		return pCD->phenotype.cell_interactions.damage_rate();
+	}
+
 	return -1;
 }
 
@@ -2620,6 +2658,13 @@ real_t get_single_base_behavior(cell_definition* pCD, index_t index, environment
 	if (index == max_attachments_ind)
 	{
 		return pCD->phenotype.mechanics.maximum_number_of_attachments();
+	}
+
+	// cell damage rate (effector attack)
+	static int damage_rate_ind = find_behavior_index("damage rate");
+	if (index == damage_rate_ind)
+	{
+		return pCD->phenotype.cell_interactions.damage_rate();
 	}
 
 	return -1;

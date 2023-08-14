@@ -197,7 +197,7 @@ void mechanics_t::set_defaults()
 	cell_BM_adhesion_strength() = 4.0;
 
 	cell_cell_repulsion_strength() = 10.0;
-	cell_BM_repulsion_strength() = 10.0;
+	cell_BM_repulsion_strength() = 100.0;
 
 	std::fill(cell_adhesion_affinities(), cell_adhesion_affinities() + data_.e.cell_definitions_count, 1);
 

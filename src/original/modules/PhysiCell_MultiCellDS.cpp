@@ -12,7 +12,7 @@ using namespace biofvm;
 
 namespace physicell {
 
-constexpr const char* PhysiCell_Version = "1.12.0";
+constexpr const char* PhysiCell_Version = "1001.13.1";
 
 template <typename T>
 void write_to_file(T& data, FILE* fp)
