@@ -5,8 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../cell_functions.h"
-#include "../data_storage_phenotype.h"
+#include "../../cell_functions.h"
+#include "../../data_storage_phenotype.h"
 
 namespace physicell {
 

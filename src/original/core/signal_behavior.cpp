@@ -3,10 +3,10 @@
 #include <map>
 #include <unordered_map>
 
-#include "../cell_definition.h"
-#include "../environment.h"
+#include "../../cell_definition.h"
+#include "../../environment.h"
 #include "constants.h"
-#include "modules/vector_utils.h"
+#include "../modules/vector_utils.h"
 
 using namespace biofvm;
 

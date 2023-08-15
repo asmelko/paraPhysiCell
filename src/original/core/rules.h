@@ -6,7 +6,7 @@
 
 #include <BioFVM/types.h>
 
-#include "modules/settings.h"
+#include "../modules/settings.h"
 
 namespace physicell {
 

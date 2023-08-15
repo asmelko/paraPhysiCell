@@ -4,14 +4,15 @@
 #include <ctime>
 #include <iostream>
 
+#include <BioFVM/microenvironment.h>
+
 #include "matlab.h"
-#include "microenvironment.h"
 #include "timer.h"
 #include "vector_utils.h"
 
 namespace biofvm {
 
-std::string BioFVM_Version = "1.1.7";
+std::string BioFVM_Version = "1001.1.7";
 std::string BioFVM_URL = "http://BioFVM.MathCancer.org";
 
 bool biofvm_dom_initialized = false;

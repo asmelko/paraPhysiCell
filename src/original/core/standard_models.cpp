@@ -2,8 +2,8 @@
 
 #include <limits>
 
-#include "../random.h"
-#include "../solver/host/solver_helper.h"
+#include "../../random.h"
+#include "../../solver/host/solver_helper.h"
 #include "constants.h"
 #include "rules.h"
 #include "signal_behavior.h"

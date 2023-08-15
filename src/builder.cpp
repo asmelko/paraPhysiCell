@@ -4,12 +4,12 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "original/constants.h"
+#include "original/core/constants.h"
+#include "original/core/rules.h"
+#include "original/core/signal_behavior.h"
+#include "original/core/standard_models.h"
 #include "original/modules/pugixml_helper.h"
 #include "original/modules/vector_utils.h"
-#include "original/rules.h"
-#include "original/signal_behavior.h"
-#include "original/standard_models.h"
 #include "random.h"
 
 using namespace biofvm;

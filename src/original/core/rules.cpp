@@ -4,11 +4,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "../cell_definition.h"
-#include "../environment.h"
+#include "../../cell_definition.h"
+#include "../../environment.h"
+#include "../modules/pugixml_helper.h"
+#include "../modules/settings.h"
 #include "basic_signaling.h"
-#include "modules/pugixml_helper.h"
-#include "modules/settings.h"
 #include "signal_behavior.h"
 
 using namespace biofvm;

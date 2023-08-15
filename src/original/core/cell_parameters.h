@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../phenotype.h"
+#include "../../phenotype.h"
 
 namespace physicell {
 
@@ -29,7 +29,7 @@ public:
 
 	// necrosis parameters (may evenually be moved into a reference necrotic phenotype
 	biofvm::real_t max_necrosis_rate; // deprecate
-	biofvm::index_t necrosis_type;				  // deprecate
+	biofvm::index_t necrosis_type;	  // deprecate
 
 	Cell_Parameters();
 };

@@ -2,8 +2,8 @@
 
 #include "cell_data.h"
 #include "cell_functions.h"
-#include "original/cell_parameters.h"
-#include "original/custom_cell_data.h"
+#include "original/core/cell_parameters.h"
+#include "original/core/custom_cell_data.h"
 #include "phenotype.h"
 
 namespace physicell {

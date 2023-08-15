@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <iostream>
 
-#include "../cell.h"
-#include "../cell_data.h"
-#include "../random.h"
+#include "../../cell.h"
+#include "../../cell_data.h"
+#include "../../random.h"
 #include "constants.h"
 
 using namespace biofvm;

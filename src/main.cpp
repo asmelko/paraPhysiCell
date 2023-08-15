@@ -1,10 +1,10 @@
 #include <chrono>
 #include <iostream>
 
-#include "BioFVM/solver.h"
-#include "cell_container.h"
+#include <BioFVM/solver.h>
+
 #include "environment.h"
-#include "original/standard_models.h"
+#include "original/core/standard_models.h"
 #include "solver/host/containers_solver.h"
 #include "solver/host/interactions_solver.h"
 #include "solver/host/position_solver.h"

@@ -1,12 +1,8 @@
 #include "custom.h"
 
-#include <cmath>
-
+#include "src/original/core/signal_behavior.h"
+#include "src/original/core/standard_models.h"
 #include "src/original/modules/geometry.h"
-#include "src/original/modules/pathology.h"
-#include "src/original/modules/settings.h"
-#include "src/original/signal_behavior.h"
-#include "src/original/standard_models.h"
 #include "src/random.h"
 
 void create_cell_types(builder& builder)

@@ -1,7 +1,7 @@
 #include "custom.h"
 
-#include "src/original/basic_signaling.h"
-#include "src/original/constants.h"
+#include "src/original/core/basic_signaling.h"
+#include "src/original/core/constants.h"
 #include "src/original/modules/geometry.h"
 #include "src/original/modules/pathology.h"
 #include "src/random.h"

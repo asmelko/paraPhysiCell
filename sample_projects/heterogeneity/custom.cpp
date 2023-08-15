@@ -2,11 +2,9 @@
 
 #include <cmath>
 
-#include "src/cell_container.h"
+#include "src/original/core/signal_behavior.h"
+#include "src/original/core/standard_models.h"
 #include "src/original/modules/geometry.h"
-#include "src/original/modules/settings.h"
-#include "src/original/signal_behavior.h"
-#include "src/original/standard_models.h"
 #include "src/random.h"
 
 void tumor_cell_phenotype_with_oncoprotein(cell& pCell)

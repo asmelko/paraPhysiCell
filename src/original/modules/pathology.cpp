@@ -5,7 +5,7 @@
 
 #include "../../cell.h"
 #include "../../environment.h"
-#include "../constants.h"
+#include "../core/constants.h"
 #include "settings.h"
 #include "svg.h"
 #include "timer.h"

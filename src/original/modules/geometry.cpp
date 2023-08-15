@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-#include "../signal_behavior.h"
+#include "../core/signal_behavior.h"
 #include "pugixml_helper.h"
 #include "types.h"
 #include "vector_utils.h"

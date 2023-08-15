@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data_storage_phenotype.h"
-#include "original/implicit_storage_phenotype.h"
+#include "original/core/implicit_storage_phenotype.h"
 
 namespace physicell {
 
