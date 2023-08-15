@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(
   paraBioFVM
   GIT_REPOSITORY https://github.com/asmelko/paraBioFVM.git
-  GIT_TAG        omp
+  GIT_TAG        main
 )
 FetchContent_MakeAvailable(paraBioFVM)
 
