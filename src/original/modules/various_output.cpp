@@ -48,9 +48,9 @@ int writePov(environment& e, PhysiCell_Settings& settings, double timepoint, dou
 	{
 		std::string _nameCore;
 
-		if (e.cast_container<cell_container>().get_at(i)->phenotype.cycle.pCycle_Model)
+		if (e.get_container().get_at(i)->phenotype.cycle.pCycle_Model)
 		{
-			int code = e.cast_container<cell_container>().get_at(i)->phenotype.cycle.current_phase().code;
+			int code = e.get_container().get_at(i)->phenotype.cycle.current_phase().code;
 			if (code == constants::Ki67_positive_premitotic || code == constants::Ki67_positive_postmitotic
 				|| code == constants::Ki67_positive || code == constants::Ki67_negative || code == constants::live)
 				_nameCore = "LIVE";
@@ -64,20 +64,18 @@ int writePov(environment& e, PhysiCell_Settings& settings, double timepoint, dou
 			else
 				_nameCore = "MISC";
 		}
-		else if (e.cast_container<cell_container>().get_at(i)->type == TUMOR_TYPE)
+		else if (e.get_container().get_at(i)->type == TUMOR_TYPE)
 			_nameCore = "LIVE";
-		else if (e.cast_container<cell_container>().get_at(i)->type == VESSEL_TYPE)
+		else if (e.get_container().get_at(i)->type == VESSEL_TYPE)
 			_nameCore = "ENDO";
 		else
 			_nameCore = "MISC";
-		std::string center =
-			"<" + std::to_string(e.cast_container<cell_container>().get_at(i)->get_position()[0] / scale) + ","
-			+ std::to_string(e.cast_container<cell_container>().get_at(i)->get_position()[1] / scale) + ","
-			+ std::to_string(e.cast_container<cell_container>().get_at(i)->get_position()[2] / scale) + ">";
-		std::string core =
-			"sphere {\n\t" + center + "\n\t "
-			+ std::to_string(e.cast_container<cell_container>().get_at(i)->phenotype.geometry.radius() / scale)
-			+ "\n\t FinishMacro ( " + center + "," + _nameCore + "Finish," + _nameCore + "*1)\n}\n";
+		std::string center = "<" + std::to_string(e.get_container().get_at(i)->get_position()[0] / scale) + ","
+							 + std::to_string(e.get_container().get_at(i)->get_position()[1] / scale) + ","
+							 + std::to_string(e.get_container().get_at(i)->get_position()[2] / scale) + ">";
+		std::string core = "sphere {\n\t" + center + "\n\t "
+						   + std::to_string(e.get_container().get_at(i)->phenotype.geometry.radius() / scale)
+						   + "\n\t FinishMacro ( " + center + "," + _nameCore + "Finish," + _nameCore + "*1)\n}\n";
 		povFile << core;
 	}
 
@@ -98,7 +96,7 @@ int writeCellReport(environment& e, PhysiCell_Settings& settings, double timepoi
 	int phenotype_code;
 	for (int i = 0; i < e.m.agents->agents_count(); i++)
 	{
-		auto cell = e.cast_container<cell_container>().get_at(i);
+		auto cell = e.get_container().get_at(i);
 		phenotype_code = cell->phenotype.cycle.current_phase().code;
 		// phenotype_code =
 		// phases.size()>0?cell->phenotype.cycle.phases[cell->phenotype.current_phase_index].code:-1;

@@ -434,11 +434,11 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 			index += size;
 
 			// custom variables
-			for (std::size_t i = 0; i < e.cast_container<cell_container>().get_at(0)->custom_data.variables.size(); i++)
+			for (std::size_t i = 0; i < e.get_container().get_at(0)->custom_data.variables.size(); i++)
 			{
 				size = 1;
 				char szTemp[1024];
-				strcpy(szTemp, e.cast_container<cell_container>().get_at(0)->custom_data.variables[i].name.c_str());
+				strcpy(szTemp, e.get_container().get_at(0)->custom_data.variables[i].name.c_str());
 				node_temp1 = node_temp1.append_child("label");
 				node_temp1.append_child(pugi::node_pcdata).set_value(szTemp);
 				attrib = node_temp1.append_attribute("index");
@@ -449,13 +449,11 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 				index += size;
 			}
 			// custom vector variables
-			for (std::size_t i = 0;
-				 i < e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables.size(); i++)
+			for (std::size_t i = 0; i < e.get_container().get_at(0)->custom_data.vector_variables.size(); i++)
 			{
-				size = e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[i].value.size();
+				size = e.get_container().get_at(0)->custom_data.vector_variables[i].value.size();
 				char szTemp[1024];
-				strcpy(szTemp,
-					   e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[i].name.c_str());
+				strcpy(szTemp, e.get_container().get_at(0)->custom_data.vector_variables[i].name.c_str());
 				node_temp1 = node_temp1.append_child("label");
 				node_temp1.append_child(pugi::node_pcdata).set_value(szTemp);
 				attrib = node_temp1.append_attribute("index");
@@ -507,7 +505,7 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 		// nuclear volume, cytoplasmic volume, fluid fraction, calcified fraction,
 		// orientation, polarity
 
-		int number_of_data_entries = e.cast_container<cell_container>().agents_count();
+		int number_of_data_entries = e.get_container().agents_count();
 		int size_of_each_datum = 1 + 3 + 1				  // ID, x,y,z, total_volume
 								 + 1 + 1 + 1 + 1		  // cycle information
 								 + 1 + 1 + 1 + 1		  // volume information
@@ -533,12 +531,10 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 		// figure out size of custom data. for now,
 		// assume all the cells have teh same custom data as
 		// cell #0
-		int custom_data_size = e.cast_container<cell_container>().get_at(0)->custom_data.variables.size();
-		for (std::size_t i = 0; i < e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables.size();
-			 i++)
+		int custom_data_size = e.get_container().get_at(0)->custom_data.variables.size();
+		for (std::size_t i = 0; i < e.get_container().get_at(0)->custom_data.vector_variables.size(); i++)
 		{
-			custom_data_size +=
-				e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[i].value.size();
+			custom_data_size += e.get_container().get_at(0)->custom_data.vector_variables[i].value.size();
 		}
 		size_of_each_datum += custom_data_size;
 
@@ -565,10 +561,10 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 		for (int i = 0; i < number_of_data_entries; i++)
 		{
 			// ID, x,y,z, total_volume
-			double ID_temp = (double)e.cast_container<cell_container>().get_at(i)->id;
+			double ID_temp = (double)e.get_container().get_at(i)->id;
 			fwrite((char*)&(ID_temp), sizeof(double), 1, fp);
 
-			pCell = e.cast_container<cell_container>().get_at(i);
+			pCell = e.get_container().get_at(i);
 
 			write_to_file(pCell->get_position().data(), 3, fp);
 			double dTemp = pCell->phenotype.volume.total(); // get_total_volume();
@@ -667,11 +663,11 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 	// now go through all cells
 
 	root = node;
-	for (int i = 0; i < e.cast_container<cell_container>().agents_count(); i++)
+	for (int i = 0; i < e.get_container().agents_count(); i++)
 	{
 		node = node.append_child("cell");
 		attrib = node.append_attribute("ID");
-		attrib.set_value(e.cast_container<cell_container>().get_at(i)->id);
+		attrib.set_value(e.get_container().get_at(i)->id);
 
 		node = node.append_child("phenotype_dataset");
 		node = node.append_child("phenotype"); // add a type?
@@ -695,8 +691,8 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 			// sprintf( temp , "%f" , all_basic_agents[i]->get_total_volume() *
 			// (*all_basic_agents[i]->secretion_rates)[j] );
 			sprintf(temp, "%f",
-					e.cast_container<cell_container>().get_at(i)->phenotype.volume.total()
-						* e.cast_container<cell_container>().get_at(i)->secretion_rates()[j]);
+					e.get_container().get_at(i)->phenotype.volume.total()
+						* e.get_container().get_at(i)->secretion_rates()[j]);
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			node = node.parent();
 
@@ -704,15 +700,15 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 			attrib = node.append_attribute("units");
 			attrib.set_value(rate_chars);
 			sprintf(temp, "%f",
-					e.cast_container<cell_container>().get_at(i)->phenotype.volume.total()
-						* e.cast_container<cell_container>().get_at(i)->uptake_rates()[j]);
+					e.get_container().get_at(i)->phenotype.volume.total()
+						* e.get_container().get_at(i)->uptake_rates()[j]);
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			node = node.parent();
 
 			node = node.append_child("saturation_density");
 			attrib = node.append_attribute("units");
 			attrib.set_value(e.m.substrates_units[j].c_str());
-			sprintf(temp, "%f", (double)e.cast_container<cell_container>().get_at(i)->saturation_densities()[j]);
+			sprintf(temp, "%f", (double)e.get_container().get_at(i)->saturation_densities()[j]);
 			node.append_child(pugi::node_pcdata).set_value(temp);
 			node = node.parent();
 
@@ -727,7 +723,7 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 		node = node.append_child("total_volume");
 		attrib = node.append_attribute("units");
 		attrib.set_value(volume_chars);
-		sprintf(temp, "%f", (double)e.cast_container<cell_container>().get_at(i)->phenotype.volume.total());
+		sprintf(temp, "%f", (double)e.get_container().get_at(i)->phenotype.volume.total());
 		node.append_child(pugi::node_pcdata).set_value(temp);
 		node = node.parent();
 		node = node.parent();
@@ -745,9 +741,9 @@ void add_PhysiCell_cells_to_open_xml_pugi(pugi::xml_document& xml_dom, std::stri
 		attrib.set_value(e.m.space_units.c_str());
 
 		// vector3_to_list( all_basic_agents[i]->position , temp , ' ');
-		sprintf(temp, "%.7e %.7e %.7e", (double)e.cast_container<cell_container>().get_at(i)->get_position()[0],
-				(double)e.cast_container<cell_container>().get_at(i)->get_position()[1],
-				(double)e.cast_container<cell_container>().get_at(i)->get_position()[2]);
+		sprintf(temp, "%.7e %.7e %.7e", (double)e.get_container().get_at(i)->get_position()[0],
+				(double)e.get_container().get_at(i)->get_position()[1],
+				(double)e.get_container().get_at(i)->get_position()[2]);
 		node.append_child(pugi::node_pcdata).set_value(temp);
 
 		node = root;
@@ -839,7 +835,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 	// get number of cell types
 	static int n = e.cell_definitions_count; // number_of_cell_types
 	// get number of death models
-	static int nd = e.cast_container<cell_container>().get_at(0)->phenotype.death.rates.size(); //
+	static int nd = e.get_container().get_at(0)->phenotype.death.rates.size(); //
 	// get number of custom data
 	// static int nc = 0; //
 	// static int nc_scalar = 0;
@@ -1558,10 +1554,10 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 		index += size;
 
 		// custom
-		for (std::size_t j = 0; j < e.cast_container<cell_container>().get_at(0)->custom_data.variables.size(); j++)
+		for (std::size_t j = 0; j < e.get_container().get_at(0)->custom_data.variables.size(); j++)
 		{
-			name = e.cast_container<cell_container>().get_at(0)->custom_data.variables[j].name;
-			units = e.cast_container<cell_container>().get_at(0)->custom_data.variables[j].units;
+			name = e.get_container().get_at(0)->custom_data.variables[j].name;
+			units = e.get_container().get_at(0)->custom_data.variables[j].units;
 			size = 1;
 			data_names.push_back(name);
 			data_units.push_back(units);
@@ -1572,12 +1568,11 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 		}
 
 		// custom vector variables
-		for (std::size_t j = 0; j < e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables.size();
-			 j++)
+		for (std::size_t j = 0; j < e.get_container().get_at(0)->custom_data.vector_variables.size(); j++)
 		{
-			name = e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[j].name;
-			units = e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[j].units;
-			size = e.cast_container<cell_container>().get_at(0)->custom_data.vector_variables[j].value.size();
+			name = e.get_container().get_at(0)->custom_data.vector_variables[j].name;
+			units = e.get_container().get_at(0)->custom_data.vector_variables[j].units;
+			size = e.get_container().get_at(0)->custom_data.vector_variables[j].value.size();
 			data_names.push_back(name);
 			data_units.push_back(units);
 			data_sizes.push_back(size);
@@ -1715,7 +1710,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 	// now write the actual data
 
 	int size_of_each_datum = cell_data_size;
-	int number_of_data_entries = e.cast_container<cell_container>().agents_count();
+	int number_of_data_entries = e.get_container().agents_count();
 
 	FILE* fp = write_matlab_header(size_of_each_datum, number_of_data_entries, filename, "cells");
 	if (fp == NULL)
@@ -1739,7 +1734,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2(pugi::xml_document& xml_dom, std::s
 	// storing data as cols (each column is a cell)
 	for (int i = 0; i < number_of_data_entries; i++)
 	{
-		pCell = e.cast_container<cell_container>().get_at(i);
+		pCell = e.get_container().get_at(i);
 
 		// int writes = 0;
 
@@ -2070,20 +2065,20 @@ void write_neighbor_graph(std::string filename, environment& e)
 	std::ofstream of(filename, std::ios::out);
 	std::stringstream buffer;
 
-	for (int i = 0; i < e.cast_container<cell_container>().agents_count(); i++)
+	for (int i = 0; i < e.get_container().agents_count(); i++)
 	{
-		buffer << e.cast_container<cell_container>().get_at(i)->id << ": ";
-		int size = e.cast_container<cell_container>().get_at(i)->state.neighbors().size();
+		buffer << e.get_container().get_at(i)->id << ": ";
+		int size = e.get_container().get_at(i)->state.neighbors().size();
 		for (int j = 0; j < size; j++)
 		{
-			auto nei_idx = e.cast_container<cell_container>().get_at(i)->state.neighbors()[j];
-			buffer << e.cast_container<cell_container>().get_at(nei_idx)->id;
+			auto nei_idx = e.get_container().get_at(i)->state.neighbors()[j];
+			buffer << e.get_container().get_at(nei_idx)->id;
 			if (j != size - 1)
 			{
 				buffer << ",";
 			}
 		}
-		if (i != e.cast_container<cell_container>().agents_count() - 1)
+		if (i != e.get_container().agents_count() - 1)
 		{
 			buffer << std::endl;
 		}
@@ -2114,20 +2109,20 @@ void write_attached_cells_graph(std::string filename, environment& e)
 	std::ofstream of(filename, std::ios::out);
 	std::stringstream buffer;
 
-	for (int i = 0; i < e.cast_container<cell_container>().agents_count(); i++)
+	for (int i = 0; i < e.get_container().agents_count(); i++)
 	{
-		buffer << e.cast_container<cell_container>().get_at(i)->id << ": ";
-		int size = e.cast_container<cell_container>().get_at(i)->state.attached_cells().size();
+		buffer << e.get_container().get_at(i)->id << ": ";
+		int size = e.get_container().get_at(i)->state.attached_cells().size();
 		for (int j = 0; j < size; j++)
 		{
-			auto nei_idx = e.cast_container<cell_container>().get_at(i)->state.attached_cells()[j];
-			buffer << e.cast_container<cell_container>().get_at(nei_idx)->id;
+			auto nei_idx = e.get_container().get_at(i)->state.attached_cells()[j];
+			buffer << e.get_container().get_at(nei_idx)->id;
 			if (j != size - 1)
 			{
 				buffer << ",";
 			}
 		}
-		if (i != e.cast_container<cell_container>().agents_count() - 1)
+		if (i != e.get_container().agents_count() - 1)
 		{
 			buffer << std::endl;
 		}

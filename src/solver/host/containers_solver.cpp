@@ -143,14 +143,14 @@ void containers_solver::update_cell_container_for_mechanics(environment& e)
 	auto& data = get_cell_data(e);
 
 	update_cell_container_internal(data.flags.data(), data.agent_data.positions.data(), data.states.springs.data(),
-								   data.states.attached_cells.data(), e.m.mesh, e.cast_container<cell_container>(),
-								   e.deaths_count, removal_mtx_);
+								   data.states.attached_cells.data(), e.m.mesh, e.get_container(), e.deaths_count,
+								   removal_mtx_);
 }
 
 void containers_solver::update_cell_container_for_phenotype(environment& e, cell_solver& s)
 {
 	auto& data = get_cell_data(e);
-	auto& c = e.cast_container<cell_container>();
+	auto& c = e.get_container();
 
 	const auto n = c.agents().size();
 #pragma omp barrier

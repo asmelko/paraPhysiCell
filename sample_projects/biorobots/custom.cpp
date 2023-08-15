@@ -138,7 +138,7 @@ void create_cargo_cluster_6(const point_t<real_t, 3>& center, environment& e)
 	cell* pC;
 	for (index_t i = 0; i < 6; i++)
 	{
-		pC = e.cast_container<cell_container>().create_cell(*pCargoDef);
+		pC = e.get_container().create_cell(*pCargoDef);
 
 		position[0] = center[0] + spacing * std::cos(theta);
 		position[1] = center[1] + spacing * std::sin(theta);
@@ -158,7 +158,7 @@ void create_cargo_cluster_7(const point_t<real_t, 3>& center, environment& e)
 	// create a filled cluster at position, with random orientation
 
 	create_cargo_cluster_6(center, e);
-	cell* pC = e.cast_container<cell_container>().create_cell(*pCargoDef);
+	cell* pC = e.get_container().create_cell(*pCargoDef);
 	pC->assign_position(center);
 
 	return;
@@ -199,7 +199,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			position[1] = Ymin + random::instance().uniform() * Yrange;
 			position[2] = Zmin + random::instance().uniform() * Zrange;
 
-			pC = e.cast_container<cell_container>().create_cell(pCD);
+			pC = e.get_container().create_cell(pCD);
 			pC->assign_position(position);
 		}
 	}
@@ -238,7 +238,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			Ymin + Yrange * (relative_outer_margin + (1.0 - 2 * relative_outer_margin) * random::instance().uniform());
 
 		// place the cell
-		auto pC = e.cast_container<cell_container>().create_cell(*pDirectorDef);
+		auto pC = e.get_container().create_cell(*pDirectorDef);
 		pC->assign_position(position);
 		set_single_behavior(pC, "movable", false, e);
 	}
@@ -258,7 +258,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 		if (random::instance().uniform() < 0.5)
 		{
-			auto pC = e.cast_container<cell_container>().create_cell(*pCargoDef);
+			auto pC = e.get_container().create_cell(*pCargoDef);
 			pC->assign_position(position);
 		}
 		else
@@ -280,7 +280,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			Ymin + Yrange * (relative_outer_margin + (1.0 - 2 * relative_outer_margin) * random::instance().uniform());
 
 		// place the cell
-		auto pC = e.cast_container<cell_container>().create_cell(*pWorkerDef);
+		auto pC = e.get_container().create_cell(*pWorkerDef);
 		pC->assign_position(position);
 	}
 

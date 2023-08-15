@@ -103,7 +103,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			position[1] = Ymin + random::instance().uniform() * Yrange;
 			position[2] = Zmin + random::instance().uniform() * Zrange;
 
-			pC = e.cast_container<cell_container>().create_cell(pCD);
+			pC = e.get_container().create_cell(pCD);
 			pC->assign_position(position);
 		}
 	}
@@ -132,7 +132,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	real_t p_min = parameters.doubles("oncoprotein_min");
 	real_t p_max = parameters.doubles("oncoprotein_max");
 
-	auto& container = e.cast_container<cell_container>();
+	auto& container = e.get_container();
 
 	index_t n = 0;
 	while (y < tumor_radius)

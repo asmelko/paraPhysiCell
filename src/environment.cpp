@@ -21,7 +21,7 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	cells_in_mechanics_voxels = std::make_unique<std::vector<index_t>[]>(mechanics_mesh.voxel_count());
 }
 
-cell_container_base& environment::cells() { return cast_container<cell_container_base&>(); }
+cell_container_base& environment::container_base() { return get_container<cell_container_base&>(); }
 
 cell_definition& environment::create_cell_definition()
 {

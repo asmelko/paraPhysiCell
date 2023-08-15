@@ -19,10 +19,10 @@ struct environment
 
 	biofvm::microenvironment& m;
 
-	cell_container_base& cells();
+	cell_container_base& container_base();
 
-	template <typename container_t>
-	container_t& cast_container()
+	template <typename container_t = cell_container>
+	container_t& get_container()
 	{
 		return dynamic_cast<container_t&>(*m.agents);
 	}

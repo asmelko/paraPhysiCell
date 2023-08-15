@@ -125,7 +125,7 @@ void simulator::initialize(environment& e, PhysiCell_Settings& settings)
 
 void custom_cell_rules(environment& e)
 {
-	auto& cells = e.cast_container<cell_container>();
+	auto& cells = e.get_container();
 
 #pragma omp for
 	for (auto& cell : cells.agents())
@@ -139,7 +139,7 @@ void custom_cell_rules(environment& e)
 
 void evaluate_interactions(environment& e)
 {
-	auto& cells = e.cast_container<cell_container>();
+	auto& cells = e.get_container();
 
 #pragma omp for
 	for (auto& cell : cells.agents())
@@ -158,7 +158,7 @@ void evaluate_interactions(environment& e)
 
 void advance_bundled_phenotype_functions(environment& e)
 {
-	auto& cells = e.cast_container<cell_container>();
+	auto& cells = e.get_container();
 
 #pragma omp for
 	for (auto& cell : cells.agents())

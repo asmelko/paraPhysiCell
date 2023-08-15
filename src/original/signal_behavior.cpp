@@ -656,7 +656,7 @@ std::vector<real_t> get_signals(cell* pCell, environment& e)
 	static index_t contact_ind = find_signal_index("contact with " + e.cell_definitions[0]->name);
 	for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
 	{
-		cell* pC = const_cast<cell*>(e.cast_container<cell_container>().agents()[pCell->state.neighbors()[i]].get());
+		cell* pC = const_cast<cell*>(e.get_container().agents()[pCell->state.neighbors()[i]].get());
 		if (pC->phenotype.death.dead() == true)
 		{
 			dead_cells++;
@@ -758,7 +758,7 @@ std::vector<real_t> get_cell_contact_signals(cell* pCell, environment& e)
 	index_t live_cells = 0;
 	for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
 	{
-		cell* pC = const_cast<cell*>(e.cast_container<cell_container>().agents()[pCell->state.neighbors()[i]].get());
+		cell* pC = const_cast<cell*>(e.get_container().agents()[pCell->state.neighbors()[i]].get());
 		if (pC->phenotype.death.dead() == true)
 		{
 			dead_cells++;
@@ -892,8 +892,7 @@ real_t get_single_signal(cell* pCell, index_t index, environment& e)
 		index_t live_cells = 0;
 		for (std::size_t i = 0; i < pCell->state.neighbors().size(); i++)
 		{
-			cell* pC =
-				const_cast<cell*>(e.cast_container<cell_container>().agents()[pCell->state.neighbors()[i]].get());
+			cell* pC = const_cast<cell*>(e.get_container().agents()[pCell->state.neighbors()[i]].get());
 			if (pC->phenotype.death.dead() == true)
 			{
 				dead_cells++;

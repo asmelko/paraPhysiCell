@@ -59,7 +59,7 @@ void load_cells_csv_v1(std::string filename, environment& e)
 		if (pCD != NULL)
 		{
 			std::cout << "Creating " << pCD->name << " (type=" << pCD->type << ") at " << position << std::endl;
-			cell* pCell = e.cast_container<cell_container>().create_cell(*pCD);
+			cell* pCell = e.get_container().create_cell(*pCD);
 			pCell->assign_position(position);
 		}
 		else
@@ -107,7 +107,7 @@ cell* process_csv_v2_line(std::string line, std::vector<std::string> labels, env
 	// create the cell IF the definition was found
 	std::cout << "Creating " << pCD->name << " (type=" << pCD->type << ") at " << position << std::endl;
 
-	cell* pCell = e.cast_container<cell_container>().create_cell(*pCD);
+	cell* pCell = e.get_container().create_cell(*pCD);
 	pCell->assign_position(position);
 
 	// now write any extra data

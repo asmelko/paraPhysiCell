@@ -59,7 +59,7 @@ TEST(cell_container, add_and_remove)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create();
 	c1->volume() = 1;
@@ -150,7 +150,7 @@ TEST_P(host_velocity_solver, simple)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -274,7 +274,7 @@ TEST_P(host_velocity_solver, complex)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create();
 	update_cell_for_velocity(c1, 0, dims, 0);
@@ -353,7 +353,7 @@ TEST_P(host_neighbors_solver, grid)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	for (std::size_t i = 0; i < e->mechanics_mesh.voxel_count(); i++)
 	{
@@ -409,7 +409,7 @@ TEST(host_interactions_solver, attack)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create_cell(e->cell_defaults());
 	c1->assign_position({ 10, 10, 10 });
@@ -451,7 +451,7 @@ TEST(host_interactions_solver, dead_phagocytosis)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create_cell(e->cell_defaults());
 	c1->assign_position({ 10, 10, 10 });
@@ -489,7 +489,7 @@ TEST(host_interactions_solver, phagocytosis)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create_cell(*e->cell_definitions[0]);
 	c1->assign_position({ 10, 10, 10 });
@@ -529,7 +529,7 @@ TEST(host_interactions_solver, fusion)
 	auto m = default_microenv(mesh);
 	auto e = default_env(m);
 
-	cell_container& cont = e->cast_container<cell_container>();
+	cell_container& cont = e->get_container();
 
 	auto c1 = cont.create_cell(*e->cell_definitions[0]);
 	c1->assign_position({ 10, 10, 10 });

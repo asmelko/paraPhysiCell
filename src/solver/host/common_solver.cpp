@@ -8,7 +8,7 @@
 using namespace biofvm;
 using namespace physicell;
 
-cell_data& common_solver::get_cell_data(environment& e) { return e.cells().get_cell_data(); }
+cell_data& common_solver::get_cell_data(environment& e) { return e.container_base().get_cell_data(); }
 
 index_t common_solver::get_mesh_index(const point_t<index_t, 3>& position, const cartesian_mesh& mesh)
 {

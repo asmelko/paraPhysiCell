@@ -191,7 +191,7 @@ void cell::flag_for_division() { flag() = cell_state_flag::to_divide; }
 
 environment& cell::e() { return data_.e; }
 
-cell_container& cell::container() { return data_.e.cast_container<cell_container>(); }
+cell_container& cell::container() { return data_.e.get_container(); }
 
 void cell::attach_cell(cell& cell)
 {

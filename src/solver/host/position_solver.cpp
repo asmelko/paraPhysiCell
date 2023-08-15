@@ -286,7 +286,7 @@ void position_solver::update_cell_neighbors(environment& e)
 void position_solver::update_motility(environment& e)
 {
 	auto& data = get_cell_data(e);
-	auto& cells = e.cast_container<cell_container>();
+	auto& cells = e.get_container();
 
 	if (e.m.mesh.dims == 1)
 		update_motility_internal<1>(

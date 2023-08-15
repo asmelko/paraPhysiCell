@@ -119,7 +119,7 @@ void macrophage_phenotype(cell& pCell)
 	index_t num_dead = 0;
 	for (std::size_t n = 0; n < pCell.state.neighbors().size(); n++)
 	{
-		cell* pC = pCell.e().cast_container<cell_container>().get_at(pCell.state.neighbors()[n]);
+		cell* pC = pCell.container().get_at(pCell.state.neighbors()[n]);
 		if (pC->phenotype.death.dead() == true)
 		{
 			num_dead++;
@@ -309,7 +309,7 @@ std::function<void(cell&)> get_stem_cell_phenotype(User_Parameters& parameters)
 		index_t num_differentiated = 0;
 		for (std::size_t n = 0; n < pCell.state.neighbors().size(); n++)
 		{
-			cell* pC = pCell.e().cast_container<cell_container>().get_at(pCell.state.neighbors()[n]);
+			cell* pC = pCell.container().get_at(pCell.state.neighbors()[n]);
 			if (pC->type == stem_type)
 			{
 				num_stem++;
@@ -549,7 +549,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			position[1] = Ymin + random::instance().uniform() * Yrange;
 			position[2] = Zmin + random::instance().uniform() * Zrange;
 
-			pC = e.cast_container<cell_container>().create_cell(pCD);
+			pC = e.get_container().create_cell(pCD);
 			pC->assign_position(position);
 		}
 	}
@@ -565,7 +565,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -579,7 +579,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -593,7 +593,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -607,7 +607,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -621,7 +621,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -635,7 +635,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 
@@ -649,7 +649,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		position[1] = Ymin + random::instance().uniform() * Yrange;
 		position[2] = Zmin + random::instance().uniform() * Zrange;
 
-		pC = e.cast_container<cell_container>().create_cell(*pCD);
+		pC = e.get_container().create_cell(*pCD);
 		pC->assign_position(position);
 	}
 

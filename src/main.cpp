@@ -24,7 +24,7 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 	for (index_t i = 0; i < count; i++)
 	{
-		auto a = e.cast_container<cell_container>().create_cell(e.cell_defaults());
+		auto a = e.get_container().create_cell(e.cell_defaults());
 		a->position()[0] = x + 10;
 		a->position()[1] = y + 10;
 		a->position()[2] = z + 10;
@@ -68,7 +68,7 @@ void make_agents(environment& e, index_t count, bool conflict)
 
 	if (conflict)
 	{
-		auto a = e.cast_container<cell_container>().create();
+		auto a = e.get_container().create();
 		a->position()[0] = 10;
 		a->position()[1] = 10;
 		a->position()[2] = 10;
@@ -157,7 +157,7 @@ int main()
 					  << position_duration << " ms,\t Interactions time: " << interactions_duration
 					  << " ms,\t Delete time: " << delete_duration << " ms" << std::endl;
 
-			std::cout << "Number of cells: " << e.cast_container<cell_container>().data().agents_count << std::endl;
+			std::cout << "Number of cells: " << e.get_container().data().agents_count << std::endl;
 		}
 
 	for (index_t i = 0; i < 5; i++)

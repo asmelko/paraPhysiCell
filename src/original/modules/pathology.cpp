@@ -315,7 +315,7 @@ void SVG_plot(std::string filename, environment& e, const PhysiCell_Settings& se
 	os << "  <g id=\"cells\">" << std::endl;
 	for (int i = 0; i < total_cell_count; i++)
 	{
-		cell* pC = e.cast_container<cell_container>().get_at(i); // global_cell_list[i];
+		cell* pC = e.get_container().get_at(i); // global_cell_list[i];
 
 		static std::vector<std::string> Colors;
 		if (fabs((pC->get_position())[2] - z_slice) < pC->phenotype.geometry.radius())
@@ -462,7 +462,7 @@ void create_plot_legend(std::string filename, cell_coloring_funct_t cell_colorin
 	for (int k = 0; k < number_of_cell_types; k++)
 	{
 		// switch to the cell type
-		cell* C = e.cast_container<cell_container>().create_cell(*e.cell_definitions[k]);
+		cell* C = e.get_container().create_cell(*e.cell_definitions[k]);
 
 		// get the colors using the current coloring function
 		std::vector<std::string> colors = cell_coloring_function(C);
@@ -486,7 +486,7 @@ void create_plot_legend(std::string filename, cell_coloring_funct_t cell_colorin
 		cursor_y += (2.0 * padding + 2.0 * temp_cell_radius);
 		cursor_x = padding + temp_cell_radius;
 
-		e.cast_container<cell_container>().remove_agent(C);
+		e.get_container().remove_agent(C);
 	}
 
 	Write_SVG_end(os);
