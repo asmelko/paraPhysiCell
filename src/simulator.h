@@ -28,15 +28,18 @@ class simulator
 				  const cell_coloring_funct_t& cell_coloring_function,
 				  const substrate_coloring_funct_t& substrate_coloring_function, biofvm::index_t simulation_step);
 
-	void sync_data_host(environment& e, simulator_durations& durations);
-	void sync_data_device(environment& e, simulator_durations& durations);
+	void sync_data_host(environment& e, simulator_durations& durations, biofvm::solvers::data_residency& residency);
+	void sync_data_device(environment& e, simulator_durations& durations, biofvm::solvers::data_residency& residency);
 
 public:
 	void initialize(environment& e, PhysiCell_Settings& settings);
 
-	void simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake);
-	void simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake);
-	void simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake);
+	void simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+							biofvm::solvers::data_residency& residency);
+	void simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+							biofvm::solvers::data_residency& residency);
+	void simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+							biofvm::solvers::data_residency& residency);
 
 	void run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function,
 			 substrate_coloring_funct_t substrate_coloring_function = nullptr);

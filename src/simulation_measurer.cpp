@@ -77,6 +77,8 @@ void simulator_durations::print_durations()
 	// zero them out
 	diffusion = 0;
 	secretion = 0;
+	host_sync = 0;
+	device_sync = 0;
 	gradient = 0;
 	custom_rules = 0;
 	custom_interactions = 0;

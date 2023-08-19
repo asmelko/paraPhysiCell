@@ -80,28 +80,30 @@ void advance_bundled_phenotype_functions(environment& e)
 	}
 }
 
-void simulator::sync_data_host(environment& e, simulator_durations& durations)
+void simulator::sync_data_host(environment& e, simulator_durations& durations,
+							   biofvm::solvers::data_residency& residency)
 {
 	if constexpr (biofvm::solver::is_device_solver)
 	{
-		if (e.m.data_residency != biofvm::solvers::data_residency::host)
+		if (residency != biofvm::solvers::data_residency::host)
 		{
 #pragma omp master
 			{
 				measure(diffusion_solver_.load_data_from_solver(e.m), durations.host_sync);
-				e.m.data_residency = biofvm::solvers::data_residency::host;
 			}
+			residency = biofvm::solvers::data_residency::host;
 #pragma omp barrier
 		}
 	}
 }
 
-void simulator::sync_data_device(environment& e, simulator_durations& durations)
+void simulator::sync_data_device(environment& e, simulator_durations& durations,
+								 biofvm::solvers::data_residency& residency)
 {
-	if (e.m.data_residency != biofvm::solvers::data_residency::device)
+	if (residency != biofvm::solvers::data_residency::device)
 	{
 		measure(diffusion_solver_.store_data_to_solver(e.m), durations.device_sync);
-		e.m.data_residency = biofvm::solvers::data_residency::device;
+		residency = biofvm::solvers::data_residency::device;
 	}
 }
 
@@ -115,16 +117,18 @@ void simulate_diffusion_core(biofvm::solver& s, environment& e, simulator_durati
 	measure(s.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake), durations.secretion);
 }
 
-void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+								   biofvm::solvers::data_residency& residency)
 {
 	if constexpr (biofvm::solver::is_device_solver)
 	{
 #pragma omp master
 		{
-			sync_data_device(e, durations);
+			sync_data_device(e, durations, residency);
 
 			simulate_diffusion_core(diffusion_solver_, e, durations, recompute_secretion_and_uptake);
 		}
+		residency = biofvm::solvers::data_residency::device;
 	}
 	else
 	{
@@ -134,9 +138,10 @@ void simulator::simulate_diffusion(environment& e, simulator_durations& duration
 	recompute_secretion_and_uptake = false;
 }
 
-void simulator::simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+void simulator::simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+								   biofvm::solvers::data_residency& residency)
 {
-	sync_data_host(e, durations);
+	sync_data_host(e, durations, residency);
 
 	// Compute gradient:
 	measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
@@ -174,9 +179,10 @@ void simulator::simulate_mechanics(environment& e, simulator_durations& duration
 	}
 }
 
-void simulator::simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+void simulator::simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+								   biofvm::solvers::data_residency& residency)
 {
-	sync_data_host(e, durations);
+	sync_data_host(e, durations, residency);
 
 	// Update phenotype:
 	measure(::advance_bundled_phenotype_functions(e), durations.advance_phe);
@@ -283,6 +289,7 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 		index_t simulation_step = 0;
 		simulator_durations durations;
 		bool recompute_secretion_and_uptake = true;
+		biofvm::solvers::data_residency data_residency = biofvm::solvers::data_residency::host;
 
 		while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
 		{
@@ -290,17 +297,17 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 			// called each time because one simulation step is equal to one diffusion time step
 			{
-				simulate_diffusion(e, durations, recompute_secretion_and_uptake);
+				simulate_diffusion(e, durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			if (simulation_step % mechanics_step_interval_ == 0)
 			{
-				simulate_mechanics(e, durations, recompute_secretion_and_uptake);
+				simulate_mechanics(e, durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			if (simulation_step % phenotype_step_interval_ == 0)
 			{
-				simulate_phenotype(e, durations, recompute_secretion_and_uptake);
+				simulate_phenotype(e, durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 #pragma omp master
