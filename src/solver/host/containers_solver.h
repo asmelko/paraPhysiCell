@@ -3,6 +3,8 @@
 #include <mutex>
 #include <shared_mutex>
 
+#include <BioFVM/solver.h>
+
 #include "common_solver.h"
 
 namespace physicell {

@@ -19,94 +19,8 @@
 		D += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();                               \
 	}
 
-#define make_duration_pair(D) std::make_pair(D, #D)
-
 using namespace biofvm;
 using namespace physicell;
-
-void simulator_durations::print_durations()
-{
-	std::array<std::pair<std::size_t, const char*>, 20> durations { make_duration_pair(diffusion),
-																	make_duration_pair(secretion),
-																	make_duration_pair(gradient),
-																	make_duration_pair(custom_rules),
-																	make_duration_pair(custom_interactions),
-																	make_duration_pair(forces),
-																	make_duration_pair(motility),
-																	make_duration_pair(membrane),
-																	make_duration_pair(spring),
-																	make_duration_pair(position),
-																	make_duration_pair(cell_cell),
-																	make_duration_pair(container_mech),
-																	make_duration_pair(mesh_mech),
-																	make_duration_pair(neighbors_mech),
-																	make_duration_pair(advance_phe),
-																	make_duration_pair(container_phe),
-																	make_duration_pair(mesh_phe),
-																	make_duration_pair(neighbors_phe),
-																	make_duration_pair(svg_save),
-																	make_duration_pair(full_save) };
-
-	std::size_t diff_total = 0;
-	std::size_t mech_total = 0;
-	std::size_t phen_total = 0;
-	std::size_t save_total = 0;
-	std::size_t total = 0;
-
-	{
-		index_t i = 0;
-		for (; i < 2; i++)
-			diff_total += durations[i].first;
-
-		for (; i < 14; i++)
-			mech_total += durations[i].first;
-
-		for (; i < 18; i++)
-			phen_total += durations[i].first;
-
-		for (; i < 20; i++)
-			save_total += durations[i].first;
-
-		total = diff_total + mech_total + phen_total + save_total;
-	}
-
-	std::cout << "Duration ratios (total: " << (double)total / 1000 << "ms): "
-			  << "Diffusion: " << (int)(diff_total / (double)total * 100)
-			  << "% Mechanics: " << (int)(mech_total / (double)total * 100)
-			  << "% Phenotype: " << (int)(phen_total / (double)total * 100)
-			  << "% Save: " << (int)(save_total / (double)total * 100) << "%" << std::endl;
-
-	std::sort(durations.begin(), durations.end(), [](auto& a, auto& b) { return a.first > b.first; });
-
-	std::cout << "  ";
-	for (index_t i = 0; i < 5; i++)
-	{
-		std::cout << durations[i].second << ": " << durations[i].first / 1000. << "ms ";
-	}
-	std::cout << std::endl;
-
-	// zero them out
-	diffusion = 0;
-	secretion = 0;
-	gradient = 0;
-	custom_rules = 0;
-	custom_interactions = 0;
-	forces = 0;
-	motility = 0;
-	membrane = 0;
-	spring = 0;
-	position = 0;
-	cell_cell = 0;
-	container_mech = 0;
-	mesh_mech = 0;
-	neighbors_mech = 0;
-	advance_phe = 0;
-	container_phe = 0;
-	mesh_phe = 0;
-	neighbors_phe = 0;
-	svg_save = 0;
-	full_save = 0;
-}
 
 void simulator::initialize(environment& e, PhysiCell_Settings& settings)
 {
@@ -166,76 +80,97 @@ void advance_bundled_phenotype_functions(environment& e)
 	}
 }
 
-void simulator::simulate_diffusion_and_mechanics(environment& e, simulator_durations& durations,
-												 index_t simulation_step, bool recompute_secretion_and_uptake)
+void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
 {
+	// Compute diffusion:
+	measure(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+
+	// Compute secretion and uptake:
+	measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
+			durations.secretion);
+
+	recompute_secretion_and_uptake = false;
+}
+
+void simulator::simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+{
+	// Compute gradient:
+	measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
+
+	// custom cell rules:
+	measure(custom_cell_rules(e), durations.custom_rules);
+
+	// Compute velocities and update the positions:
 	{
-		// Compute diffusion:
-		measure(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+		// custom attached cells adhesion:
+		measure(evaluate_interactions(e), durations.custom_interactions);
 
-		// Compute secretion and uptake:
-		measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
-				durations.secretion);
-
-		recompute_secretion_and_uptake = false;
+		measure(mechanics_solver_.position.update_cell_forces(e), durations.forces);
+		measure(mechanics_solver_.position.update_motility(e), durations.motility);
+		measure(mechanics_solver_.position.update_basement_membrane_interactions(e), durations.membrane);
+		measure(mechanics_solver_.position.update_spring_attachments(e), durations.spring);
+		measure(mechanics_solver_.position.update_positions(e), durations.position);
 	}
 
-	if (simulation_step % mechanics_step_interval_ == 0)
+	// Standard cell-cell interactions:
+	measure(mechanics_solver_.interactions.update_cell_cell_interactions(e), durations.cell_cell);
+
+	// housekeeping
 	{
-		// Compute gradient:
-		measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
+		// Removal of flagged cells from data structures:
+		measure(mechanics_solver_.containers.update_cell_container_for_mechanics(e), durations.container_mech);
 
-		// custom cell rules:
-		measure(custom_cell_rules(e), durations.custom_rules);
+		// Update mechanics mesh with new cell positions:
+		measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_mech);
 
-		// Compute velocities and update the positions:
-		{
-			// custom attached cells adhesion:
-			measure(evaluate_interactions(e), durations.custom_interactions);
+		// Update cells neighbors:
+		measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_mech);
 
-			measure(mechanics_solver_.position.update_cell_forces(e), durations.forces);
-			measure(mechanics_solver_.position.update_motility(e), durations.motility);
-			measure(mechanics_solver_.position.update_basement_membrane_interactions(e), durations.membrane);
-			measure(mechanics_solver_.position.update_spring_attachments(e), durations.spring);
-			measure(mechanics_solver_.position.update_positions(e), durations.position);
-		}
-
-		// Standard cell-cell interactions:
-		measure(mechanics_solver_.interactions.update_cell_cell_interactions(e), durations.cell_cell);
-
-		// housekeeping
-		{
-			// Removal of flagged cells from data structures:
-			measure(mechanics_solver_.containers.update_cell_container_for_mechanics(e), durations.container_mech);
-
-			// Update mechanics mesh with new cell positions:
-			measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_mech);
-
-			// Update cells neighbors:
-			measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_mech);
-
-			recompute_secretion_and_uptake = true;
-		}
+		recompute_secretion_and_uptake = true;
 	}
+}
 
-	if (simulation_step % phenotype_step_interval_ == 0)
+void simulator::simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+{
+	// Update phenotype:
+	measure(::advance_bundled_phenotype_functions(e), durations.advance_phe);
+
+	// housekeeping
 	{
-		// Update phenotype:
-		measure(::advance_bundled_phenotype_functions(e), durations.advance_phe);
+		// Removal and division of flagged cells in data structures:
+		measure(mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell),
+				durations.container_phe);
 
-		// housekeeping
+		// Update mechanics mesh with new cell positions:
+		measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_phe);
+
+		// Update cells neighbors:
+		measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_phe);
+
+		recompute_secretion_and_uptake = true;
+	}
+}
+
+void simulator::save(environment& e, simulator_durations& durations, PhysiCell_Settings& settings,
+					 const cell_coloring_funct_t& cell_coloring_function,
+					 const substrate_coloring_funct_t& substrate_coloring_function, index_t simulation_step)
+{
+#pragma omp master
+	{
+		// save SVG plot if it's time
+		if (simulation_step % svg_save_interval_ == 0)
 		{
-			// Removal and division of flagged cells in data structures:
-			measure(mechanics_solver_.containers.update_cell_container_for_phenotype(e, diffusion_solver_.cell),
-					durations.container_phe);
+			measure(save_svg(e, settings, cell_coloring_function, substrate_coloring_function, simulation_step),
+					durations.svg_save);
+		}
 
-			// Update mechanics mesh with new cell positions:
-			measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_phe);
+		// save data if it's time.
+		if (simulation_step % full_save_interval_ == 0)
+		{
+			measure(save_full(e, settings, simulation_step), durations.full_save);
 
-			// Update cells neighbors:
-			measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_phe);
-
-			recompute_secretion_and_uptake = true;
+			durations.print_durations();
+			display_simulation_status(std::cout, e, settings);
 		}
 	}
 }
@@ -305,26 +240,22 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 		while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
 		{
-#pragma omp master
+			save(e, durations, settings, cell_coloring_function, substrate_coloring_function, simulation_step);
+
+			// called each time because one simulation step is equal to one diffusion time step
 			{
-				// save SVG plot if it's time
-				if (simulation_step % svg_save_interval_ == 0)
-				{
-					measure(save_svg(e, settings, cell_coloring_function, substrate_coloring_function, simulation_step),
-							durations.svg_save);
-				}
-
-				// save data if it's time.
-				if (simulation_step % full_save_interval_ == 0)
-				{
-					measure(save_full(e, settings, simulation_step), durations.full_save);
-
-					durations.print_durations();
-					display_simulation_status(std::cout, e, settings);
-				}
+				simulate_diffusion(e, durations, recompute_secretion_and_uptake);
 			}
 
-			simulate_diffusion_and_mechanics(e, durations, simulation_step, recompute_secretion_and_uptake);
+			if (simulation_step % mechanics_step_interval_ == 0)
+			{
+				simulate_mechanics(e, durations, recompute_secretion_and_uptake);
+			}
+
+			if (simulation_step % phenotype_step_interval_ == 0)
+			{
+				simulate_phenotype(e, durations, recompute_secretion_and_uptake);
+			}
 
 #pragma omp master
 			e.current_time += e.m.diffusion_time_step;

@@ -1,12 +1,8 @@
 #pragma once
 
-#define impl host
-
-#if impl == host
-#	include "host/position_solver.h"
-#	include "host/containers_solver.h"
-#	include "host/interactions_solver.h"
-#endif
+#include "host/position_solver.h"
+#include "host/containers_solver.h"
+#include "host/interactions_solver.h"
 
 namespace physicell {
 
