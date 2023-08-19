@@ -13,9 +13,11 @@ using namespace physicell;
 
 void simulator_durations::print_durations()
 {
-	std::array<std::pair<std::size_t, const char*>, 20> durations { make_duration_pair(diffusion),
+	std::array<std::pair<std::size_t, const char*>, 22> durations { make_duration_pair(diffusion),
 																	make_duration_pair(secretion),
 																	make_duration_pair(gradient),
+																	make_duration_pair(host_sync),
+																	make_duration_pair(device_sync),
 																	make_duration_pair(custom_rules),
 																	make_duration_pair(custom_interactions),
 																	make_duration_pair(forces),
@@ -42,16 +44,16 @@ void simulator_durations::print_durations()
 
 	{
 		index_t i = 0;
-		for (; i < 2; i++)
+		for (; i < 4; i++)
 			diff_total += durations[i].first;
 
-		for (; i < 14; i++)
+		for (; i < 16; i++)
 			mech_total += durations[i].first;
 
-		for (; i < 18; i++)
+		for (; i < 20; i++)
 			phen_total += durations[i].first;
 
-		for (; i < 20; i++)
+		for (; i < 22; i++)
 			save_total += durations[i].first;
 
 		total = diff_total + mech_total + phen_total + save_total;

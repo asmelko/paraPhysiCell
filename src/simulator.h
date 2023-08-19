@@ -28,6 +28,9 @@ class simulator
 				  const cell_coloring_funct_t& cell_coloring_function,
 				  const substrate_coloring_funct_t& substrate_coloring_function, biofvm::index_t simulation_step);
 
+	void sync_data_host(environment& e, simulator_durations& durations);
+	void sync_data_device(environment& e, simulator_durations& durations);
+
 public:
 	void initialize(environment& e, PhysiCell_Settings& settings);
 

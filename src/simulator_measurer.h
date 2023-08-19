@@ -1,7 +1,7 @@
 #include <chrono>
 
 namespace physicell {
-    
+
 struct simulator_durations
 {
 	std::chrono::high_resolution_clock::time_point start, end;
@@ -9,6 +9,8 @@ struct simulator_durations
 	std::size_t diffusion = 0;
 	std::size_t secretion = 0;
 	std::size_t gradient = 0;
+	std::size_t host_sync = 0;
+	std::size_t device_sync = 0;
 	std::size_t custom_rules = 0;
 	std::size_t custom_interactions = 0;
 	std::size_t forces = 0;

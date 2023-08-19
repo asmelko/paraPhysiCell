@@ -80,20 +80,64 @@ void advance_bundled_phenotype_functions(environment& e)
 	}
 }
 
-void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+void simulator::sync_data_host(environment& e, simulator_durations& durations)
+{
+	if constexpr (biofvm::solver::is_device_solver)
+	{
+		if (e.m.data_residency != biofvm::solvers::data_residency::host)
+		{
+#pragma omp master
+			{
+				measure(diffusion_solver_.load_data_from_solver(e.m), durations.host_sync);
+				e.m.data_residency = biofvm::solvers::data_residency::host;
+			}
+#pragma omp barrier
+		}
+	}
+}
+
+void simulator::sync_data_device(environment& e, simulator_durations& durations)
+{
+	if (e.m.data_residency != biofvm::solvers::data_residency::device)
+	{
+		measure(diffusion_solver_.store_data_to_solver(e.m), durations.device_sync);
+		e.m.data_residency = biofvm::solvers::data_residency::device;
+	}
+}
+
+void simulate_diffusion_core(biofvm::solver& s, environment& e, simulator_durations& durations,
+							 bool& recompute_secretion_and_uptake)
 {
 	// Compute diffusion:
-	measure(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+	measure(s.diffusion.solve(e.m), durations.diffusion);
 
 	// Compute secretion and uptake:
-	measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
-			durations.secretion);
+	measure(s.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake), durations.secretion);
+}
+
+void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
+{
+	if constexpr (biofvm::solver::is_device_solver)
+	{
+#pragma omp master
+		{
+			sync_data_device(e, durations);
+
+			simulate_diffusion_core(diffusion_solver_, e, durations, recompute_secretion_and_uptake);
+		}
+	}
+	else
+	{
+		simulate_diffusion_core(diffusion_solver_, e, durations, recompute_secretion_and_uptake);
+	}
 
 	recompute_secretion_and_uptake = false;
 }
 
 void simulator::simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
 {
+	sync_data_host(e, durations);
+
 	// Compute gradient:
 	measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
 
@@ -132,6 +176,8 @@ void simulator::simulate_mechanics(environment& e, simulator_durations& duration
 
 void simulator::simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake)
 {
+	sync_data_host(e, durations);
+
 	// Update phenotype:
 	measure(::advance_bundled_phenotype_functions(e), durations.advance_phe);
 
