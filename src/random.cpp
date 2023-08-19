@@ -27,6 +27,7 @@ real_t physicell::random::normal(const real_t mean, const real_t std)
 
 void physicell::random::set_seed(unsigned int seed)
 {
+#ifdef _OPENMP
 	std::vector<unsigned int> initial_sequence(omp_get_num_threads());
 
 	for (int i = 0; i < omp_get_num_threads(); i++)
@@ -37,9 +38,12 @@ void physicell::random::set_seed(unsigned int seed)
 	std::vector<unsigned int> seeds(omp_get_num_threads());
 	seq.generate(seeds.begin(), seeds.end());
 
-#pragma omp parallel
+	#pragma omp parallel
 	{
 		int id = omp_get_thread_num();
 		generator.seed(seeds[id]);
 	}
+#else
+	generator.seed(seed);
+#endif
 }

@@ -11,7 +11,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.14.0
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -41,6 +42,11 @@ add_library(PhysiCellCore ${src_files})
 target_include_directories(PhysiCellCore PUBLIC ${noarr_structures_SOURCE_DIR}/include ${paraBioFVM_SOURCE_DIR}/include ${pugixml_SOURCE_DIR}/src)
 
 target_link_libraries(PhysiCellCore PUBLIC BioFVMCore pugixml-static)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(PhysiCellCore PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 # Target unit_PhysiCell
 file(GLOB_RECURSE test_files "test/*")
