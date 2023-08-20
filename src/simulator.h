@@ -34,6 +34,8 @@ class simulator
 public:
 	void initialize(environment& e, PhysiCell_Settings& settings);
 
+	void simulate_diffusion_device(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+								   biofvm::solvers::data_residency& residency);
 	void simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
 							biofvm::solvers::data_residency& residency);
 	void simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,

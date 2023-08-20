@@ -44,7 +44,7 @@ void simulator_durations::print_durations()
 
 	{
 		index_t i = 0;
-		for (; i < 4; i++)
+		for (; i < 5; i++)
 			diff_total += durations[i].first;
 
 		for (; i < 16; i++)

@@ -115,24 +115,30 @@ void simulator::sync_data_device(environment& e, simulator_durations& durations,
 		residency = biofvm::solvers::data_residency::device;
 	}
 }
+void simulator::simulate_diffusion_device(environment& e, simulator_durations& durations,
+										  bool& recompute_secretion_and_uptake,
+										  biofvm::solvers::data_residency& residency)
+{
+#pragma omp master
+	{
+		sync_data_device(e, durations, residency);
+
+		// Compute diffusion:
+		measure2(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+
+		// Compute secretion and uptake:
+		measure2(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
+				 durations.secretion);
+	}
+	residency = biofvm::solvers::data_residency::device;
+}
 
 void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
 								   biofvm::solvers::data_residency& residency)
 {
 	if constexpr (biofvm::solver::is_device_solver)
 	{
-#pragma omp master
-		{
-			sync_data_device(e, durations, residency);
-
-			// Compute diffusion:
-			measure2(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
-
-			// Compute secretion and uptake:
-			measure2(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
-					 durations.secretion);
-		}
-		residency = biofvm::solvers::data_residency::device;
+		simulate_diffusion_device(e, durations, recompute_secretion_and_uptake, residency);
 	}
 	else
 	{
