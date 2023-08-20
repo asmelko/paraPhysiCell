@@ -19,6 +19,15 @@
 		D += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();                               \
 	}
 
+#define measure2(F, D)                                                                                                 \
+	{                                                                                                                  \
+		auto start = std::chrono::high_resolution_clock::now();                                                        \
+		F;                                                                                                             \
+		diffusion_solver_.wait_for_all();                                                                              \
+		auto end = std::chrono::high_resolution_clock::now();                                                          \
+		D += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();                               \
+	}
+
 using namespace biofvm;
 using namespace physicell;
 
@@ -107,16 +116,6 @@ void simulator::sync_data_device(environment& e, simulator_durations& durations,
 	}
 }
 
-void simulate_diffusion_core(biofvm::solver& s, environment& e, simulator_durations& durations,
-							 bool& recompute_secretion_and_uptake)
-{
-	// Compute diffusion:
-	measure(s.diffusion.solve(e.m), durations.diffusion);
-
-	// Compute secretion and uptake:
-	measure(s.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake), durations.secretion);
-}
-
 void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
 								   biofvm::solvers::data_residency& residency)
 {
@@ -126,13 +125,23 @@ void simulator::simulate_diffusion(environment& e, simulator_durations& duration
 		{
 			sync_data_device(e, durations, residency);
 
-			simulate_diffusion_core(diffusion_solver_, e, durations, recompute_secretion_and_uptake);
+			// Compute diffusion:
+			measure2(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+
+			// Compute secretion and uptake:
+			measure2(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
+					 durations.secretion);
 		}
 		residency = biofvm::solvers::data_residency::device;
 	}
 	else
 	{
-		simulate_diffusion_core(diffusion_solver_, e, durations, recompute_secretion_and_uptake);
+		// Compute diffusion:
+		measure(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+
+		// Compute secretion and uptake:
+		measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
+				durations.secretion);
 	}
 
 	recompute_secretion_and_uptake = false;
