@@ -102,7 +102,7 @@ which would now add an object of type `cell_with_legs` inside the array of objec
 If one wants the default type of container to be something different than `cell` (for example to have cells with legs as a default), they can simply assign a new specialization of `agent_container_common` to environment cell container by
 ```c++
 using better_container = biofvm::agent_container_common<cell_with_legs, cell_data>;
-env.m.container = std::make_unique<better_container>();
+env.m.agents = std::make_unique<better_container>();
 ```
 . Then, each call to `env.get_container<better_container>().create()` would create a `cell_with_legs` class by default.
 
