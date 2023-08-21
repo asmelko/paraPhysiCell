@@ -20,11 +20,11 @@ int main(int argc, char* argv[])
 
 		setup_tissue(*e, builder.get_parameters(), builder.get_config_root());
 
-		simulator s;
+		simulator s(*e);
 
-		s.initialize(*e, builder.get_settings());
+		s.initialize(builder.get_settings());
 
-		s.run(*e, builder.get_settings(), get_my_coloring_function(builder.get_parameters()));
+		s.run(builder.get_settings(), get_my_coloring_function(builder.get_parameters()));
 	}
 	catch (std::exception& e)
 	{

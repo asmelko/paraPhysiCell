@@ -31,7 +31,9 @@
 using namespace biofvm;
 using namespace physicell;
 
-void simulator::initialize(environment& e, PhysiCell_Settings& settings)
+simulator::simulator(environment& e) : e(e) {}
+
+void simulator::initialize(PhysiCell_Settings& settings)
 {
 	diffusion_solver_.initialize(e.m);
 	mechanics_solver_.initialize(e);
@@ -89,8 +91,7 @@ void advance_bundled_phenotype_functions(environment& e)
 	}
 }
 
-void simulator::sync_data_host(environment& e, simulator_durations& durations,
-							   biofvm::solvers::data_residency& residency)
+void simulator::sync_data_host(simulator_durations& durations, biofvm::solvers::data_residency& residency)
 {
 	if constexpr (biofvm::solver::is_device_solver)
 	{
@@ -106,8 +107,7 @@ void simulator::sync_data_host(environment& e, simulator_durations& durations,
 	}
 }
 
-void simulator::sync_data_device(environment& e, simulator_durations& durations,
-								 biofvm::solvers::data_residency& residency)
+void simulator::sync_data_device(simulator_durations& durations, biofvm::solvers::data_residency& residency)
 {
 	if (residency != biofvm::solvers::data_residency::device)
 	{
@@ -115,13 +115,12 @@ void simulator::sync_data_device(environment& e, simulator_durations& durations,
 		residency = biofvm::solvers::data_residency::device;
 	}
 }
-void simulator::simulate_diffusion_device(environment& e, simulator_durations& durations,
-										  bool& recompute_secretion_and_uptake,
+void simulator::simulate_diffusion_device(simulator_durations& durations, bool& recompute_secretion_and_uptake,
 										  biofvm::solvers::data_residency& residency)
 {
 #pragma omp master
 	{
-		sync_data_device(e, durations, residency);
+		sync_data_device(durations, residency);
 
 		// Compute diffusion:
 		measure2(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
@@ -133,12 +132,12 @@ void simulator::simulate_diffusion_device(environment& e, simulator_durations& d
 	residency = biofvm::solvers::data_residency::device;
 }
 
-void simulator::simulate_diffusion(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+void simulator::simulate_diffusion(simulator_durations& durations, bool& recompute_secretion_and_uptake,
 								   biofvm::solvers::data_residency& residency)
 {
 	if constexpr (biofvm::solver::is_device_solver)
 	{
-		simulate_diffusion_device(e, durations, recompute_secretion_and_uptake, residency);
+		simulate_diffusion_device(durations, recompute_secretion_and_uptake, residency);
 	}
 	else
 	{
@@ -153,10 +152,10 @@ void simulator::simulate_diffusion(environment& e, simulator_durations& duration
 	recompute_secretion_and_uptake = false;
 }
 
-void simulator::simulate_mechanics(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+void simulator::simulate_mechanics(simulator_durations& durations, bool& recompute_secretion_and_uptake,
 								   biofvm::solvers::data_residency& residency)
 {
-	sync_data_host(e, durations, residency);
+	sync_data_host(durations, residency);
 
 	// Compute gradient:
 	measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
@@ -194,10 +193,10 @@ void simulator::simulate_mechanics(environment& e, simulator_durations& duration
 	}
 }
 
-void simulator::simulate_phenotype(environment& e, simulator_durations& durations, bool& recompute_secretion_and_uptake,
+void simulator::simulate_phenotype(simulator_durations& durations, bool& recompute_secretion_and_uptake,
 								   biofvm::solvers::data_residency& residency)
 {
-	sync_data_host(e, durations, residency);
+	sync_data_host(durations, residency);
 
 	// Update phenotype:
 	measure(::advance_bundled_phenotype_functions(e), durations.advance_phe);
@@ -218,7 +217,7 @@ void simulator::simulate_phenotype(environment& e, simulator_durations& duration
 	}
 }
 
-void simulator::save(environment& e, simulator_durations& durations, PhysiCell_Settings& settings,
+void simulator::save(simulator_durations& durations, PhysiCell_Settings& settings,
 					 const cell_coloring_funct_t& cell_coloring_function,
 					 const substrate_coloring_funct_t& substrate_coloring_function, index_t simulation_step)
 {
@@ -227,14 +226,14 @@ void simulator::save(environment& e, simulator_durations& durations, PhysiCell_S
 		// save SVG plot if it's time
 		if (simulation_step % svg_save_interval_ == 0)
 		{
-			measure(save_svg(e, settings, cell_coloring_function, substrate_coloring_function, simulation_step),
+			measure(save_svg(settings, cell_coloring_function, substrate_coloring_function, simulation_step),
 					durations.svg_save);
 		}
 
 		// save data if it's time.
 		if (simulation_step % full_save_interval_ == 0)
 		{
-			measure(save_full(e, settings, simulation_step), durations.full_save);
+			measure(save_full(settings, simulation_step), durations.full_save);
 
 			durations.print_durations();
 			display_simulation_status(std::cout, e, settings);
@@ -242,7 +241,7 @@ void simulator::save(environment& e, simulator_durations& durations, PhysiCell_S
 	}
 }
 
-void simulator::save_full(environment& e, const PhysiCell_Settings& settings, index_t simulation_step)
+void simulator::save_full(const PhysiCell_Settings& settings, index_t simulation_step)
 {
 	if (settings.enable_full_saves == true)
 	{
@@ -254,8 +253,7 @@ void simulator::save_full(environment& e, const PhysiCell_Settings& settings, in
 	}
 }
 
-void simulator::save_svg(environment& e, const PhysiCell_Settings& settings,
-						 const cell_coloring_funct_t& cell_coloring_function,
+void simulator::save_svg(const PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function,
 						 const substrate_coloring_funct_t& substrate_coloring_function, index_t simulation_step)
 {
 	if (settings.enable_SVG_saves == true)
@@ -268,7 +266,7 @@ void simulator::save_svg(environment& e, const PhysiCell_Settings& settings,
 	}
 }
 
-void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function,
+void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_coloring_function,
 					substrate_coloring_funct_t substrate_coloring_function)
 {
 	// set MultiCellDS save options
@@ -308,21 +306,30 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 		while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
 		{
-			save(e, durations, settings, cell_coloring_function, substrate_coloring_function, simulation_step);
+			save(durations, settings, cell_coloring_function, substrate_coloring_function, simulation_step);
 
 			// called each time because one simulation step is equal to one diffusion time step
 			{
-				simulate_diffusion(e, durations, recompute_secretion_and_uptake, data_residency);
+				simulate_diffusion(durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			if (simulation_step % mechanics_step_interval_ == 0)
 			{
-				simulate_mechanics(e, durations, recompute_secretion_and_uptake, data_residency);
+				simulate_mechanics(durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			if (simulation_step % phenotype_step_interval_ == 0)
 			{
-				simulate_phenotype(e, durations, recompute_secretion_and_uptake, data_residency);
+				simulate_phenotype(durations, recompute_secretion_and_uptake, data_residency);
+			}
+
+			// run custom simulations
+			for (const auto& [interval, custom_simulate] : custom_simulations_)
+			{
+				if (simulation_step % interval == 0)
+				{
+					custom_simulate(e, durations, recompute_secretion_and_uptake, data_residency);
+				}
 			}
 
 #pragma omp master
@@ -343,4 +350,17 @@ void simulator::run(environment& e, PhysiCell_Settings& settings, cell_coloring_
 
 	std::cout << std::endl << "Total simulation runtime: " << std::endl;
 	display_stopwatch_value(std::cout, runtime_stopwatch_value());
+}
+
+void simulator::add_simulation_step(biofvm::real_t time_step, simulate_func_t&& simulate_f)
+{
+	index_t step_interval = (index_t)std::round(time_step / e.m.diffusion_time_step);
+
+	custom_simulations_.emplace_back(step_interval, [=, this](environment& e, simulator_durations& durations,
+															  bool& recompute_secretion_and_uptake,
+															  biofvm::solvers::data_residency& residency) {
+		recompute_secretion_and_uptake = true;
+		sync_data_host(durations, residency);
+		simulate_f(e);
+	});
 }
