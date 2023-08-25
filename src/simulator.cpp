@@ -42,6 +42,7 @@ void simulator::initialize(PhysiCell_Settings& settings)
 	phenotype_step_interval_ = (index_t)std::round(e.phenotype_time_step / e.m.diffusion_time_step);
 	full_save_interval_ = (index_t)std::round(settings.full_save_interval / e.m.diffusion_time_step);
 	svg_save_interval_ = (index_t)std::round(settings.SVG_save_interval / e.m.diffusion_time_step);
+	max_time_ = (index_t)std::round(settings.max_time / e.m.diffusion_time_step);
 
 	mechanics_solver_.containers.update_mechanics_mesh(e);
 	mechanics_solver_.position.update_cell_neighbors(e);
@@ -304,7 +305,7 @@ void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_col
 		bool recompute_secretion_and_uptake = true;
 		biofvm::solvers::data_residency data_residency = biofvm::solvers::data_residency::host;
 
-		while (e.current_time < settings.max_time + 0.1 * e.m.diffusion_time_step)
+		while (simulation_step <= max_time_)
 		{
 			save(durations, settings, cell_coloring_function, substrate_coloring_function, simulation_step);
 

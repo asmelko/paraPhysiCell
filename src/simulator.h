@@ -27,6 +27,7 @@ class simulator
 	biofvm::index_t phenotype_step_interval_;
 	biofvm::index_t full_save_interval_;
 	biofvm::index_t svg_save_interval_;
+	biofvm::index_t max_time_;
 
 	void save(simulator_durations& durations, PhysiCell_Settings& settings,
 			  const cell_coloring_funct_t& cell_coloring_function,
