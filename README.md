@@ -1,6 +1,6 @@
 # paraPhysiCell: the optimized parallel implementation of PhysiCell core features
 
-This repository contains the parallel CPU implementation of PhysiCell. The speedups vary from 2x to 5x for small 2D simulations and ~60x on big 3D simulations. The BioFVM part is implemented using the optimized [paraBioFVM library](https://github.com/asmelko/paraBioFVM). The goal of this project is twofold:
+This repository contains the parallel CPU implementation of PhysiCell. The BioFVM part is implemented using the optimized [paraBioFVM library](https://github.com/asmelko/paraBioFVM). The goal of this project is twofold:
  - implement optimized cell mechanics (their interactions, forces, motility, spring attachments, ...)
  - and propose the architectural changes for better sustainability and extendability of the code.
 
@@ -12,6 +12,16 @@ The missing features (not a complete list):
 - PhysiMeSS.
 
 The version of PhysiCell this project builds upon: **1.12.0**.
+
+## Simple Benchmarks
+
+This table shows the wall times of a modified `heterogeneity-sample` simulation. The first row shows the simulation modifications and the first column shows the hardware the simulation ran on. The first wall time is for the optimized paraPhysiCell and the second wall time in the parentheses is the original Physicell. **These are very simple and naive measurements. They are here just to show the achievable speedups. Please, take them with a grain of salt.**
+
+ | | 100x100 voxels, 900 agents, 600m simul. time | 300x300 voxels, 14300 agents, 600m simul. time | 100x100x100 voxels, 14300 agents, 60m simul. time | 200x200x200 voxels, 88700 agents, 60m simul. time |
+ | - | - | - | - | - |
+ | i7-8650U laptop CPU (4 HT cores) | 4.5s (12.7s) | 38.3s (256.3s) | 18.6s (246.3s) | - |
+ | 2 sockets Intel Xeon Platinum 8160 CPU (2x24 cores) | 18.7s (14.4s) | 27.4s (116.9s) | 6.8s (156.6s) | 36.8s (1231.6s) |
+
 
 ## Build requirements
 
@@ -58,13 +68,13 @@ Since this is just a light version of PhysiCell, the directory structure is very
 
 This project was implemented with the aim to be very flexible with respect to the future extensions. To achieve so, we targeted to improve in these 3 domains:
 
-#### Encapsule the whole PhysiCell state into one class. 
+#### 1. Encapsule the whole PhysiCell state into one class. 
 
 This is important to simplify the reasoning about the code structure, removing the hidden dependencies and defining the single source of truth. For that, we implemented the structure `environment`, which is simply the union of BioFVM's microenvironment, PhysiCell's mechanics mesh, BioFVM's agent container and PhysiCell's cell definitions (rules and signals are still missing though). 
 
 Same as in paraBioFVM's `microenvironment_builder`, we implemented the class `builder`, which contains convenience functions for customizing the environment object. 
 
-#### Make the code extensible wrt new simulation steps.
+#### 2. Make the code extensible wrt new simulation steps.
 
 The original sample projects contain a big amount of repeating boilerplate code just to make the simulation run. We alleviate this burden by implementing the `simulator` class, which contains all the simulation code for diffusion/mechanics/phenotype timesteps and provides the interface for specifying the custom ones. The simplest example of a custom timestep would look like this:
 ```c++
@@ -82,7 +92,7 @@ s.add_simulation_step(pension_time_step, [](environment& e)
 s.run(...);
 ``` 
 
-#### Make the code extensible wrt new cell types.
+#### 3. Make the code extensible wrt new cell types.
 
 While the memory layout of the cell data has changed, the `cell` class and the `cell_container` are implemented in a way to allow a reasonable freedom of inheritance and polymorphism. Take a new cell class as an example:
 ```c++
@@ -129,4 +139,4 @@ int main(int argc, char* argv[])
     s.run(builder.get_settings(), some_coloring_func);
 }
 ```
-Go have a look at the some reimplemented sample projects!
+Go have a look at some reimplemented sample projects!
