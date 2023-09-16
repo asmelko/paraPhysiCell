@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "PhysiCell_MultiCellDS.h"
 
 #include <cstring>
