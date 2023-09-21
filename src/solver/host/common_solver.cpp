@@ -2,9 +2,6 @@
 
 #include <noarr/structures/extra/shortcuts.hpp>
 
-#include "noarr/structures/extra/funcs.hpp"
-#include "types.h"
-
 using namespace biofvm;
 using namespace physicell;
 

@@ -116,6 +116,7 @@ void simulator::sync_data_device(simulator_durations& durations, biofvm::solvers
 		residency = biofvm::solvers::data_residency::device;
 	}
 }
+
 void simulator::simulate_diffusion_device(simulator_durations& durations, bool& recompute_secretion_and_uptake,
 										  biofvm::solvers::data_residency& residency)
 {
@@ -124,10 +125,10 @@ void simulator::simulate_diffusion_device(simulator_durations& durations, bool& 
 		sync_data_device(durations, residency);
 
 		// Compute diffusion:
-		measure2(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
+		measure(diffusion_solver_.diffusion.solve(e.m), durations.diffusion);
 
 		// Compute secretion and uptake:
-		measure2(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
+		measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
 				 durations.secretion);
 	}
 	residency = biofvm::solvers::data_residency::device;

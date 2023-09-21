@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(
   paraBioFVM
   GIT_REPOSITORY https://github.com/asmelko/paraBioFVM.git
-  GIT_TAG        main
+  GIT_TAG        cuda
 )
 FetchContent_MakeAvailable(paraBioFVM)
 
@@ -32,6 +32,10 @@ FetchContent_Declare(
   URL https://github.com/zeux/pugixml/archive/refs/tags/v1.13.zip
 )
 FetchContent_MakeAvailable(pugixml)
+
+if (BUILD_FOR_DEVICE AND DEVICE_IMPL STREQUAL "cuda")
+	enable_language(CUDA)
+endif()
 
 # Target PhysiCellCore
 file(GLOB_RECURSE src_files "src/*")
