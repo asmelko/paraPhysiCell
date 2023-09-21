@@ -129,7 +129,7 @@ void simulator::simulate_diffusion_device(simulator_durations& durations, bool& 
 
 		// Compute secretion and uptake:
 		measure(diffusion_solver_.cell.simulate_secretion_and_uptake(e.m, recompute_secretion_and_uptake),
-				 durations.secretion);
+				durations.secretion);
 	}
 	residency = biofvm::solvers::data_residency::device;
 }
