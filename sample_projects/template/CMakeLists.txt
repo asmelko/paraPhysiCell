@@ -13,13 +13,6 @@ add_executable(project ${src_files})
 target_include_directories(project PRIVATE "../..")
 target_link_libraries(project PRIVATE PhysiCellCore)
 
-if(MSVC)
-  target_compile_options(project PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4 /bigobj>)
-else()
-  target_compile_options(project PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall
-                                         -Wextra -pedantic>)
-endif()
-
 add_custom_command(
   TARGET project
   POST_BUILD

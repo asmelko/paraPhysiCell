@@ -10,7 +10,7 @@ cell_data& common_solver::get_cell_data(environment& e) { return e.container_bas
 index_t common_solver::get_mesh_index(const point_t<index_t, 3>& position, const cartesian_mesh& mesh)
 {
 	auto mesh_l = noarr::scalar<uint8_t>()
-				  ^ noarr::sized_vectors<'x', 'y', 'z'>(mesh.grid_shape[0], mesh.grid_shape[1], mesh.grid_shape[2]);
+				  ^ noarr::vectors<'x', 'y', 'z'>(mesh.grid_shape[0], mesh.grid_shape[1], mesh.grid_shape[2]);
 
 	return mesh_l | noarr::offset<'x', 'y', 'z'>(position[0], position[1], position[2]);
 }

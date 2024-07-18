@@ -13,14 +13,6 @@ add_executable(heterogeneity ${src_files})
 target_include_directories(heterogeneity PRIVATE "../..")
 target_link_libraries(heterogeneity PRIVATE PhysiCellCore)
 
-if(MSVC)
-  target_compile_options(heterogeneity PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4
-                                               /bigobj>)
-else()
-  target_compile_options(heterogeneity PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall
-                                               -Wextra -pedantic>)
-endif()
-
 add_custom_command(
   TARGET heterogeneity
   POST_BUILD

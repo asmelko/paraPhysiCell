@@ -13,14 +13,6 @@ add_executable(interactions ${src_files})
 target_include_directories(interactions PRIVATE "../..")
 target_link_libraries(interactions PRIVATE PhysiCellCore)
 
-if(MSVC)
-  target_compile_options(interactions PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4
-                                              /bigobj>)
-else()
-  target_compile_options(interactions PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall
-                                              -Wextra -pedantic>)
-endif()
-
 add_custom_command(
   TARGET interactions
   POST_BUILD

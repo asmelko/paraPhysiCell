@@ -13,14 +13,6 @@ add_executable(biorobots ${src_files})
 target_include_directories(biorobots PRIVATE "../..")
 target_link_libraries(biorobots PRIVATE PhysiCellCore)
 
-if(MSVC)
-  target_compile_options(biorobots PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4
-                                           /bigobj>)
-else()
-  target_compile_options(biorobots PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall
-                                           -Wextra -pedantic>)
-endif()
-
 add_custom_command(
   TARGET biorobots
   POST_BUILD

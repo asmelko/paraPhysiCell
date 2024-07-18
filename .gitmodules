@@ -1,0 +1,7 @@
+[submodule "submodules/paraBioFVM"]
+	path = submodules/paraBioFVM
+	url = https://github.com/asmelko/paraBioFVM
+	branch = main
+[submodule "submodules/pugixml"]
+	path = submodules/pugixml
+	url = https://github.com/zeux/pugixml

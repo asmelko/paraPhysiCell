@@ -8,28 +8,33 @@ project(
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Fetch Googletest
 include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.14.0)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt
-    ON
-    CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+
+if(BUILD_TESTS)
+  # Fetch Googletest
+  FetchContent_Declare(
+    googletest
+    URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/paraBioFVM/submodules/googletest
+        DOWNLOAD_EXTRACT_TIMESTAMP
+        TRUE)
+  # For Windows: Prevent overriding the parent project's compiler/linker
+  # settings
+  set(gtest_force_shared_crt
+      ON
+      CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+endif()
 
 # Fetch BioFVM
 FetchContent_Declare(
-  paraBioFVM
-  GIT_REPOSITORY https://github.com/asmelko/paraBioFVM.git
-  GIT_TAG main)
+  paraBioFVM URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/paraBioFVM
+                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(paraBioFVM)
 
 # Fetch pugixml
 FetchContent_Declare(
-  pugixml URL https://github.com/zeux/pugixml/archive/refs/tags/v1.13.zip)
+  pugixml URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/pugixml
+              DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(pugixml)
 
 if(BUILD_FOR_DEVICE AND DEVICE_IMPL STREQUAL "cuda")
@@ -42,10 +47,8 @@ list(FILTER src_files EXCLUDE REGEX ".*main\\..*")
 
 add_library(PhysiCellCore ${src_files})
 
-target_include_directories(
-  PhysiCellCore
-  PUBLIC ${noarr_structures_SOURCE_DIR}/include
-         ${paraBioFVM_SOURCE_DIR}/include ${pugixml_SOURCE_DIR}/src)
+target_include_directories(PhysiCellCore PUBLIC ${paraBioFVM_SOURCE_DIR}/include
+                                                ${pugixml_SOURCE_DIR}/src)
 
 target_link_libraries(PhysiCellCore PUBLIC BioFVMCore pugixml-static)
 
@@ -54,32 +57,24 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(PhysiCellCore PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-# Target unit_PhysiCell
-file(GLOB_RECURSE test_files "test/*")
-add_executable(unit_PhysiCell ${test_files})
-
 # Target PhysiCell
 add_executable(PhysiCell src/main.cpp)
 target_link_libraries(PhysiCell PhysiCellCore)
 
-target_link_libraries(unit_PhysiCell PRIVATE gtest_main gmock_main
-                                             PhysiCellCore)
+if(BUILD_TESTS)
+  # Target unit_PhysiCell
+  file(GLOB_RECURSE test_files "test/*")
+  add_executable(unit_PhysiCell ${test_files})
 
-target_include_directories(unit_PhysiCell PUBLIC "src")
+  target_link_libraries(unit_PhysiCell PRIVATE gtest_main gmock_main
+                                               PhysiCellCore)
 
-foreach(target PhysiCell unit_PhysiCell PhysiCellCore)
-  if(MSVC)
-    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4
-                                             /bigobj>)
-  else()
-    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall
-                                             -Wextra -pedantic>)
-  endif()
-endforeach()
+  target_include_directories(unit_PhysiCell PUBLIC "src")
 
-enable_testing()
-include(GoogleTest)
-gtest_discover_tests(unit_PhysiCell)
+  enable_testing()
+  include(GoogleTest)
+  gtest_discover_tests(unit_PhysiCell)
+endif()
 
 add_subdirectory(sample_projects/biorobots)
 add_subdirectory(sample_projects/heterogeneity)
