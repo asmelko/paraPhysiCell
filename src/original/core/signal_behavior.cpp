@@ -5,8 +5,8 @@
 
 #include "../../cell_definition.h"
 #include "../../environment.h"
-#include "constants.h"
 #include "../modules/vector_utils.h"
+#include "constants.h"
 
 using namespace biofvm;
 

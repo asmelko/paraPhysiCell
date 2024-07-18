@@ -17,5 +17,5 @@ cell* cell_container::create_cell(cell_definition& definition)
 
 	c->set_default(definition);
 
-    return c;
+	return c;
 }

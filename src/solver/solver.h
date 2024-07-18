@@ -1,8 +1,8 @@
 #pragma once
 
-#include "host/position_solver.h"
 #include "host/containers_solver.h"
 #include "host/interactions_solver.h"
+#include "host/position_solver.h"
 
 namespace physicell {
 
