@@ -14,9 +14,9 @@ if(BUILD_TESTS)
   # Fetch Googletest
   FetchContent_Declare(
     googletest
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/paraBioFVM/submodules/googletest
-        DOWNLOAD_EXTRACT_TIMESTAMP
-        TRUE)
+  )
   # For Windows: Prevent overriding the parent project's compiler/linker
   # settings
   set(gtest_force_shared_crt
@@ -27,14 +27,16 @@ endif()
 
 # Fetch BioFVM
 FetchContent_Declare(
-  paraBioFVM URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/paraBioFVM
-                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  paraBioFVM
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/paraBioFVM)
 FetchContent_MakeAvailable(paraBioFVM)
 
 # Fetch pugixml
 FetchContent_Declare(
-  pugixml URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/pugixml
-              DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  pugixml
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  URL file://${CMAKE_CURRENT_SOURCE_DIR}/submodules/pugixml)
 FetchContent_MakeAvailable(pugixml)
 
 if(BUILD_FOR_DEVICE AND DEVICE_IMPL STREQUAL "cuda")
