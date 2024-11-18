@@ -74,7 +74,7 @@ void bacteria_phenotype(cell& pCell)
 	// damage increases death
 	index_t nApoptosis = pCell.phenotype.death.find_death_model_index(constants::apoptosis_death_model);
 
-	signal = pCell.state.damage();
+	signal = pCell.phenotype.cell_integrity.damage();
 	base_val = pCD->phenotype.death.rates[nApoptosis];
 
 	real_t damage_halfmax = pCD->custom_data["damage_halfmax"];

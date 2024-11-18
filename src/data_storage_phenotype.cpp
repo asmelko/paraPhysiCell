@@ -293,19 +293,32 @@ void molecular_t::set_defaults()
 
 interactions_t::interactions_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
 
-real_t& interactions_t::dead_phagocytosis_rate() { return data_.interactions.dead_phagocytosis_rate[index_]; }
+real_t& interactions_t::apoptotic_phagocytosis_rate() { return data_.interactions.apoptotic_phagocytosis_rate[index_]; }
+
+real_t& interactions_t::necrotic_phagocytosis_rate() { return data_.interactions.necrotic_phagocytosis_rate[index_]; }
+
+real_t& interactions_t::other_dead_phagocytosis_rate()
+{
+	return data_.interactions.other_dead_phagocytosis_rate[index_];
+}
 
 real_t* interactions_t::live_phagocytosis_rates()
 {
 	return data_.interactions.live_phagocytosis_rates.data() + index_ * data_.e.cell_definitions_count;
 }
 
-real_t& interactions_t::damage_rate() { return data_.interactions.damage_rate[index_]; }
-
 real_t* interactions_t::attack_rates()
 {
 	return data_.interactions.attack_rates.data() + index_ * data_.e.cell_definitions_count;
 }
+
+real_t& interactions_t::attack_damage_rate() { return data_.interactions.attack_damage_rates[index_]; }
+
+real_t& interactions_t::attack_duration() { return data_.interactions.attack_durations[index_]; }
+
+real_t& interactions_t::total_damage_delivered() { return data_.interactions.total_damage_delivered[index_]; }
+
+index_t& interactions_t::attack_target() { return data_.interactions.attack_targets[index_]; }
 
 real_t* interactions_t::immunogenicities()
 {
@@ -319,10 +332,15 @@ real_t* interactions_t::fusion_rates()
 
 void interactions_t::set_defaults()
 {
-	dead_phagocytosis_rate() = 0.0;
+	apoptotic_phagocytosis_rate() = 0.0;
+	necrotic_phagocytosis_rate() = 0.0;
+	other_dead_phagocytosis_rate() = 0.0;
 	std::fill(live_phagocytosis_rates(), live_phagocytosis_rates() + data_.e.cell_definitions_count, 0);
-	damage_rate() = 1.0;
 	std::fill(attack_rates(), attack_rates() + data_.e.cell_definitions_count, 0);
+	attack_damage_rate() = 1.0;
+	attack_duration() = 30.0;
+	total_damage_delivered() = 0.0;
+	attack_target() = no_target;
 	std::fill(immunogenicities(), immunogenicities() + data_.e.cell_definitions_count, 1);
 	std::fill(fusion_rates(), fusion_rates() + data_.e.cell_definitions_count, 0);
 }
@@ -479,16 +497,21 @@ void molecular_t::copy(molecular_t& dest)
 
 void interactions_t::copy(interactions_t& dest)
 {
-	dest.dead_phagocytosis_rate() = dead_phagocytosis_rate();
+	dest.apoptotic_phagocytosis_rate() = apoptotic_phagocytosis_rate();
+	dest.necrotic_phagocytosis_rate() = necrotic_phagocytosis_rate();
+	dest.other_dead_phagocytosis_rate() = other_dead_phagocytosis_rate();
 	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
 	{
 		dest.live_phagocytosis_rates()[i] = live_phagocytosis_rates()[i];
 	}
-	dest.damage_rate() = damage_rate();
 	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
 	{
 		dest.attack_rates()[i] = attack_rates()[i];
 	}
+	dest.attack_damage_rate() = attack_damage_rate();
+	dest.attack_duration() = attack_duration();
+	dest.total_damage_delivered() = total_damage_delivered();
+	dest.attack_target() = attack_target();
 	for (index_t i = 0; i < data_.e.cell_definitions_count; i++)
 	{
 		dest.immunogenicities()[i] = immunogenicities()[i];
@@ -555,4 +578,31 @@ void molecular_t::divide()
 	{
 		internalized_total_substrates()[i] *= 0.5;
 	}
+}
+
+integrity_t::integrity_t(cell_data& data, const index_t& index) : phenotype_data_storage(data, index) {}
+
+real_t& integrity_t::damage() { return data_.integrity.damages[index_]; }
+
+real_t& integrity_t::damage_rate() { return data_.integrity.damage_rates[index_]; }
+
+real_t& integrity_t::damage_repair_rate() { return data_.integrity.damage_repair_rates[index_]; }
+
+void integrity_t::advance_damage(real_t time_step)
+{
+	damage() = (damage() + time_step * damage_rate()) / (1.0 + time_step * damage_repair_rate());
+}
+
+void integrity_t::set_defaults()
+{
+	damage() = 0.0;
+	damage_rate() = 0.0;
+	damage_repair_rate() = 0.0;
+}
+
+void integrity_t::copy(integrity_t& dest)
+{
+	dest.damage() = damage();
+	dest.damage_rate() = damage_rate();
+	dest.damage_repair_rate() = damage_repair_rate();
 }

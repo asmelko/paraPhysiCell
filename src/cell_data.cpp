@@ -181,11 +181,18 @@ void motility_data::remove(index_t index, index_t size, index_t dims, index_t su
 
 void interactions_data::add(index_t size, index_t cell_definitions_count)
 {
-	dead_phagocytosis_rate.resize(size);
+	apoptotic_phagocytosis_rate.resize(size);
+	necrotic_phagocytosis_rate.resize(size);
+	other_dead_phagocytosis_rate.resize(size);
+
 	live_phagocytosis_rates.resize(size * cell_definitions_count);
 
-	damage_rate.resize(size);
 	attack_rates.resize(size * cell_definitions_count);
+	attack_damage_rates.resize(size);
+	attack_durations.resize(size * cell_definitions_count);
+	total_damage_delivered.resize(size * cell_definitions_count);
+	attack_targets.resize(size * cell_definitions_count);
+
 	immunogenicities.resize(size * cell_definitions_count);
 
 	fusion_rates.resize(size * cell_definitions_count);
@@ -193,13 +200,20 @@ void interactions_data::add(index_t size, index_t cell_definitions_count)
 
 void interactions_data::remove(index_t index, index_t size, index_t cell_definitions_count)
 {
-	move_scalar(dead_phagocytosis_rate.data() + index, dead_phagocytosis_rate.data() + size);
+	move_scalar(apoptotic_phagocytosis_rate.data() + index, apoptotic_phagocytosis_rate.data() + size);
+	move_scalar(necrotic_phagocytosis_rate.data() + index, necrotic_phagocytosis_rate.data() + size);
+	move_scalar(other_dead_phagocytosis_rate.data() + index, other_dead_phagocytosis_rate.data() + size);
+
 	move_vector(live_phagocytosis_rates.data() + index * cell_definitions_count,
 				live_phagocytosis_rates.data() + size * cell_definitions_count, cell_definitions_count);
 
-	move_scalar(damage_rate.data() + index, damage_rate.data() + size);
 	move_vector(attack_rates.data() + index * cell_definitions_count,
 				attack_rates.data() + size * cell_definitions_count, cell_definitions_count);
+	move_scalar(attack_damage_rates.data() + index, attack_damage_rates.data() + size);
+	move_scalar(attack_durations.data() + index, attack_durations.data() + size);
+	move_scalar(total_damage_delivered.data() + index, total_damage_delivered.data() + size);
+	move_scalar(attack_targets.data() + index, attack_targets.data() + size);
+
 	move_vector(immunogenicities.data() + index * cell_definitions_count,
 				immunogenicities.data() + size * cell_definitions_count, cell_definitions_count);
 
@@ -222,6 +236,20 @@ void transformations_data::remove(index_t index, index_t size, index_t cell_defi
 				transformation_rates.data() + size * cell_definitions_count, cell_definitions_count);
 }
 
+void integrity_data::add(index_t size)
+{
+	damages.resize(size);
+	damage_rates.resize(size);
+	damage_repair_rates.resize(size);
+}
+
+void integrity_data::remove(index_t index, index_t size)
+{
+	move_scalar(damages.data() + index, damages.data() + size);
+	move_scalar(damage_rates.data() + index, damage_rates.data() + size);
+	move_scalar(damage_repair_rates.data() + index, damage_repair_rates.data() + size);
+}
+
 void cell_state_data::add(index_t size, index_t dims)
 {
 	neighbors.resize(size);
@@ -233,7 +261,6 @@ void cell_state_data::add(index_t size, index_t dims)
 	simple_pressure.resize(size);
 	number_of_nuclei.resize(size);
 
-	damage.resize(size);
 	total_attack_time.resize(size);
 }
 
@@ -247,7 +274,6 @@ void cell_state_data::remove(index_t index, index_t size, index_t dims)
 	move_scalar(simple_pressure.data() + index, simple_pressure.data() + size);
 	move_scalar(number_of_nuclei.data() + index, number_of_nuclei.data() + size);
 
-	move_scalar(damage.data() + index, damage.data() + size);
 	move_scalar(total_attack_time.data() + index, total_attack_time.data() + size);
 }
 
@@ -273,6 +299,7 @@ void cell_data::add()
 
 	interactions.add(agents_count, e.cell_definitions_count);
 	transformations.add(agents_count, e.cell_definitions_count);
+	integrity.add(agents_count);
 
 	previous_velocities.resize(agents_count * e.m.mesh.dims);
 	velocities.resize(agents_count * e.m.mesh.dims);
@@ -301,6 +328,7 @@ void cell_data::remove(index_t index)
 
 	interactions.remove(index, agents_count, e.cell_definitions_count);
 	transformations.remove(index, agents_count, e.cell_definitions_count);
+	integrity.remove(index, agents_count);
 
 	move_vector(previous_velocities.data() + index * e.m.mesh.dims,
 				previous_velocities.data() + agents_count * e.m.mesh.dims, e.m.mesh.dims);

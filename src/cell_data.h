@@ -105,11 +105,18 @@ struct motility_data
 
 struct interactions_data
 {
-	std::vector<biofvm::real_t> dead_phagocytosis_rate;
+	std::vector<biofvm::real_t> apoptotic_phagocytosis_rate;
+	std::vector<biofvm::real_t> necrotic_phagocytosis_rate;
+	std::vector<biofvm::real_t> other_dead_phagocytosis_rate;
+	
 	std::vector<biofvm::real_t> live_phagocytosis_rates;
 
-	std::vector<biofvm::real_t> damage_rate;
 	std::vector<biofvm::real_t> attack_rates;
+	std::vector<biofvm::real_t> attack_damage_rates;
+	std::vector<biofvm::real_t> attack_durations;
+	std::vector<biofvm::real_t> total_damage_delivered;
+	std::vector<biofvm::index_t> attack_targets;
+	
 	std::vector<biofvm::real_t> immunogenicities;
 
 	std::vector<biofvm::real_t> fusion_rates;
@@ -124,6 +131,16 @@ struct transformations_data
 
 	void add(biofvm::index_t size, biofvm::index_t cell_definitions_count);
 	void remove(biofvm::index_t index, biofvm::index_t size, biofvm::index_t cell_definitions_count);
+};
+
+struct integrity_data
+{
+	std::vector<biofvm::real_t> damages;
+	std::vector<biofvm::real_t> damage_rates;
+	std::vector<biofvm::real_t> damage_repair_rates;
+
+	void add(biofvm::index_t size);
+	void remove(biofvm::index_t index, biofvm::index_t size);
 };
 
 struct death_data
@@ -144,8 +161,7 @@ struct cell_state_data
 	std::vector<biofvm::real_t> orientation;
 	std::vector<biofvm::real_t> simple_pressure;
 	std::vector<biofvm::index_t> number_of_nuclei;
-
-	std::vector<biofvm::real_t> damage;
+	
 	std::vector<biofvm::real_t> total_attack_time;
 
 	void add(biofvm::index_t size, biofvm::index_t dims);
@@ -173,6 +189,7 @@ struct cell_data
 
 	interactions_data interactions;
 	transformations_data transformations;
+	integrity_data integrity;
 
 	cell_state_data states;
 

@@ -168,11 +168,18 @@ struct interactions_t : public phenotype_data_storage
 {
 	interactions_t(cell_data& data, const biofvm::index_t& index);
 
-	biofvm::real_t& dead_phagocytosis_rate();
+	biofvm::real_t& apoptotic_phagocytosis_rate();
+	biofvm::real_t& necrotic_phagocytosis_rate();
+	biofvm::real_t& other_dead_phagocytosis_rate();
+
 	biofvm::real_t* live_phagocytosis_rates();
 
-	biofvm::real_t& damage_rate();
 	biofvm::real_t* attack_rates();
+	biofvm::real_t& attack_damage_rate();
+	biofvm::real_t& attack_duration();
+	biofvm::real_t& total_damage_delivered();
+	biofvm::index_t& attack_target();
+
 	biofvm::real_t* immunogenicities();
 
 	biofvm::real_t* fusion_rates();
@@ -180,6 +187,8 @@ struct interactions_t : public phenotype_data_storage
 	void copy(interactions_t& dest);
 
 	void set_defaults();
+
+	static constexpr biofvm::index_t no_target = -1;
 };
 
 struct transformations_t : public phenotype_data_storage
@@ -189,6 +198,21 @@ struct transformations_t : public phenotype_data_storage
 	biofvm::real_t* transformation_rates();
 
 	void copy(transformations_t& dest);
+
+	void set_defaults();
+};
+
+struct integrity_t : public phenotype_data_storage
+{
+	integrity_t(cell_data& data, const biofvm::index_t& index);
+
+	biofvm::real_t& damage();
+	biofvm::real_t& damage_rate();
+	biofvm::real_t& damage_repair_rate();
+
+	void advance_damage(biofvm::real_t time_step);
+
+	void copy(integrity_t& dest);
 
 	void set_defaults();
 };

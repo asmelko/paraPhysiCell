@@ -24,8 +24,6 @@ real_t& cell_state_t::simple_pressure() { return data_.states.simple_pressure[in
 
 index_t& cell_state_t::number_of_nuclei() { return data_.states.number_of_nuclei[index_]; }
 
-real_t& cell_state_t::damage() { return data_.states.damage[index_]; }
-
 real_t& cell_state_t::total_attack_time() { return data_.states.total_attack_time[index_]; }
 
 void cell_state_t::set_defaults()
@@ -38,7 +36,6 @@ void cell_state_t::set_defaults()
 	simple_pressure() = 0;
 
 	number_of_nuclei() = 1;
-	damage() = 0;
 	total_attack_time() = 0;
 }
 
@@ -68,11 +65,6 @@ void cell::set_default(cell_definition& def)
 {
 	is_movable() = def.is_movable;
 
-	convert(def);
-}
-
-void cell::convert(cell_definition& def)
-{
 	type = def.type;
 	type_name = def.name;
 
@@ -85,6 +77,20 @@ void cell::convert(cell_definition& def)
 	cell_definition_index() = def.index;
 
 	assign_orientation();
+}
+
+void cell::convert(cell_definition& def)
+{
+	type = def.type;
+	type_name = def.name;
+
+	custom_data = def.custom_data;
+	parameters = def.parameters;
+	functions = def.functions;
+
+	def.phenotype.copy_to_and_retain_state(phenotype);
+
+	cell_definition_index() = def.index;
 }
 
 void cell::copy_from(cell& source)
@@ -121,7 +127,6 @@ void cell::divide(cell& new_cell)
 	}
 
 	// clear damage and total attack time
-	state.damage() = 0;
 	state.total_attack_time() = 0;
 
 	// create random vector for position change

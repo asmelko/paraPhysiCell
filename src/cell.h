@@ -26,7 +26,6 @@ struct cell_state_t : public phenotype_data_storage
 	biofvm::real_t& simple_pressure();
 	biofvm::index_t& number_of_nuclei();
 
-	biofvm::real_t& damage();
 	biofvm::real_t& total_attack_time();
 
 	void set_defaults();
