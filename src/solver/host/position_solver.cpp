@@ -408,8 +408,7 @@ void update_spring_attachments_internal(
 		springs[this_cell_index].erase(it, springs[this_cell_index].end());
 	}
 
-	// attach cells to springs
-
+// attach cells to springs
 #pragma omp for
 	for (index_t this_cell_index = 0; this_cell_index < agents_count; this_cell_index++)
 	{

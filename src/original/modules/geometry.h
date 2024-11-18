@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pugixml.hpp>
-#include <string>
 
 #include "../../environment.h"
 

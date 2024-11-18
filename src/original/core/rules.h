@@ -159,9 +159,9 @@ void parse_csv_rule_v1(std::string input, environment& e);	   // parse a single 
 void parse_csv_rules_v1(std::string filename, environment& e); // parse all rules in a CSV file
 
 // experimental -- removes need for base value
-void parse_csv_rule_v2(std::vector<std::string> input, environment& e); // parse a tokenized string (vector of strings)
-void parse_csv_rule_v2(std::string input, environment& e);	   // parse a single string (a single line from CSV)
-void parse_csv_rules_v2(std::string filename, environment& e); // parse all rules in a CSV file
+void parse_csv_rule_v3(std::vector<std::string> input, environment& e); // parse a tokenized string (vector of strings)
+void parse_csv_rule_v3(std::string input, environment& e);	   // parse a single string (a single line from CSV)
+void parse_csv_rules_v3(std::string filename, environment& e); // parse all rules in a CSV file
 
 void parse_rules_from_pugixml(PhysiCell_Settings& settings, const pugi::xml_node& config_root, environment& e);
 
@@ -170,14 +170,14 @@ void parse_rules_from_parameters_v0(environment& e);
 
 std::string csv_strings_to_English(std::vector<std::string> strings, bool include_cell_header);
 std::string csv_strings_to_English_v1(std::vector<std::string> strings, bool include_cell_header);
-std::string csv_strings_to_English_v2(std::vector<std::string> strings, bool include_cell_header);
+std::string csv_strings_to_English_v3(std::vector<std::string> strings, bool include_cell_header);
 
 std::string csv_strings_to_English_HTML(std::vector<std::string> strings, bool include_cell_header);
 
 // v1, v2, and v0?
 void export_rules_csv_v0(std::string filename, environment& e);
 void export_rules_csv_v1(std::string filename, environment& e);
-void export_rules_csv_v2(std::string filename, environment& e);
+void export_rules_csv_v3(std::string filename, environment& e);
 
 // streamed outputs in human-readable format
 

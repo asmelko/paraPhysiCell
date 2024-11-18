@@ -70,10 +70,10 @@ int writePov(environment& e, PhysiCell_Settings& settings, double timepoint, dou
 			_nameCore = "ENDO";
 		else
 			_nameCore = "MISC";
-		std::string center = "<" + std::to_string(e.get_container().get_at(i)->get_position()[0] / scale) + ","
-							 + std::to_string(e.get_container().get_at(i)->get_position()[1] / scale) + ","
+		std::string center = std::string("<") + std::to_string(e.get_container().get_at(i)->get_position()[0] / scale)
+							 + "," + std::to_string(e.get_container().get_at(i)->get_position()[1] / scale) + ","
 							 + std::to_string(e.get_container().get_at(i)->get_position()[2] / scale) + ">";
-		std::string core = "sphere {\n\t" + center + "\n\t "
+		std::string core = std::string("sphere {\n\t") + center + "\n\t "
 						   + std::to_string(e.get_container().get_at(i)->phenotype.geometry.radius() / scale)
 						   + "\n\t FinishMacro ( " + center + "," + _nameCore + "Finish," + _nameCore + "*1)\n}\n";
 		povFile << core;

@@ -243,7 +243,7 @@ void Cycle_Model::advance_model(cell& cell, biofvm::real_t dt)
 			if (phase_links[i][k].fixed_duration)
 			{
 				if (cell.phenotype.cycle.data.elapsed_time_in_phase
-					> 1.0 / cell.phenotype.cycle.data.transition_rates[i][k])
+					> 1.0 / cell.phenotype.cycle.data.transition_rates[i][k] - 0.5 * dt)
 				{
 					continue_transition = true;
 				}
