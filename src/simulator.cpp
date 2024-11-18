@@ -255,7 +255,7 @@ void simulator::save_full(const PhysiCell_Settings& settings, index_t simulation
 	}
 }
 
-void simulator::save_svg(const PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function,
+void simulator::save_svg(PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function,
 						 const substrate_coloring_funct_t& substrate_coloring_function, index_t simulation_step)
 {
 	if (settings.enable_SVG_saves == true)

@@ -33,7 +33,7 @@ class simulator
 			  const cell_coloring_funct_t& cell_coloring_function,
 			  const substrate_coloring_funct_t& substrate_coloring_function, biofvm::index_t simulation_step);
 	void save_full(const PhysiCell_Settings& settings, biofvm::index_t simulation_step);
-	void save_svg(const PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function,
+	void save_svg(PhysiCell_Settings& settings, const cell_coloring_funct_t& cell_coloring_function,
 				  const substrate_coloring_funct_t& substrate_coloring_function, biofvm::index_t simulation_step);
 
 	void sync_data_host(simulator_durations& durations, biofvm::solvers::data_residency& residency);

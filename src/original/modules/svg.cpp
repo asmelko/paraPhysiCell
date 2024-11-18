@@ -1,5 +1,7 @@
 #include "svg.h"
 
+#include <cstring>
+
 namespace physicell {
 
 bool Write_SVG_start(std::ostream& os, double width, double height)
@@ -35,6 +37,20 @@ bool Write_SVG_text(std::ostream& os, const char* str, double position_x, double
 	   << "   " << str << std::endl
 	   << "  </text>" << std::endl;
 	return true;
+}
+
+void Write_SVG_text(std::ostream& os, const char* str, double position_x, double position_y, double font_size,
+					const char* color, const char* font, double rotation)
+{
+	double text_width = font_size * std::strlen(str) / 2.0; // estimate the width of the text
+	double text_height = font_size / 2.0;					// estimate the height of the text
+
+	double center_x = position_x + text_width / 2.0;
+	double center_y = position_y + text_height / 2.0;
+
+	os << "<text x=\"" << position_x << "\" y=\"" << position_y << "\" font-size=\"" << font_size << "\" fill=\""
+	   << color << "\" font-family=\"" << font << "\" transform=\"rotate(" << rotation << " " << center_x << " "
+	   << center_y << ")\">" << str << "</text>\n";
 }
 
 bool Write_SVG_circle(std::ostream& os, double center_x, double center_y, double radius, double stroke_size,

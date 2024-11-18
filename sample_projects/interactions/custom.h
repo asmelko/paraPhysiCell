@@ -18,5 +18,5 @@ void setup_microenvironment(microenvironment_builder& m_builder);
 
 std::vector<std::string> my_coloring_function(cell*);
 
-std::vector<std::string> my_coloring_function_for_substrate(biofvm::real_t concentration, biofvm::real_t max_conc,
-															biofvm::real_t min_conc);
+std::string my_coloring_function_for_substrate(biofvm::real_t concentration, biofvm::real_t max_conc,
+											   biofvm::real_t min_conc, PhysiCell_Settings& settings);

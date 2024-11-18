@@ -10,6 +10,9 @@ bool Write_SVG_end(std::ostream& os);
 
 bool Write_SVG_text(std::ostream& os, const char* str, double position_x, double position_y, double font_size,
 					const char* color, const char* font);
+void Write_SVG_text(std::ostream& os, const char* str, double position_x, double position_y, double font_size,
+					const char* color, const char* font, double rotation);
+
 bool Write_SVG_circle(std::ostream& os, double center_x, double center_y, double radius, double stroke_size,
 					  std::string stroke_color, std::string fill_color);
 

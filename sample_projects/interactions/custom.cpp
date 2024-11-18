@@ -661,7 +661,8 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 std::vector<std::string> my_coloring_function(cell* pCell) { return paint_by_number_cell_coloring(pCell); }
 
-std::vector<std::string> my_coloring_function_for_substrate(real_t concentration, real_t max_conc, real_t min_conc)
+std::string my_coloring_function_for_substrate(real_t concentration, real_t max_conc, real_t min_conc,
+											   PhysiCell_Settings& settings)
 {
-	return paint_by_density_percentage(concentration, max_conc, min_conc);
+	return paint_by_density_percentage(concentration, max_conc, min_conc, settings);
 }
