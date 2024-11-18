@@ -40,6 +40,7 @@ public:
 	bool limits_substrate_plot = false;
 	biofvm::real_t min_concentration = -1.0;
 	biofvm::real_t max_concentration = -1.0;
+	std::string svg_substrate_colormap = "YlOrRd";
 
 	biofvm::real_t intracellular_save_interval = 60;
 	bool enable_intracellular_saves = false;
@@ -106,6 +107,8 @@ public:
 	Parameter<T>& operator[](std::string str);
 
 	biofvm::index_t size() const;
+
+	void assert_not_exists(std::string search_name);
 };
 
 class User_Parameters

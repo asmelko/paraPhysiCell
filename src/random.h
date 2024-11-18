@@ -14,6 +14,8 @@ public:
 	biofvm::real_t normal(const biofvm::real_t mean = 0, const biofvm::real_t std = 1);
 
 	void set_seed(unsigned int seed);
+
+	void set_random_seed();
 };
 
 } // namespace physicell

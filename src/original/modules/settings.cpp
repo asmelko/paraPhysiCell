@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "../../random.h"
 #include "pugixml_helper.h"
 
 using namespace biofvm;
@@ -29,6 +30,7 @@ PhysiCell_Settings::PhysiCell_Settings()
 	limits_substrate_plot = false;
 	min_concentration = -1.0;
 	max_concentration = -1.0;
+	svg_substrate_colormap = "YlOrRd";
 
 	intracellular_save_interval = 60;
 	enable_intracellular_saves = false;
@@ -86,7 +88,13 @@ void PhysiCell_Settings::read_from_pugixml(pugi::xml_node& physicell_config_root
 			min_concentration = xml_get_double_value(node_plot_substrate, "min_conc");
 			max_concentration = xml_get_double_value(node_plot_substrate, "max_conc");
 		}
-	};
+		pugi::xml_node colormap_node = xml_find_node(node_plot_substrate, "colormap");
+		if (colormap_node)
+		{
+			svg_substrate_colormap = xml_get_my_string_value(colormap_node);
+		}
+	}
+
 	node = node.parent();
 
 	node = xml_find_node(node, "intracellular_data");
@@ -118,10 +126,10 @@ void PhysiCell_Settings::read_from_pugixml(pugi::xml_node& physicell_config_root
 		settings = xml_get_bool_value(node_options, "legacy_random_points_on_sphere_in_divide");
 		if (settings)
 		{
-			// std::cout << "setting legacy unif" << std::endl;
+			std::cout << "setting legacy unif" << std::endl;
+			throw std::runtime_error("Error: legacy_random_points_on_sphere_in_divide is not supported.");
 			// extern std::vector<double> (*cell_division_orientation)(void);
 			// cell_division_orientation = LegacyRandomOnUnitSphere;
-			throw std::runtime_error("legacy_random_points_on_sphere_in_divide is no longer supported.");
 		}
 
 		settings = xml_get_bool_value(node_options, "disable_automated_spring_adhesions");
@@ -129,6 +137,35 @@ void PhysiCell_Settings::read_from_pugixml(pugi::xml_node& physicell_config_root
 		{
 			std::cout << "Disabling automated spring adhesions and detachments!" << std::endl;
 			disable_automated_spring_adhesions = true;
+		}
+
+		pugi::xml_node random_seed_node = xml_find_node(node_options, "random_seed");
+		std::string random_seed = ""; // default is system clock, even if this element is not present
+		if (random_seed_node)
+		{
+			random_seed = xml_get_my_string_value(random_seed_node);
+		}
+
+		if (random_seed == "" || random_seed == "random" || random_seed == "system_clock")
+		{
+			std::cout << "Using system clock for random seed" << std::endl;
+			random().set_random_seed();
+		}
+		else
+		{
+			int seed;
+			try
+			{
+				seed = std::stoi(random_seed);
+			}
+			catch (const std::exception& e)
+			{
+				std::cout << "ERROR: " << random_seed
+						  << " is not a valid random seed. It must be an integer. Fix this within <options>."
+						  << std::endl;
+				exit(-1);
+			}
+			random().set_seed(seed);
 		}
 
 		// other options can go here, eventually
@@ -278,54 +315,31 @@ Parameters<T>::Parameters()
 template <class T>
 void Parameters<T>::add_parameter(std::string my_name)
 {
-	Parameter<T>* pNew;
-	pNew = new Parameter<T>;
-	pNew->name = my_name;
-
-	index_t n = parameters.size();
-
-	parameters.push_back(*pNew);
-
-	name_to_index_map[my_name] = n;
-	return;
+	// this function is not currently (2024-06-03) called in the code, so these defaults largely do not matter; very
+	// unlikely others are directly calling this function, let alone this implementation
+	T my_value = T(); // for {int, double, bool, string} this will be {0, 0.0, false, ""} (this would technically change
+					  // the behavior for strings since it is hardcoded above to default to "none", but nobody should
+					  // rely on the default value of a string being "none")
+	return add_parameter(my_name, my_value);
 }
 
 template <class T>
 void Parameters<T>::add_parameter(std::string my_name, T my_value)
 {
-	Parameter<T>* pNew;
-	pNew = new Parameter<T>;
-	pNew->name = my_name;
-	pNew->value = my_value;
-
-	index_t n = parameters.size();
-
-	parameters.push_back(*pNew);
-
-	name_to_index_map[my_name] = n;
-	return;
+	// this function is not currently (2024-06-03) called in the code, so these defaults largely do not matter; very
+	// unlikely others are directly calling this function, let alone this implementation
+	std::string my_units =
+		"dimensionless"; // technically this would change the behavior for strings since it is hardcoded above to
+						 // default to "none", but nobody should be using units on strings; also, if the xml does not
+						 // have units, then "dimensionless" is used even for strings
+	return add_parameter(my_name, my_value, my_units);
 }
-/*
-template <class T>
-void Parameters<T>::add_parameter( std::string my_name , T my_value )
-{
-	Parameter<T>* pNew;
-	pNew = new Parameter<T> ;
-	pNew->name = my_name ;
-	pNew->value = my_value;
-
-	index_t n = parameters.size();
-
-	parameters.push_back( *pNew );
-
-	name_to_index_map[ my_name ] = n;
-	return;
-}
-*/
 
 template <class T>
 void Parameters<T>::add_parameter(std::string my_name, T my_value, std::string my_units)
 {
+	assert_not_exists(my_name);
+
 	Parameter<T> new_param;
 	new_param.name = my_name;
 	new_param.value = my_value;
@@ -339,32 +353,28 @@ void Parameters<T>::add_parameter(std::string my_name, T my_value, std::string m
 	return;
 }
 
-/*
-template <class T>
-void Parameters<T>::add_parameter( std::string my_name , T my_value , std::string my_units )
-{
-	Parameter<T>* pNew;
-	pNew = new Parameter<T> ;
-	pNew->name = my_name ;
-	pNew->value = my_value;
-	pNew->units = my_units;
-
-	index_t n = parameters.size();
-
-	parameters.push_back( *pNew );
-
-	name_to_index_map[ my_name ] = n;
-	return;
-}
-*/
-
 template <class T>
 void Parameters<T>::add_parameter(Parameter<T> param)
 {
-	index_t n = parameters.size();
+	assert_not_exists(param.name);
+
+	int n = parameters.size();
 	parameters.push_back(param);
 	name_to_index_map[param.name] = n;
 	return;
+}
+
+template <class T>
+void Parameters<T>::assert_not_exists(std::string search_name)
+{
+	if (find_index(search_name) == -1)
+	{
+		return;
+	}
+
+	std::cout << "ERROR: Parameter " << search_name
+			  << " already exists. Make sure all parameters (of a given type) have unique names." << std::endl;
+	exit(-1);
 }
 
 std::ostream& operator<<(std::ostream& os, const User_Parameters up)
@@ -392,41 +402,30 @@ void User_Parameters::read_from_pugixml(pugi::xml_node& parent_node)
 
 		std::string type = node1.attribute("type").value();
 
-		bool done = false;
-		if (type == "bool" && done == false)
+		if (type == "bool")
 		{
 			bool value = xml_get_my_bool_value(node1);
 			bools.add_parameter(name, value, units);
-			done = true;
 		}
-
-		if (type == "int" && done == false)
+		else if (type == "int")
 		{
-			index_t value = xml_get_my_int_value(node1);
+			int value = xml_get_my_int_value(node1);
 			ints.add_parameter(name, value, units);
-			done = true;
 		}
-
-		if (type == "double" && done == false)
+		else if (type == "double")
 		{
-			real_t value = xml_get_my_double_value(node1);
+			double value = xml_get_my_double_value(node1);
 			doubles.add_parameter(name, value, units);
-			done = true;
 		}
-
-		if (done == false && type == "string")
+		else if (type == "string")
 		{
 			std::string value = xml_get_my_string_value(node1);
 			strings.add_parameter(name, value, units);
-			done = true;
 		}
-
-		/* default if no type specified: */
-		if (done == false)
+		else // default if no type specified
 		{
-			real_t value = xml_get_my_double_value(node1);
+			double value = xml_get_my_double_value(node1);
 			doubles.add_parameter(name, value, units);
-			done = true;
 		}
 
 		node1 = node1.next_sibling();

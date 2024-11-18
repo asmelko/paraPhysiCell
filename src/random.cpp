@@ -47,3 +47,9 @@ void physicell::random::set_seed(unsigned int seed)
 	generator.seed(seed);
 #endif
 }
+
+void physicell::random::set_random_seed()
+{
+	std::random_device rd;
+	set_seed(rd());
+}
