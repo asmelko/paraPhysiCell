@@ -246,6 +246,20 @@ microenvironment_builder& builder::get_microenvironment_builder()
 	if (xml_get_bool_value(node, "track_internalized_substrates_in_each_agent"))
 		m_builder_.do_compute_internalized_substrates();
 
+	node = xml_find_node(node, "initial_condition");
+	if (node)
+	{
+		if (node.attribute("enabled").as_bool())
+		{
+			std::string filetype = node.attribute("type").as_string();
+			if (filetype != "CSV" && filetype != "csv")
+			{
+				throw std::runtime_error("Error: unknown initial condition file type " + filetype);
+			}
+			m_builder_.load_initial_conditions_from_file(xml_get_string_value(node, "filename"));
+		}
+	}
+
 	return m_builder_;
 }
 
@@ -472,7 +486,7 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		bool disable_bugfix = false;
 		if (node_options)
 		{
-			xml_get_bool_value(node_options, "legacy_cell_defaults_copy");
+			disable_bugfix = xml_get_bool_value(node_options, "legacy_cell_defaults_copy");
 		}
 
 		if (disable_bugfix == false)
@@ -1133,6 +1147,12 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		{
 			pM->detachment_rate() = xml_get_my_double_value(node_mech);
 		}
+
+		node_mech = node.child("maximum_number_of_attachments");
+		if (node_mech)
+		{
+			pM->maximum_number_of_attachments() = xml_get_my_int_value(node_mech);
+		}
 	}
 
 	// motility
@@ -1293,14 +1313,12 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 			std::cout << "Cells of type " << pCD->name << " use normalized advanced chemotaxis: " << std::endl
 					  << "\t d_bias (before normalization) = " << pMot->chemotactic_sensitivities()[0] << " * grad("
-					  << e_->m.substrates_names[0] << ")"
-					  << " / ||grad(" << e_->m.substrates_names[0] << ")||";
+					  << e_->m.substrates_names[0] << ")" << " / ||grad(" << e_->m.substrates_names[0] << ")||";
 
 			for (index_t n = 1; n < number_of_substrates; n++)
 			{
 				std::cout << " + " << pMot->chemotactic_sensitivities()[n] << " * grad(" << e_->m.substrates_names[n]
-						  << ")"
-						  << " / ||grad(" << e_->m.substrates_names[n] << ")||";
+						  << ")" << " / ||grad(" << e_->m.substrates_names[n] << ")||";
 			}
 			std::cout << std::endl;
 		}
@@ -1372,7 +1390,41 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 		// dead_phagocytosis_rate
 		pugi::xml_node node_dpr = node.child("dead_phagocytosis_rate");
-		pCI->dead_phagocytosis_rate() = xml_get_my_double_value(node_dpr);
+		double dead_phagocytosis_rate = 0.0;
+		if (node_dpr)
+		{
+			// pCI->dead_phagocytosis_rate = xml_get_my_double_value(node_dpr);
+			dead_phagocytosis_rate = xml_get_my_double_value(node_dpr);
+		}
+		/*
+				pCI->apoptotic_phagocytosis_rate = pCI->dead_phagocytosis_rate;
+				pCI->necrotic_phagocytosis_rate = pCI->dead_phagocytosis_rate;
+				pCI->other_dead_phagocytosis_rate = pCI->dead_phagocytosis_rate;
+		*/
+		pCI->apoptotic_phagocytosis_rate() = dead_phagocytosis_rate;
+		pCI->necrotic_phagocytosis_rate() = dead_phagocytosis_rate;
+		pCI->other_dead_phagocytosis_rate() = dead_phagocytosis_rate;
+
+		// if specific apoptotic rate is specified, overwrite
+		pugi::xml_node node_apr = node.child("apoptotic_phagocytosis_rate");
+		if (node_apr)
+		{
+			pCI->apoptotic_phagocytosis_rate() = xml_get_my_double_value(node_apr);
+		}
+
+		// if specific necrotic rate is specified, overwrite
+		pugi::xml_node node_npr = node.child("necrotic_phagocytosis_rate");
+		if (node_npr)
+		{
+			pCI->necrotic_phagocytosis_rate() = xml_get_my_double_value(node_npr);
+		}
+
+		// if specific necrotic rate is specified, overwrite
+		pugi::xml_node node_odpr = node.child("other_dead_phagocytosis_rate");
+		if (node_odpr)
+		{
+			pCI->other_dead_phagocytosis_rate() = xml_get_my_double_value(node_odpr);
+		}
 
 		// live phagocytosis rates
 		pugi::xml_node node_lpcr = node.child("live_phagocytosis_rates");
@@ -1424,8 +1476,8 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 		}
 
 		// damage_rate
-		pugi::xml_node node_dr = node.child("damage_rate");
-		pCI->damage_rate() = xml_get_my_double_value(node_dr);
+		pugi::xml_node node_dr = node.child("attack_damage_rate");
+		pCI->attack_damage_rate() = xml_get_my_double_value(node_dr);
 
 		// fusion_rates
 		pugi::xml_node node_fr = node.child("fusion_rates");
@@ -1496,6 +1548,26 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 			}
 
 			node_tr = node_tr.next_sibling("transformation_rate");
+		}
+	}
+
+	// cell integrity
+	node = cd_node.child("phenotype");
+	node = node.child("cell_integrity");
+	if (node)
+	{
+		auto pCI = &(pCD->phenotype.cell_integrity);
+
+		pugi::xml_node node_dr = node.child("damage_rate");
+		if (node_dr)
+		{
+			pCI->damage_rate() = xml_get_my_double_value(node_dr);
+		}
+
+		pugi::xml_node node_drr = node.child("damage_repair_rate");
+		if (node_drr)
+		{
+			pCI->damage_repair_rate() = xml_get_my_double_value(node_drr);
 		}
 	}
 
