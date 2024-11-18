@@ -515,6 +515,9 @@ void advance_bundled_phenotype_functions(cell& cell, environment& e)
 	// update geometry
 	cell.phenotype.geometry.update();
 
+	// update integrity
+	cell.phenotype.cell_integrity.advance_damage(e.phenotype_time_step);
+
 	// check for new death events
 	if (cell.phenotype.death.check_for_death(e.phenotype_time_step) == true)
 	{
@@ -811,6 +814,7 @@ void initialize_default_cell_definition(environment& e)
 	e.cell_defaults().phenotype.molecular.set_defaults();
 	e.cell_defaults().phenotype.cell_interactions.set_defaults();
 	e.cell_defaults().phenotype.cell_transformations.set_defaults();
+	e.cell_defaults().phenotype.cell_integrity.set_defaults();
 }
 
 } // namespace physicell

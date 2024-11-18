@@ -433,12 +433,11 @@ TEST(host_interactions_solver, attack)
 
 	interactions_solver is;
 
-#pragma omp parallel
 	is.update_cell_cell_interactions(*e);
 
-	ASSERT_EQ(c1->state.damage(), 0);
-	ASSERT_EQ(c2->state.damage(), 0);
-	ASSERT_NE(c3->state.damage(), 0);
+	ASSERT_EQ(c1->phenotype.cell_integrity.damage(), 0);
+	ASSERT_EQ(c2->phenotype.cell_integrity.damage(), 0);
+	ASSERT_NE(c3->phenotype.cell_integrity.damage(), 0);
 }
 
 TEST(host_interactions_solver, dead_phagocytosis)
@@ -453,7 +452,7 @@ TEST(host_interactions_solver, dead_phagocytosis)
 	auto c1 = cont.create_cell(e->cell_defaults());
 	c1->assign_position({ 10, 10, 10 });
 	c1->state.set_defaults();
-	c1->phenotype.cell_interactions.dead_phagocytosis_rate() = 1000000000;
+	c1->phenotype.cell_interactions.other_dead_phagocytosis_rate() = 1000000000;
 
 	auto c2 = cont.create_cell(e->cell_defaults());
 	c2->assign_position({ 10, 10, 10 });
@@ -471,7 +470,6 @@ TEST(host_interactions_solver, dead_phagocytosis)
 
 	interactions_solver is;
 
-#pragma omp parallel
 	is.update_cell_cell_interactions(*e);
 
 	ASSERT_EQ(c1->flag(), cell_state_flag::none);

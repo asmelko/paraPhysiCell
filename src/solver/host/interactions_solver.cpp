@@ -1,5 +1,6 @@
 #include "interactions_solver.h"
 
+#include "../../original/core/constants.h"
 #include "solver_helper.h"
 
 using namespace biofvm;
@@ -133,20 +134,23 @@ void fuse(index_t lhs, index_t rhs, cell_data& data)
 	data.flags[rhs] = cell_state_flag::to_remove;
 }
 
-void attack(index_t lhs, index_t rhs, real_t time_step, const real_t* __restrict__ damage_rate,
-			real_t* __restrict__ damage, real_t* __restrict__ total_attack_time)
+void attack(index_t lhs, index_t rhs, real_t time_step, const real_t* __restrict__ attack_damage_rate,
+			real_t* __restrict__ cell_integrity_damage, real_t* __restrict__ total_attack_time,
+			real_t* __restrict__ total_damage_delivered)
 {
-	damage[rhs] += damage_rate[lhs] * time_step;
+	cell_integrity_damage[rhs] += attack_damage_rate[lhs] * time_step;
 	total_attack_time[rhs] += time_step;
+	total_damage_delivered[lhs] += attack_damage_rate[lhs] * time_step;
 }
 
 void update_cell_cell_interactions_internal(
 	index_t n, index_t cell_defs_count, real_t time_step, const std::uint8_t* __restrict__ dead,
-	const index_t* __restrict__ cell_definition_indices, const real_t* __restrict__ dead_phagocytosis_rate,
+	const index_t* __restrict__ cell_definition_indices, const real_t* __restrict__ apoptotic_phagocytosis_rate,
+	const real_t* __restrict__ necrotic_phagocytosis_rate, const real_t* __restrict__ other_dead_phagocytosis_rate,
 	const real_t* __restrict__ live_phagocytosis_rate, const real_t* __restrict__ attack_rate,
 	const real_t* __restrict__ fusion_rate, const real_t* __restrict__ immunogenicity,
 	const std::vector<index_t>* __restrict__ neighbors, const cell_state_flag* __restrict__ flag, cell_data& data,
-	std::mutex& m)
+	std::mutex& m, const std::unique_ptr<cell>* __restrict__ cells)
 {
 #pragma omp for
 	for (index_t cell_index = 0; cell_index < n; cell_index++)
@@ -168,7 +172,20 @@ void update_cell_cell_interactions_internal(
 
 			if (dead[neighbor_index] == 1)
 			{
-				if (random_number < dead_phagocytosis_rate[cell_index] * time_step)
+				if (phagocytosed_once)
+					continue;
+
+				bool neighbor_apoptotic =
+					cells[neighbor_index]->phenotype.cycle.current_phase().code == constants::apoptotic;
+				bool neighbor_necrotic =
+					cells[neighbor_index]->phenotype.cycle.current_phase().code == constants::necrotic_swelling
+					|| cells[neighbor_index]->phenotype.cycle.current_phase().code == constants::necrotic_lysed
+					|| cells[neighbor_index]->phenotype.cycle.current_phase().code == constants::necrotic;
+				bool other_dead = !(neighbor_apoptotic || neighbor_necrotic);
+
+				if ((neighbor_apoptotic && random_number < apoptotic_phagocytosis_rate[cell_index] * time_step)
+					|| (neighbor_necrotic && random_number < necrotic_phagocytosis_rate[cell_index] * time_step)
+					|| (other_dead && random_number < other_dead_phagocytosis_rate[cell_index] * time_step))
 				{
 					{
 						std::lock_guard<std::mutex> l(m);
@@ -180,6 +197,8 @@ void update_cell_cell_interactions_internal(
 
 						ingest(cell_index, neighbor_index, data);
 					}
+
+					phagocytosed_once = true;
 				}
 
 				continue;
@@ -210,18 +229,21 @@ void update_cell_cell_interactions_internal(
 				const auto immuno_r =
 					immunogenicity[neighbor_index * cell_defs_count + cell_definition_indices[cell_index]];
 
-				if (!attacked_once && random_number < attack_r * immuno_r * time_step)
+				if (!attacked_once && data.interactions.attack_targets[cell_index] == interactions_t::no_target
+					&& random_number < attack_r * immuno_r * time_step)
 				{
+					data.interactions.attack_targets[cell_index] = neighbor_index;
+
 					{
 						std::lock_guard<std::mutex> l(m);
 
-						if (flag[cell_index] == cell_state_flag::to_remove)
-							break;
-						if (flag[neighbor_index] == cell_state_flag::to_remove)
-							continue;
-
-						attack(cell_index, neighbor_index, time_step, data.interactions.damage_rate.data(),
-							   data.states.damage.data(), data.states.total_attack_time.data());
+						if (std::find(data.states.springs[cell_index].begin(), data.states.springs[cell_index].end(),
+									  neighbor_index)
+							!= data.states.springs[cell_index].end())
+						{
+							data.states.springs[cell_index].push_back(neighbor_index);
+							data.states.springs[neighbor_index].push_back(cell_index);
+						}
 					}
 
 					attacked_once = true;
@@ -249,6 +271,42 @@ void update_cell_cell_interactions_internal(
 				continue;
 			}
 		}
+
+		// attack
+		auto attack_target_index = data.interactions.attack_targets[cell_index];
+		if (attack_target_index != interactions_t::no_target)
+		{
+			{
+				std::lock_guard<std::mutex> l(m);
+
+				if (flag[cell_index] == cell_state_flag::to_remove
+					|| flag[attack_target_index] == cell_state_flag::to_remove)
+					continue;
+
+				attack(cell_index, attack_target_index, time_step, data.interactions.attack_damage_rates.data(),
+					   data.integrity.damages.data(), data.states.total_attack_time.data(),
+					   data.interactions.total_damage_delivered.data());
+			}
+
+			const real_t attack_duration = data.interactions.attack_durations[cell_index];
+			if (attack_duration == 0 || random::instance().uniform() < time_step / attack_duration)
+			{
+				data.interactions.attack_targets[cell_index] = interactions_t::no_target;
+
+				std::lock_guard<std::mutex> l(m);
+
+				if (auto it = std::find(data.states.springs[cell_index].begin(), data.states.springs[cell_index].end(),
+										attack_target_index);
+					it != data.states.springs[cell_index].end())
+				{
+					data.states.springs[cell_index].erase(it);
+
+					auto it2 = std::find(data.states.springs[attack_target_index].begin(),
+										 data.states.springs[attack_target_index].end(), cell_index);
+					data.states.springs[attack_target_index].erase(it2);
+				}
+			}
+		}
 	}
 }
 
@@ -256,10 +314,13 @@ void interactions_solver::update_cell_cell_interactions(environment& e)
 {
 	auto& data = get_cell_data(e);
 
+	auto& cells = e.get_container().agents();
+
 	update_cell_cell_interactions_internal(
 		data.agents_count, e.cell_definitions_count, e.mechanics_time_step, data.deaths.dead.data(),
-		data.cell_definition_indices.data(), data.interactions.dead_phagocytosis_rate.data(),
+		data.cell_definition_indices.data(), data.interactions.apoptotic_phagocytosis_rate.data(),
+		data.interactions.necrotic_phagocytosis_rate.data(), data.interactions.other_dead_phagocytosis_rate.data(),
 		data.interactions.live_phagocytosis_rates.data(), data.interactions.attack_rates.data(),
 		data.interactions.fusion_rates.data(), data.interactions.immunogenicities.data(), data.states.neighbors.data(),
-		data.flags.data(), data, mtx_);
+		data.flags.data(), data, mtx_, cells.data());
 }
