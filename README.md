@@ -11,7 +11,7 @@ The missing features (not a complete list):
 - crazy make targets, such as make-movie or make-zip,
 - PhysiMeSS.
 
-The version of PhysiCell this project builds upon: **1.12.0**.
+The version of PhysiCell this project builds upon: **1.14.0**.
 
 ## Simple Benchmarks
 
