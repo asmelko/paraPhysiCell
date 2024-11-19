@@ -449,18 +449,92 @@ TEST(host_interactions_solver, dead_phagocytosis)
 
 	cell_container& cont = e->get_container();
 
+	// c1 - attacks dead, c2 - dead, c3 - necrotic, c4 - apoptotic, c5 - live
 	auto c1 = cont.create_cell(e->cell_defaults());
 	c1->assign_position({ 10, 10, 10 });
+	c1->phenotype.geometry.radius() = 1;
 	c1->state.set_defaults();
 	c1->phenotype.cell_interactions.other_dead_phagocytosis_rate() = 1000000000;
 
 	auto c2 = cont.create_cell(e->cell_defaults());
 	c2->assign_position({ 10, 10, 10 });
+	c2->phenotype.geometry.radius() = 1;
 	c2->phenotype.death.dead() = 1;
 
 	auto c3 = cont.create_cell(e->cell_defaults());
 	c3->assign_position({ 10, 10, 10 });
-	c3->phenotype.death.dead() = 0;
+	c3->phenotype.geometry.radius() = 1;
+	c3->phenotype.death.dead() = 1;
+	c3->phenotype.cycle.sync_to_cycle_model(necrosis);
+
+	auto c4 = cont.create_cell(e->cell_defaults());
+	c4->assign_position({ 10, 10, 10 });
+	c4->phenotype.geometry.radius() = 1;
+	c4->phenotype.death.dead() = 1;
+	c4->phenotype.cycle.sync_to_cycle_model(apoptosis);
+
+	auto c5 = cont.create_cell(e->cell_defaults());
+	c5->assign_position({ 10, 10, 10 });
+	c5->phenotype.geometry.radius() = 1;
+	c5->phenotype.death.dead() = 0;
+
+	// c6 - attacks necrotic, c7 - dead, c8 - necrotic, c9 - apoptotic, c10 - live
+	auto c6 = cont.create_cell(e->cell_defaults());
+	c6->assign_position({ 20, 20, 20 });
+	c6->phenotype.geometry.radius() = 1;
+	c6->state.set_defaults();
+	c6->phenotype.cell_interactions.necrotic_phagocytosis_rate() = 1000000000;
+
+	auto c7 = cont.create_cell(e->cell_defaults());
+	c7->assign_position({ 20, 20, 20 });
+	c7->phenotype.geometry.radius() = 1;
+	c7->phenotype.death.dead() = 1;
+
+	auto c8 = cont.create_cell(e->cell_defaults());
+	c8->assign_position({ 20, 20, 20 });
+	c8->phenotype.geometry.radius() = 1;
+	c8->phenotype.death.dead() = 1;
+	c8->phenotype.cycle.sync_to_cycle_model(necrosis);
+
+	auto c9 = cont.create_cell(e->cell_defaults());
+	c9->assign_position({ 20, 20, 20 });
+	c9->phenotype.geometry.radius() = 1;
+	c9->phenotype.death.dead() = 1;
+	c9->phenotype.cycle.sync_to_cycle_model(apoptosis);
+
+	auto c10 = cont.create_cell(e->cell_defaults());
+	c10->assign_position({ 20, 20, 20 });
+	c10->phenotype.geometry.radius() = 1;
+	c10->phenotype.death.dead() = 0;
+
+	// c11 - attacks apoptotic, c12 - dead, c13 - necrotic, c14 - apoptotic, c15 - live
+	auto c11 = cont.create_cell(e->cell_defaults());
+	c11->assign_position({ 30, 30, 30 });
+	c11->phenotype.geometry.radius() = 1;
+	c11->state.set_defaults();
+	c11->phenotype.cell_interactions.apoptotic_phagocytosis_rate() = 1000000000;
+
+	auto c12 = cont.create_cell(e->cell_defaults());
+	c12->assign_position({ 30, 30, 30 });
+	c12->phenotype.geometry.radius() = 1;
+	c12->phenotype.death.dead() = 1;
+
+	auto c13 = cont.create_cell(e->cell_defaults());
+	c13->assign_position({ 30, 30, 30 });
+	c13->phenotype.geometry.radius() = 1;
+	c13->phenotype.death.dead() = 1;
+	c13->phenotype.cycle.sync_to_cycle_model(necrosis);
+
+	auto c14 = cont.create_cell(e->cell_defaults());
+	c14->assign_position({ 30, 30, 30 });
+	c14->phenotype.geometry.radius() = 1;
+	c14->phenotype.death.dead() = 1;
+	c14->phenotype.cycle.sync_to_cycle_model(apoptosis);
+
+	auto c15 = cont.create_cell(e->cell_defaults());
+	c15->assign_position({ 30, 30, 30 });
+	c15->phenotype.geometry.radius() = 1;
+	c15->phenotype.death.dead() = 0;
 
 	containers_solver cs;
 	cs.initialize(*e);
@@ -475,6 +549,20 @@ TEST(host_interactions_solver, dead_phagocytosis)
 	ASSERT_EQ(c1->flag(), cell_state_flag::none);
 	ASSERT_EQ(c2->flag(), cell_state_flag::to_remove);
 	ASSERT_EQ(c3->flag(), cell_state_flag::none);
+	ASSERT_EQ(c4->flag(), cell_state_flag::none);
+	ASSERT_EQ(c5->flag(), cell_state_flag::none);
+
+	ASSERT_EQ(c6->flag(), cell_state_flag::none);
+	ASSERT_EQ(c7->flag(), cell_state_flag::none);
+	ASSERT_EQ(c8->flag(), cell_state_flag::to_remove);
+	ASSERT_EQ(c9->flag(), cell_state_flag::none);
+	ASSERT_EQ(c10->flag(), cell_state_flag::none);
+
+	ASSERT_EQ(c11->flag(), cell_state_flag::none);
+	ASSERT_EQ(c12->flag(), cell_state_flag::none);
+	ASSERT_EQ(c13->flag(), cell_state_flag::none);
+	ASSERT_EQ(c14->flag(), cell_state_flag::to_remove);
+	ASSERT_EQ(c15->flag(), cell_state_flag::none);
 }
 
 TEST(host_interactions_solver, phagocytosis)
