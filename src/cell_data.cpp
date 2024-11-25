@@ -280,6 +280,10 @@ void cell_data::add()
 	is_movable.resize(agents_count);
 
 	flags.resize(agents_count);
+
+	prev_velocities.resize(agents_count);
+
+	cell_residence.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -310,4 +314,6 @@ void cell_data::remove(index_t index)
 	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
 
 	move_scalar(flags.data() + index, flags.data() + agents_count);
+
+	// prev_velocities.resize(agents_count);
 }

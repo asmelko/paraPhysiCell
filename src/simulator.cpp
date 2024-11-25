@@ -160,36 +160,36 @@ void simulator::simulate_mechanics(simulator_durations& durations, bool& recompu
 	sync_data_host(durations, residency);
 
 	// Compute gradient:
-	measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
+	// measure(diffusion_solver_.gradient.solve(e.m), durations.gradient);
 
 	// custom cell rules:
-	measure(custom_cell_rules(e), durations.custom_rules);
+	// measure(custom_cell_rules(e), durations.custom_rules);
 
 	// Compute velocities and update the positions:
 	{
 		// custom attached cells adhesion:
-		measure(evaluate_interactions(e), durations.custom_interactions);
+		// measure(evaluate_interactions(e), durations.custom_interactions);
 
-		measure(mechanics_solver_.position.update_cell_forces(e), durations.forces);
+		measure(mechanics_solver_.position.update_cell_forces_new(e), durations.forces);
 		measure(mechanics_solver_.position.update_motility(e), durations.motility);
 		measure(mechanics_solver_.position.update_basement_membrane_interactions(e), durations.membrane);
-		measure(mechanics_solver_.position.update_spring_attachments(e), durations.spring);
-		measure(mechanics_solver_.position.update_positions(e), durations.position);
+		// measure(mechanics_solver_.position.update_spring_attachments(e), durations.spring);
+		measure(mechanics_solver_.position.update_positions_new(e), durations.position);
 	}
 
 	// Standard cell-cell interactions:
-	measure(mechanics_solver_.interactions.update_cell_cell_interactions(e), durations.cell_cell);
+	// measure(mechanics_solver_.interactions.update_cell_cell_interactions(e), durations.cell_cell);
 
 	// housekeeping
 	{
 		// Removal of flagged cells from data structures:
-		measure(mechanics_solver_.containers.update_cell_container_for_mechanics(e), durations.container_mech);
+		// measure(mechanics_solver_.containers.update_cell_container_for_mechanics(e), durations.container_mech);
 
 		// Update mechanics mesh with new cell positions:
-		measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_mech);
+		// measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_mech);
 
 		// Update cells neighbors:
-		measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_mech);
+		// measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_mech);
 
 		recompute_secretion_and_uptake = true;
 	}
@@ -312,7 +312,7 @@ void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_col
 
 			// called each time because one simulation step is equal to one diffusion time step
 			{
-				simulate_diffusion(durations, recompute_secretion_and_uptake, data_residency);
+				// simulate_diffusion(durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			if (simulation_step % mechanics_step_interval_ == 0)
@@ -322,7 +322,7 @@ void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_col
 
 			if (simulation_step % phenotype_step_interval_ == 0)
 			{
-				simulate_phenotype(durations, recompute_secretion_and_uptake, data_residency);
+				// simulate_phenotype(durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			// run custom simulations
@@ -338,6 +338,7 @@ void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_col
 			e.current_time += e.m.diffusion_time_step;
 
 			++simulation_step;
+			// std::exit(1);
 		}
 	}
 

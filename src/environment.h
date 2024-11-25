@@ -7,7 +7,7 @@
 
 namespace physicell {
 
-constexpr biofvm::point_t<biofvm::index_t, 3> default_mechanics_voxel_shape = { 30, 30, 30 };
+constexpr biofvm::point_t<biofvm::index_t, 3> default_mechanics_voxel_shape = { 50, 50, 50 };
 
 struct environment
 {

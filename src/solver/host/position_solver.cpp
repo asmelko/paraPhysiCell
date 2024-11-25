@@ -20,6 +20,75 @@ void clear_simple_pressure(real_t* __restrict__ simple_pressure, index_t count)
 }
 
 template <index_t dims>
+void solve_pair_new_inter(index_t lhs, index_t rhs, real_t* __restrict__ velocity, const real_t* __restrict__ position,
+						  const real_t* __restrict__ scaling_factors, const real_t* __restrict__ equilibrium_distances,
+						  const real_t* __restrict__ stiffnesses, const real_t* __restrict__ viscosity, index_t n)
+{
+	real_t scaling_factor = scaling_factors[lhs];
+	real_t equilibrium_distance = equilibrium_distances[lhs];
+	real_t stiffness = stiffnesses[lhs]; // / viscosity[lhs];
+	// stiffness *= n;
+
+	real_t potential_well_depth =
+		(stiffness * equilibrium_distance * equilibrium_distance) / (8 * scaling_factor * scaling_factor);
+
+	real_t position_difference[dims];
+
+	const real_t distance = position_helper<dims>::difference_and_distance(position + lhs * dims, position + rhs * dims,
+																		   position_difference);
+
+	real_t exp_power = scaling_factor * (1 - (distance * distance) / (equilibrium_distance * equilibrium_distance));
+
+	real_t force = (4 * scaling_factor * distance * potential_well_depth)
+				   * (std::exp(2 * exp_power) - std::exp(exp_power)) / (equilibrium_distance * equilibrium_distance);
+
+	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force / distance);
+
+	// #pragma omp critical
+	// 	{
+	// 		std::cout << "Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
+	// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
+	// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
+	// 	}
+}
+
+template <index_t dims>
+void solve_pair_new_intra(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __restrict__ velocity,
+						  const real_t* __restrict__ position, const real_t* __restrict__ scaling_factors,
+						  const real_t* __restrict__ equilibrium_distances, const real_t* __restrict__ stiffnesses,
+						  const index_t* __restrict__ cell_definition_index)
+{
+	const auto rhs_index = cell_definition_index[rhs];
+	real_t scaling_factor = scaling_factors[cell_defs_count * lhs + rhs_index];
+	real_t equilibrium_distance = equilibrium_distances[cell_defs_count * lhs + rhs_index];
+	real_t stiffness = stiffnesses[cell_defs_count * lhs + rhs_index]; // / viscosity[lhs];
+	// stiffness *= n;
+
+	real_t potential_well_depth =
+		(stiffness * equilibrium_distance * equilibrium_distance) / (8 * scaling_factor * scaling_factor);
+
+	real_t position_difference[dims];
+
+	const real_t distance = position_helper<dims>::difference_and_distance(position + lhs * dims, position + rhs * dims,
+																		   position_difference);
+
+	real_t exp_power = scaling_factor * (1 - (distance * distance) / (equilibrium_distance * equilibrium_distance));
+
+	real_t force = (4 * scaling_factor * distance * potential_well_depth)
+				   * (std::exp(exp_power) * std::exp(exp_power) - std::exp(exp_power))
+				   / (equilibrium_distance * equilibrium_distance);
+
+	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force / distance);
+
+	// #pragma omp critical
+	// 	{
+	// 		std::cout << "INTRA Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
+	// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
+	// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
+	// 	}
+}
+
+template <index_t dims>
 void solve_pair(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __restrict__ velocity,
 				real_t* __restrict__ simple_pressure, const real_t* __restrict__ position,
 				const real_t* __restrict__ radius, const real_t* __restrict__ cell_cell_repulsion_strength,
@@ -111,7 +180,7 @@ void update_cell_forces_single(
 }
 
 template <index_t dims>
-void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
+void update_motility_single2(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
 							real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
 							const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
 							const std::uint8_t* __restrict__ restrict_to_2d, const std::uint8_t* __restrict__ is_motile,
@@ -140,6 +209,31 @@ void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ mo
 	}
 
 	position_helper<dims>::add(velocity + i * dims, motility_vector + i * dims);
+}
+
+template <index_t dims>
+void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
+							 real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
+							 const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
+							 const std::uint8_t* __restrict__ restrict_to_2d,
+							 const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
+							 const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
+							 cell_container& cells)
+{
+	if (is_motile[i] == 0)
+		return;
+
+	if (random::instance().uniform() < time_step / persistence_time[i])
+	{
+		real_t random_walk[dims];
+
+		position_helper<dims>::random_walk(restrict_to_2d, random_walk);
+
+		real_t strength = random::instance().normal(0, cells.data().mechanics.cell_cell_repulsion_strength[i] / 2)
+						  * migration_speed[i];
+
+		position_helper<dims>::update_velocity(velocity + i * dims, random_walk, strength);
+	}
 }
 
 template <index_t dims>
@@ -172,6 +266,41 @@ void update_cell_forces_internal(
 										cell_cell_repulsion_strength, cell_cell_adhesion_strength,
 										relative_maximum_adhesion_distance, cell_definition_index,
 										cell_adhesion_affinities, neighbors);
+	}
+}
+
+template <index_t dims>
+void update_cell_forces_internal_new(cell_data& data, index_t cell_definitions_count)
+{
+#pragma omp for
+	for (index_t i = 0; i < data.agents_count; i++)
+	{
+		// if (is_movable[i] == 0)
+		// 	continue;
+
+		for (index_t j = 0; j < data.agents_count; j++)
+		{
+			if (i == j)
+				continue;
+
+
+
+			if (data.cell_residence[i] == data.cell_residence[j])
+			{
+				solve_pair_new_inter<dims>(i, j, data.velocities.data(), data.agent_data.positions.data(),
+										   data.mechanics.relative_maximum_adhesion_distance.data(),
+										   data.mechanics.cell_cell_repulsion_strength.data(),
+										   data.mechanics.attachment_elastic_constant.data(),
+										   data.mechanics.attachment_rate.data(), data.agents_count);
+			}
+			else
+			{
+				solve_pair_new_intra<dims>(
+					i, j, cell_definitions_count, data.velocities.data(), data.agent_data.positions.data(),
+					data.interactions.live_phagocytosis_rates.data(), data.mechanics.cell_adhesion_affinities.data(),
+					data.interactions.attack_rates.data(), data.cell_definition_indices.data());
+			}
+		}
 	}
 }
 
@@ -255,6 +384,13 @@ void position_solver::update_cell_forces(environment& e)
 			data.mechanics.cell_cell_repulsion_strength.data(), data.mechanics.cell_cell_adhesion_strength.data(),
 			data.mechanics.relative_maximum_adhesion_distance.data(), data.cell_definition_indices.data(),
 			data.mechanics.cell_adhesion_affinities.data(), data.is_movable.data(), data.states.neighbors.data());
+}
+
+void position_solver::update_cell_forces_new(environment& e)
+{
+	auto& data = get_cell_data(e);
+
+	update_cell_forces_internal_new<2>(data, e.cell_definitions_count);
 }
 
 void position_solver::update_cell_neighbors(environment& e)
@@ -501,6 +637,87 @@ void update_positions_internal(index_t agents_count, real_t time_step, real_t* _
 	}
 }
 
+template <index_t dims>
+void update_positions_internal_new(index_t agents_count, real_t time_step, real_t* __restrict__ position,
+								   real_t* __restrict__ velocity, real_t* __restrict__ previous_velocity,
+								   const real_t* __restrict__ viscosities, cell_data& data)
+{
+#pragma omp for
+	for (index_t i = 0; i < agents_count; i++)
+	{
+		// if (!is_movable[i])
+		// 	continue;
+
+		point_t<real_t, 2> copy_vel;
+		copy_vel[0] = velocity[i * dims + 0];
+		copy_vel[1] = velocity[i * dims + 1];
+
+		if (data.cell_definition_indices[i] == 1)
+		{
+			copy_vel[1] -= 1;
+		}
+
+		velocity[i * dims + 0] = 0;
+		velocity[i * dims + 1] = 0;
+
+		data.prev_velocities[i].push_back(copy_vel);
+
+		if (data.prev_velocities[i].size() > 2)
+			data.prev_velocities[i].erase(data.prev_velocities[i].begin());
+
+		for (index_t d = 0; d < dims; d++)
+		{
+			if (data.prev_velocities[i].size() == 1)
+			{
+				position[i * dims + d] += (1 / viscosities[i]) * time_step * data.prev_velocities[i][0][d];
+			}
+			if (data.prev_velocities[i].size() == 2)
+			{
+				position[i * dims + d] +=
+					(1 / viscosities[i]) * time_step
+					* (-0.5 * data.prev_velocities[i][0][d] + 1.5 * data.prev_velocities[i][1][d]);
+			}
+			if (data.prev_velocities[i].size() == 3)
+			{
+				position[i * dims + d] +=
+					(1 / viscosities[i]) * time_step
+					* ((5. / 12.) * data.prev_velocities[i][0][d] + (-16. / 12) * data.prev_velocities[i][1][d]
+					   + (23. / 12) * data.prev_velocities[i][2][d]);
+			}
+			if (data.prev_velocities[i].size() == 4)
+			{
+				position[i * dims + d] +=
+					(1 / viscosities[i]) * time_step
+					* ((-3. / 8.) * data.prev_velocities[i][0][d] + (37. / 24) * data.prev_velocities[i][1][d]
+					   + (-59. / 24) * data.prev_velocities[i][2][d] + (55. / 24) * data.prev_velocities[i][3][d]);
+			}
+		}
+
+
+
+		// #pragma omp critical
+		// 		{
+		// 			std::cout << "Velocity[0]: " << velocity[i * dims + 0] << " Velocity[1]: " << velocity[i * dims + 1]
+		// 					  << " Viscosity: " << viscosities[i] << " position[0]: " << position[i * dims + 0]
+		// 					  << " position[1]: " << position[i * dims + 1] << " velocity[0]/viscosity "
+		// 					  << velocity[i * dims + 0] / (viscosities[i] / agents_count) << " velocity[1]/viscosity "
+		// 					  << velocity[i * dims + 1] / (viscosities[i] / agents_count) << std::endl;
+		// 		}
+
+		// for (index_t d = 0; d < dims; d++)
+		// {
+		// 	// position[i * dims + d] += (velocity[i * dims + d] * time_step) / (viscosities[i] / agents_count);
+
+		// 	position[i * dims + d] +=
+		// 		(velocity[i * dims + d] * factor + previous_velocity[i * dims + d] * previous_factor)
+		// 		/ (viscosities[i] / agents_count);
+
+		// 	previous_velocity[i * dims + d] = velocity[i * dims + d];
+		// 	velocity[i * dims + d] = 0;
+		// }
+	}
+}
+
 void position_solver::update_positions(environment& e)
 {
 	if (e.mechanics_mesh.dims == 1)
@@ -515,4 +732,12 @@ void position_solver::update_positions(environment& e)
 		update_positions_internal<3>(get_cell_data(e).agents_count, e.mechanics_time_step,
 									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
 									 get_cell_data(e).previous_velocities.data(), get_cell_data(e).is_movable.data());
+}
+
+void position_solver::update_positions_new(environment& e)
+{
+	update_positions_internal_new<2>(get_cell_data(e).agents_count, e.mechanics_time_step,
+									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
+									 get_cell_data(e).previous_velocities.data(),
+									 get_cell_data(e).mechanics.attachment_rate.data(), get_cell_data(e));
 }

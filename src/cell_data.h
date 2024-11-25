@@ -186,6 +186,10 @@ struct cell_data
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;
 
+	std::vector<std::vector<biofvm::point_t<biofvm::real_t, 2>>> prev_velocities;
+
+	std::vector<biofvm::index_t> cell_residence;
+
 	environment& e;
 
 	cell_data(environment& e);
