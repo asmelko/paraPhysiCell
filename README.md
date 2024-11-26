@@ -1,5 +1,30 @@
 # paraPhysiCell: the optimized parallel implementation of PhysiCell core features
 
+```
+general:
+- elements count (N) = detachment_rate
+- cell radius (R_cell) = specified in custom.cpp
+- viscosity (n) = attachment_rate
+- equilibrium distance (r_eq) = cell_cell_repulsion_strength (automatically computed in custom.cpp)
+- element_radius (R_elem) = radius (automatically computed in custom.cpp)
+
+
+
+intra:
+- scaling_factor (rho) = relative_maximum_adhesion_distance
+- stiffness (k) = attachment_elastic_constant
+
+inter:
+- scaling_factors (rho) = live_phagocytosis_rate
+- stiffness (k) = attack_rates
+- equilibrium multiplier = cell_adhesion_affinity (when =1, it is just sum of 2 element radii)
+
+1. build the project as is specified below
+ - the binaries and configs will be in ./build/sample_projects/(sem-test/sem-playground)
+2. run physicell studio on sem-test or sem-playground
+
+```
+
 This repository contains the parallel CPU implementation of PhysiCell. The BioFVM part is implemented using the optimized [paraBioFVM library](https://github.com/asmelko/paraBioFVM). The goal of this project is twofold:
  - implement optimized cell mechanics (their interactions, forces, motility, spring attachments, ...)
  - and propose architectural changes for better sustainability and extendability of the code.
