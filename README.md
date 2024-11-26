@@ -8,8 +8,6 @@ general:
 - equilibrium distance (r_eq) = cell_cell_repulsion_strength (automatically computed in custom.cpp)
 - element_radius (R_elem) = radius (automatically computed in custom.cpp)
 
-
-
 intra:
 - scaling_factor (rho) = relative_maximum_adhesion_distance
 - stiffness (k) = attachment_elastic_constant
@@ -19,9 +17,17 @@ inter:
 - stiffness (k) = attack_rates
 - equilibrium multiplier = cell_adhesion_affinity (when =1, it is just sum of 2 element radii)
 
+
+HOW TO RUN:
 1. build the project as is specified below
  - the binaries and configs will be in ./build/sample_projects/(sem-test/sem-playground)
 2. run physicell studio on sem-test or sem-playground
+
+
+WHERE IS THE CODE:
+morse potentials - solve_pair_new_intra and solve_pair_new_inter in position_solver.cpp
+altered motility - update_motility_single in position_solver.cpp (update_motility_single2 is the original). it just does brownian motion and forces cells of a specific cell definition to move to some direction
+
 
 ```
 
