@@ -20,7 +20,7 @@ void clear_simple_pressure(real_t* __restrict__ simple_pressure, index_t count)
 }
 
 template <index_t dims>
-void solve_pair_new_inter(index_t lhs, index_t rhs, real_t* __restrict__ velocity, const real_t* __restrict__ position,
+void solve_pair_new_intra(index_t lhs, index_t rhs, real_t* __restrict__ velocity, const real_t* __restrict__ position,
 						  const real_t* __restrict__ scaling_factors, const real_t* __restrict__ equilibrium_distances,
 						  const real_t* __restrict__ stiffnesses, const real_t* __restrict__ viscosity, index_t n)
 {
@@ -53,7 +53,7 @@ void solve_pair_new_inter(index_t lhs, index_t rhs, real_t* __restrict__ velocit
 }
 
 template <index_t dims>
-void solve_pair_new_intra(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __restrict__ velocity,
+void solve_pair_new_inter(index_t lhs, index_t rhs, index_t cell_defs_count, real_t* __restrict__ velocity,
 						  const real_t* __restrict__ position, const real_t* __restrict__ scaling_factors,
 						  const real_t* __restrict__ equilibrium_distances, const real_t* __restrict__ stiffnesses,
 						  const index_t* __restrict__ cell_definition_index)
@@ -181,12 +181,12 @@ void update_cell_forces_single(
 
 template <index_t dims>
 void update_motility_single2(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
-							real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
-							const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
-							const std::uint8_t* __restrict__ restrict_to_2d, const std::uint8_t* __restrict__ is_motile,
-							const real_t* __restrict__ migration_speed,
-							const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
-							cell_container& cells)
+							 real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
+							 const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
+							 const std::uint8_t* __restrict__ restrict_to_2d,
+							 const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
+							 const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
+							 cell_container& cells)
 {
 	if (is_motile[i] == 0)
 		return;
@@ -213,12 +213,12 @@ void update_motility_single2(index_t i, real_t time_step, real_t* __restrict__ m
 
 template <index_t dims>
 void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
-							 real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
-							 const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
-							 const std::uint8_t* __restrict__ restrict_to_2d,
-							 const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
-							 const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
-							 cell_container& cells)
+							real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
+							const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
+							const std::uint8_t* __restrict__ restrict_to_2d, const std::uint8_t* __restrict__ is_motile,
+							const real_t* __restrict__ migration_speed,
+							const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
+							cell_container& cells)
 {
 	if (is_motile[i] == 0)
 		return;
@@ -233,6 +233,12 @@ void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ mo
 						  * migration_speed[i];
 
 		position_helper<dims>::update_velocity(velocity + i * dims, random_walk, strength);
+	}
+
+	// forced to move in a direction
+	if (cells.data().cell_definition_indices[i] == 1)
+	{
+		velocity[i * dims + 1] -= 1;
 	}
 }
 
@@ -287,7 +293,7 @@ void update_cell_forces_internal_new(cell_data& data, index_t cell_definitions_c
 
 			if (data.cell_residence[i] == data.cell_residence[j])
 			{
-				solve_pair_new_inter<dims>(i, j, data.velocities.data(), data.agent_data.positions.data(),
+				solve_pair_new_intra<dims>(i, j, data.velocities.data(), data.agent_data.positions.data(),
 										   data.mechanics.relative_maximum_adhesion_distance.data(),
 										   data.mechanics.cell_cell_repulsion_strength.data(),
 										   data.mechanics.attachment_elastic_constant.data(),
@@ -295,7 +301,7 @@ void update_cell_forces_internal_new(cell_data& data, index_t cell_definitions_c
 			}
 			else
 			{
-				solve_pair_new_intra<dims>(
+				solve_pair_new_inter<dims>(
 					i, j, cell_definitions_count, data.velocities.data(), data.agent_data.positions.data(),
 					data.interactions.live_phagocytosis_rates.data(), data.mechanics.cell_adhesion_affinities.data(),
 					data.interactions.attack_rates.data(), data.cell_definition_indices.data());
@@ -651,11 +657,6 @@ void update_positions_internal_new(index_t agents_count, real_t time_step, real_
 		point_t<real_t, 2> copy_vel;
 		copy_vel[0] = velocity[i * dims + 0];
 		copy_vel[1] = velocity[i * dims + 1];
-
-		if (data.cell_definition_indices[i] == 1)
-		{
-			copy_vel[1] -= 1;
-		}
 
 		velocity[i * dims + 0] = 0;
 		velocity[i * dims + 1] = 0;
