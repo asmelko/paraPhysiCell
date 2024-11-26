@@ -148,7 +148,7 @@
                         <set_relative_equilibrium_distance enabled="false" units="dimensionless">1.8</set_relative_equilibrium_distance>
                         <set_absolute_equilibrium_distance enabled="false" units="micron">15.12</set_absolute_equilibrium_distance>
                     </options>
-                    <attachment_elastic_constant units="1/min">0.7</attachment_elastic_constant>
+                    <attachment_elastic_constant units="1/min">1.</attachment_elastic_constant>
                     <attachment_rate units="1/min">2.0</attachment_rate>
                     <detachment_rate units="1/min">100</detachment_rate>
                     <maximum_number_of_attachments>12</maximum_number_of_attachments>
@@ -187,7 +187,7 @@
                     <necrotic_phagocytosis_rate units="1/min">0.0</necrotic_phagocytosis_rate>
                     <other_dead_phagocytosis_rate units="1/min">0.0</other_dead_phagocytosis_rate>
                     <live_phagocytosis_rates>
-                        <phagocytosis_rate name="default" units="1/min">2.0</phagocytosis_rate>
+                        <phagocytosis_rate name="default" units="1/min">4.0</phagocytosis_rate>
                         <phagocytosis_rate name="ctype_xih" units="1/min">3.0</phagocytosis_rate>
                     </live_phagocytosis_rates>
                     <attack_rates>

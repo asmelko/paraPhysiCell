@@ -40,7 +40,7 @@ void solve_pair_new_intra(index_t lhs, index_t rhs, real_t* __restrict__ velocit
 	real_t exp_power = scaling_factor * (1 - (distance * distance) / (equilibrium_distance * equilibrium_distance));
 
 	real_t force = (4 * scaling_factor * distance * potential_well_depth)
-				   * (std::exp(2 * exp_power) - std::exp(exp_power)) / (equilibrium_distance * equilibrium_distance);
+				   * (std::exp(exp_power) * std::exp(exp_power) - std::exp(exp_power)) / (equilibrium_distance * equilibrium_distance);
 
 	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force / distance);
 
