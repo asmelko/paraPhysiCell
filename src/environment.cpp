@@ -1,5 +1,7 @@
 #include "environment.h"
 
+#include "models/standard_position_model.h"
+
 using namespace biofvm;
 using namespace physicell;
 
@@ -16,7 +18,8 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	  phenotype_time_step(6),
 	  current_time(0),
 	  cell_definitions_count(cell_definitions_count),
-	  cell_definitions_data(*this)
+	  cell_definitions_data(*this),
+	  position(std::make_unique<standard_position_model>())
 {
 	cells_in_mechanics_voxels = std::make_unique<std::vector<index_t>[]>(mechanics_mesh.voxel_count());
 }

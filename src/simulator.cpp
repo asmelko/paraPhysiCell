@@ -45,7 +45,7 @@ void simulator::initialize(PhysiCell_Settings& settings)
 	max_time_ = (index_t)std::round(settings.max_time / e.m.diffusion_time_step);
 
 	mechanics_solver_.containers.update_mechanics_mesh(e);
-	mechanics_solver_.position.update_cell_neighbors(e);
+	e.position->update_cell_neighbors(e);
 }
 
 void custom_cell_rules(environment& e)
@@ -170,11 +170,7 @@ void simulator::simulate_mechanics(simulator_durations& durations, bool& recompu
 		// custom attached cells adhesion:
 		measure(evaluate_interactions(e), durations.custom_interactions);
 
-		measure(mechanics_solver_.position.update_cell_forces(e), durations.forces);
-		measure(mechanics_solver_.position.update_motility(e), durations.motility);
-		measure(mechanics_solver_.position.update_basement_membrane_interactions(e), durations.membrane);
-		measure(mechanics_solver_.position.update_spring_attachments(e), durations.spring);
-		measure(mechanics_solver_.position.update_positions(e), durations.position);
+		e.position->update_cell_positions(e);
 	}
 
 	// Standard cell-cell interactions:
@@ -189,7 +185,7 @@ void simulator::simulate_mechanics(simulator_durations& durations, bool& recompu
 		measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_mech);
 
 		// Update cells neighbors:
-		measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_mech);
+		measure(e.position->update_cell_neighbors(e), durations.neighbors_mech);
 
 		recompute_secretion_and_uptake = true;
 	}
@@ -213,7 +209,7 @@ void simulator::simulate_phenotype(simulator_durations& durations, bool& recompu
 		measure(mechanics_solver_.containers.update_mechanics_mesh(e), durations.mesh_phe);
 
 		// Update cells neighbors:
-		measure(mechanics_solver_.position.update_cell_neighbors(e), durations.neighbors_phe);
+		measure(e.position->update_cell_neighbors(e), durations.neighbors_phe);
 
 		recompute_secretion_and_uptake = true;
 	}

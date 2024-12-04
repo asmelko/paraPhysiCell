@@ -186,6 +186,12 @@ struct cell_data
 	// references agent_data.agents_count
 	biofvm::index_t& agents_count;
 
+	// morse
+	std::vector<std::vector<biofvm::point_t<biofvm::real_t, 2>>> prev_velocities;
+	std::vector<biofvm::index_t> cell_residency;
+	std::vector<biofvm::real_t> intra_scaling_factors, intra_equilibrium_distances, intra_stiffnesses;
+	std::vector<biofvm::real_t> inter_scaling_factors, inter_equilibrium_distances, inter_stiffnesses;
+
 	environment& e;
 
 	cell_data(environment& e);

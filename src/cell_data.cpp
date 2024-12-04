@@ -280,6 +280,15 @@ void cell_data::add()
 	is_movable.resize(agents_count);
 
 	flags.resize(agents_count);
+
+	prev_velocities.resize(agents_count);
+	cell_residency.resize(agents_count);
+	intra_scaling_factors.resize(agents_count);
+	intra_equilibrium_distances.resize(agents_count);
+	intra_stiffnesses.resize(agents_count);
+	inter_scaling_factors.resize(agents_count);
+	inter_equilibrium_distances.resize(agents_count);
+	inter_stiffnesses.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -310,4 +319,13 @@ void cell_data::remove(index_t index)
 	move_scalar(is_movable.data() + index, is_movable.data() + agents_count);
 
 	move_scalar(flags.data() + index, flags.data() + agents_count);
+
+	move_scalar(cell_residency.data() + index, cell_residency.data() + agents_count);
+	move_scalar(prev_velocities.data() + index, prev_velocities.data() + agents_count);
+	move_scalar(intra_scaling_factors.data() + index, intra_scaling_factors.data() + agents_count);
+	move_scalar(intra_equilibrium_distances.data() + index, intra_equilibrium_distances.data() + agents_count);
+	move_scalar(intra_stiffnesses.data() + index, intra_stiffnesses.data() + agents_count);
+	move_scalar(inter_scaling_factors.data() + index, inter_scaling_factors.data() + agents_count);
+	move_scalar(inter_equilibrium_distances.data() + index, inter_equilibrium_distances.data() + agents_count);
+	move_scalar(inter_stiffnesses.data() + index, inter_stiffnesses.data() + agents_count);
 }

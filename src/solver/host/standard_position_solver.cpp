@@ -1,9 +1,9 @@
-#include "position_solver.h"
-
 #include <BioFVM/microenvironment.h>
 
+#include "../../models/standard_position_model.h"
 #include "../../random.h"
 #include "solver_helper.h"
+#include "standard_position_solver.h"
 
 using namespace biofvm;
 using namespace physicell;
@@ -516,3 +516,21 @@ void position_solver::update_positions(environment& e)
 									 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
 									 get_cell_data(e).previous_velocities.data(), get_cell_data(e).is_movable.data());
 }
+
+void standard_position_model::update_cell_forces(environment& e) { position_solver::update_cell_forces(e); }
+
+void standard_position_model::update_cell_neighbors(environment& e) { position_solver::update_cell_neighbors(e); }
+
+void standard_position_model::update_motility(environment& e) { position_solver::update_motility(e); }
+
+void standard_position_model::update_basement_membrane_interactions(environment& e)
+{
+	position_solver::update_basement_membrane_interactions(e);
+}
+
+void standard_position_model::update_spring_attachments(environment& e)
+{
+	position_solver::update_spring_attachments(e);
+}
+
+void standard_position_model::update_positions(environment& e) { position_solver::update_positions(e); }

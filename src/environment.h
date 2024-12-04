@@ -4,6 +4,7 @@
 
 #include "cell_container.h"
 #include "cell_definition.h"
+#include "models/position_model.h"
 
 namespace physicell {
 
@@ -46,6 +47,8 @@ struct environment
 	biofvm::index_t cell_definitions_count;
 	std::vector<std::unique_ptr<cell_definition>> cell_definitions;
 	cell_data cell_definitions_data;
+
+	std::unique_ptr<position_model> position;
 
 	cell_definition& create_cell_definition();
 
