@@ -318,7 +318,7 @@ void simulator::run(PhysiCell_Settings& settings, cell_coloring_funct_t cell_col
 
 			if (simulation_step % phenotype_step_interval_ == 0)
 			{
-				simulate_phenotype(durations, recompute_secretion_and_uptake, data_residency);
+				// simulate_phenotype(durations, recompute_secretion_and_uptake, data_residency);
 			}
 
 			// run custom simulations

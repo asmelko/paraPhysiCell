@@ -60,6 +60,8 @@ public:
 	std::uint8_t& is_movable();
 	cell_state_flag& flag();
 
+	biofvm::index_t& residency();
+
 	void set_default(cell_definition& def);
 	void convert(cell_definition& def);
 	void copy_from(cell& source);

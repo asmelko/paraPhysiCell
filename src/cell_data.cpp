@@ -286,9 +286,7 @@ void cell_data::add()
 	intra_scaling_factors.resize(agents_count);
 	intra_equilibrium_distances.resize(agents_count);
 	intra_stiffnesses.resize(agents_count);
-	inter_scaling_factors.resize(agents_count);
-	inter_equilibrium_distances.resize(agents_count);
-	inter_stiffnesses.resize(agents_count);
+	viscosities.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -325,7 +323,5 @@ void cell_data::remove(index_t index)
 	move_scalar(intra_scaling_factors.data() + index, intra_scaling_factors.data() + agents_count);
 	move_scalar(intra_equilibrium_distances.data() + index, intra_equilibrium_distances.data() + agents_count);
 	move_scalar(intra_stiffnesses.data() + index, intra_stiffnesses.data() + agents_count);
-	move_scalar(inter_scaling_factors.data() + index, inter_scaling_factors.data() + agents_count);
-	move_scalar(inter_equilibrium_distances.data() + index, inter_equilibrium_distances.data() + agents_count);
-	move_scalar(inter_stiffnesses.data() + index, inter_stiffnesses.data() + agents_count);
+	move_scalar(viscosities.data() + index, viscosities.data() + agents_count);
 }

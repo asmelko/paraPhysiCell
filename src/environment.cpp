@@ -22,6 +22,10 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	  position(std::make_unique<standard_position_model>())
 {
 	cells_in_mechanics_voxels = std::make_unique<std::vector<index_t>[]>(mechanics_mesh.voxel_count());
+
+	inter_scaling_factors.resize(cell_definitions_count * cell_definitions_count);
+	inter_equilibrium_distances.resize(cell_definitions_count * cell_definitions_count);
+	inter_stiffnesses.resize(cell_definitions_count * cell_definitions_count);
 }
 
 cell_container_base& environment::container_base() { return get_container<cell_container_base&>(); }

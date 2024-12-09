@@ -50,6 +50,9 @@ struct environment
 
 	std::unique_ptr<position_model> position;
 
+	// morse 
+	std::vector<biofvm::real_t> inter_scaling_factors, inter_equilibrium_distances, inter_stiffnesses;
+
 	cell_definition& create_cell_definition();
 
 	cell_definition& cell_defaults();

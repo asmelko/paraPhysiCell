@@ -80,6 +80,11 @@ void cell::convert(cell_definition& def)
 	parameters = def.parameters;
 	functions = def.functions;
 
+	data_.intra_equilibrium_distances[index_] = def.phenotype.geometry.radius() * 2;
+	data_.intra_scaling_factors[index_] = def.custom_data["scaling_factor"];
+	data_.intra_stiffnesses[index_] = def.custom_data["stiffness"];
+	data_.viscosities[index_] = def.custom_data["viscosity"];
+
 	def.phenotype.copy_to(phenotype);
 
 	cell_definition_index() = def.index;
@@ -184,6 +189,8 @@ void cell::assign_orientation()
 }
 
 cell_state_flag& cell::flag() { return data_.flags[index_]; }
+
+index_t& cell::residency() { return data_.cell_residency[index_]; }
 
 void cell::flag_for_removal() { flag() = cell_state_flag::to_remove; }
 
