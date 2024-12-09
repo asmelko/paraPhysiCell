@@ -110,6 +110,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		real_t x_offset = x_offset_begin;
 		real_t y_offset = y_offset_begin;
 		index_t row = 0;
+		index_t col = 0;
 		for (index_t i = 0; i < N; i++)
 		{
 			auto cell = e.get_container().create_cell(e.cell_defaults());
@@ -125,10 +126,12 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
 			x_offset += std::sqrt(3) * element_radius;
-			y_offset += std::pow(-1, i) * std::pow(-1, row) * element_radius;
-			if ((i + 1) % (int)(N / std::sqrt(N)) == 0)
+			y_offset += std::pow(-1, col) * element_radius;
+			col++;
+			if ((i + 1) % (int)std::sqrt(N) == 0)
 			{
 				row++;
+				col = 0;
 				x_offset = x_offset_begin;
 				y_offset = y_offset_begin + 2. * row * element_radius;
 			}
@@ -148,6 +151,7 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 		real_t x_offset = x_offset_begin;
 		real_t y_offset = y_offset_begin;
 		index_t row = 0;
+		index_t col = 0;
 		for (index_t i = 0; i < N; i++)
 		{
 			auto cell = e.get_container().create_cell(e.cell_defaults());
@@ -163,10 +167,12 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
 			x_offset += std::sqrt(3) * element_radius;
-			y_offset += std::pow(-1, i) * std::pow(-1, row) * element_radius;
-			if ((i + 1) % (int)(N / std::sqrt(N)) == 0)
+			y_offset += std::pow(-1, col) * element_radius;
+			col++;
+			if ((i + 1) % (int)std::sqrt(N) == 0)
 			{
 				row++;
+				col = 0;
 				x_offset = x_offset_begin;
 				y_offset = y_offset_begin + 2. * row * element_radius;
 			}
