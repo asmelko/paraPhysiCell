@@ -34,12 +34,12 @@ void solve_pair_intra(index_t lhs, index_t rhs, real_t* __restrict__ velocity, c
 
 	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force / distance);
 
-// #pragma omp critical
-// 	{
-// 		std::cout << "intra Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
-// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
-// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
-// 	}
+	// #pragma omp critical
+	// 	{
+	// 		std::cout << "intra Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
+	// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
+	// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
+	// 	}
 }
 
 template <index_t dims>
@@ -71,22 +71,18 @@ void solve_pair_inter(index_t lhs, index_t rhs, index_t cell_defs_count, real_t*
 
 	position_helper<dims>::update_velocity(velocity + lhs * dims, position_difference, force / distance);
 
-// #pragma omp critical
-// 	{
-// 		std::cout << "inter Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
-// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
-// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
-// 	}
+	// #pragma omp critical
+	// 	{
+	// 		std::cout << "inter Scaling factor: " << scaling_factor << " Equilibrium distance: " << equilibrium_distance
+	// 				  << " Stiffness: " << stiffness << " Potential well depth: " << potential_well_depth
+	// 				  << " Distance: " << distance << " Force: " << force << " Exp power:" << exp_power << std::endl;
+	// 	}
 }
 
 template <index_t dims>
-void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ motility_vector,
-							real_t* __restrict__ velocity, const real_t* __restrict__ persistence_time,
-							const real_t* __restrict__ migration_bias, real_t* __restrict__ migration_bias_direction,
-							const std::uint8_t* __restrict__ restrict_to_2d, const std::uint8_t* __restrict__ is_motile,
-							const real_t* __restrict__ migration_speed,
-							const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f,
-							cell_container& cells)
+void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ velocity,
+							const real_t* __restrict__ persistence_time, const std::uint8_t* __restrict__ is_motile,
+							const real_t* __restrict__ migration_speed, const real_t* __restrict__ viscosity)
 {
 	if (is_motile[i] == 0)
 		return;
@@ -95,29 +91,22 @@ void update_motility_single(index_t i, real_t time_step, real_t* __restrict__ mo
 	{
 		real_t random_walk[dims];
 
-		position_helper<dims>::random_walk(restrict_to_2d, random_walk);
+		for (index_t d = 0; d < dims; d++)
+			random_walk[d] = random::instance().normal(0, migration_speed[i] * viscosity[i]);
 
-		real_t strength = random::instance().normal(0, cells.data().mechanics.cell_cell_repulsion_strength[i] / 2)
-						  * migration_speed[i];
-
-		position_helper<dims>::update_velocity(velocity + i * dims, random_walk, strength);
+		position_helper<dims>::update_velocity(velocity + i * dims, random_walk, 1);
 	}
 }
 
 template <index_t dims>
-void update_motility_internal(
-	index_t agents_count, real_t time_step, real_t* __restrict__ motility_vector, real_t* __restrict__ velocity,
-	const real_t* __restrict__ persistence_time, const real_t* __restrict__ migration_bias,
-	real_t* __restrict__ migration_bias_direction, const std::uint8_t* __restrict__ restrict_to_2d,
-	const std::uint8_t* __restrict__ is_motile, const real_t* __restrict__ migration_speed,
-	const motility_data::direction_update_func* __restrict__ update_migration_bias_direction_f, cell_container& cells)
+void update_motility_internal(index_t agents_count, real_t time_step, real_t* __restrict__ velocity,
+							  const real_t* __restrict__ persistence_time, const std::uint8_t* __restrict__ is_motile,
+							  const real_t* __restrict__ migration_speed, const real_t* __restrict__ viscosity)
 {
 #pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
 	{
-		update_motility_single<dims>(i, time_step, motility_vector, velocity, persistence_time, migration_bias,
-									 migration_bias_direction, restrict_to_2d, is_motile, migration_speed,
-									 update_migration_bias_direction_f, cells);
+		update_motility_single<dims>(i, time_step, velocity, persistence_time, is_motile, migration_speed, viscosity);
 	}
 }
 
@@ -162,29 +151,19 @@ void morse_position_solver::update_cell_forces(environment& e)
 void morse_position_solver::update_motility(environment& e)
 {
 	auto& data = get_cell_data(e);
-	auto& cells = e.get_container();
 
 	if (e.m.mesh.dims == 1)
-		update_motility_internal<1>(
-			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
-			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
-			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
-			data.motilities.update_migration_bias_direction.data(), cells);
+		update_motility_internal<1>(data.agents_count, e.mechanics_time_step, data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), data.viscosities.data());
 	else if (e.m.mesh.dims == 2)
-		update_motility_internal<2>(
-			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
-			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
-			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
-			data.motilities.update_migration_bias_direction.data(), cells);
+		update_motility_internal<2>(data.agents_count, e.mechanics_time_step, data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), data.viscosities.data());
 	else if (e.m.mesh.dims == 3)
-		update_motility_internal<3>(
-			data.agents_count, e.mechanics_time_step, data.motilities.motility_vector.data(), data.velocities.data(),
-			data.motilities.persistence_time.data(), data.motilities.migration_bias.data(),
-			data.motilities.migration_bias_direction.data(), data.motilities.restrict_to_2d.data(),
-			data.motilities.is_motile.data(), data.motilities.migration_speed.data(),
-			data.motilities.update_migration_bias_direction.data(), cells);
+		update_motility_internal<3>(data.agents_count, e.mechanics_time_step, data.velocities.data(),
+									data.motilities.persistence_time.data(), data.motilities.is_motile.data(),
+									data.motilities.migration_speed.data(), data.viscosities.data());
 }
 
 template <index_t dims>
@@ -239,14 +218,14 @@ void update_positions_internal(index_t agents_count, real_t time_step, real_t* _
 
 
 
-// #pragma omp critical
-// 		{
-// 			std::cout << "Velocity[0]: " << velocity[i * dims + 0] << " Velocity[1]: " << velocity[i * dims + 1]
-// 					  << " Viscosity: " << viscosities[i] << " position[0]: " << position[i * dims + 0]
-// 					  << " position[1]: " << position[i * dims + 1] << " velocity[0]/viscosity "
-// 					  << velocity[i * dims + 0] / (viscosities[i] / agents_count) << " velocity[1]/viscosity "
-// 					  << velocity[i * dims + 1] / (viscosities[i] / agents_count) << std::endl;
-// 		}
+		// #pragma omp critical
+		// 		{
+		// 			std::cout << "Velocity[0]: " << velocity[i * dims + 0] << " Velocity[1]: " << velocity[i * dims + 1]
+		// 					  << " Viscosity: " << viscosities[i] << " position[0]: " << position[i * dims + 0]
+		// 					  << " position[1]: " << position[i * dims + 1] << " velocity[0]/viscosity "
+		// 					  << velocity[i * dims + 0] / (viscosities[i] / agents_count) << " velocity[1]/viscosity "
+		// 					  << velocity[i * dims + 1] / (viscosities[i] / agents_count) << std::endl;
+		// 		}
 	}
 }
 
