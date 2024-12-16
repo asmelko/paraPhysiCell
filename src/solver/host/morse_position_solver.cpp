@@ -26,6 +26,9 @@ void solve_pair_intra(index_t lhs, index_t rhs, real_t* __restrict__ velocity, c
 	const real_t distance = position_helper<dims>::difference_and_distance(position + lhs * dims, position + rhs * dims,
 																		   position_difference);
 
+	// if (distance > 2.5 * equilibrium_distance)
+	// 	return;
+
 	real_t exp_power = scaling_factor * (1 - (distance * distance) / (equilibrium_distance * equilibrium_distance));
 
 	real_t force = (4 * scaling_factor * distance * potential_well_depth)
@@ -168,7 +171,8 @@ void morse_position_solver::update_motility(environment& e)
 
 template <index_t dims>
 void update_positions_internal(index_t agents_count, real_t time_step, real_t* __restrict__ position,
-							   real_t* __restrict__ velocity, const real_t* __restrict__ viscosities, cell_data& data)
+							   real_t* __restrict__ velocity, real_t* __restrict__ prev_velocity,
+							   const real_t* __restrict__ viscosities, cell_data& data)
 {
 #pragma omp for
 	for (index_t i = 0; i < agents_count; i++)
@@ -182,6 +186,9 @@ void update_positions_internal(index_t agents_count, real_t time_step, real_t* _
 
 		velocity[i * dims + 0] = 0;
 		velocity[i * dims + 1] = 0;
+
+		prev_velocity[i * dims + 0] = copy_vel[0];
+		prev_velocity[i * dims + 1] = copy_vel[1];
 
 		data.prev_velocities[i].push_back(copy_vel);
 
@@ -216,15 +223,13 @@ void update_positions_internal(index_t agents_count, real_t time_step, real_t* _
 			}
 		}
 
-
-
 		// #pragma omp critical
 		// 		{
-		// 			std::cout << "Velocity[0]: " << velocity[i * dims + 0] << " Velocity[1]: " << velocity[i * dims + 1]
+		// 			std::cout << "Velocity[0]: " << copy_vel[0] << " Velocity[1]: " << copy_vel[1]
 		// 					  << " Viscosity: " << viscosities[i] << " position[0]: " << position[i * dims + 0]
 		// 					  << " position[1]: " << position[i * dims + 1] << " velocity[0]/viscosity "
-		// 					  << velocity[i * dims + 0] / (viscosities[i] / agents_count) << " velocity[1]/viscosity "
-		// 					  << velocity[i * dims + 1] / (viscosities[i] / agents_count) << std::endl;
+		// 					  << copy_vel[0] / (viscosities[i] / agents_count) << " velocity[1]/viscosity "
+		// 					  << copy_vel[1] / (viscosities[i] / agents_count) << std::endl;
 		// 		}
 	}
 }
@@ -233,7 +238,8 @@ void morse_position_solver::update_positions(environment& e)
 {
 	update_positions_internal<2>(get_cell_data(e).agents_count, e.mechanics_time_step,
 								 get_cell_data(e).agent_data.positions.data(), get_cell_data(e).velocities.data(),
-								 get_cell_data(e).viscosities.data(), get_cell_data(e));
+								 get_cell_data(e).previous_velocities.data(), get_cell_data(e).viscosities.data(),
+								 get_cell_data(e));
 }
 
 void morse_position_model::update_cell_forces(environment& e) { morse_position_solver::update_cell_forces(e); }

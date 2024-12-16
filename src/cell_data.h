@@ -192,6 +192,11 @@ struct cell_data
 	std::vector<biofvm::real_t> intra_scaling_factors, intra_equilibrium_distances, intra_stiffnesses;
 	std::vector<biofvm::real_t> viscosities;
 
+	// kelvin voigt
+	std::vector<biofvm::real_t> spring_constants;
+	std::vector<biofvm::real_t> dissipation_rates;
+	std::vector<std::vector<biofvm::real_t>> rest_lengths;
+
 	environment& e;
 
 	cell_data(environment& e);

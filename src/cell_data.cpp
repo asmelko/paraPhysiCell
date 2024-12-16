@@ -287,6 +287,10 @@ void cell_data::add()
 	intra_equilibrium_distances.resize(agents_count);
 	intra_stiffnesses.resize(agents_count);
 	viscosities.resize(agents_count);
+
+	spring_constants.resize(agents_count);
+	dissipation_rates.resize(agents_count);
+	rest_lengths.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -324,4 +328,8 @@ void cell_data::remove(index_t index)
 	move_scalar(intra_equilibrium_distances.data() + index, intra_equilibrium_distances.data() + agents_count);
 	move_scalar(intra_stiffnesses.data() + index, intra_stiffnesses.data() + agents_count);
 	move_scalar(viscosities.data() + index, viscosities.data() + agents_count);
+
+	move_scalar(spring_constants.data() + index, spring_constants.data() + agents_count);
+	move_scalar(dissipation_rates.data() + index, dissipation_rates.data() + agents_count);
+	move_scalar(rest_lengths.data() + index, rest_lengths.data() + agents_count);
 }

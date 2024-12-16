@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "src/models/kelvin_voigt_model.h"
 #include "src/models/morse_position_model.h"
 #include "src/original/core/signal_behavior.h"
 #include "src/original/modules/geometry.h"
@@ -90,6 +91,10 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 	if (parameters.strings("potential") == "morse")
 	{
 		e.position = std::make_unique<morse_position_model>();
+	}
+	else if (parameters.strings("potential") == "kelvin_voigt")
+	{
+		e.position = std::make_unique<kelvin_voigt_model>();
 	}
 
 	e.cell_definitions[1]->functions.custom_cell_rule = [](cell& c) {
@@ -185,8 +190,12 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 
 		// create a rectangle of cells
-		real_t x_offset = 160 - element_radius;
-		real_t y_offset = 400;
+		real_t x_offset_begin = 160 - element_radius;
+		real_t y_offset_begin = 400;
+		real_t x_offset = x_offset_begin;
+		real_t y_offset = y_offset_begin;
+		index_t row = 0;
+		index_t col = 0;
 		for (index_t i = 0; i < N; i++)
 		{
 			auto cell = e.get_container().create_cell(*e.cell_definitions[1]);
@@ -201,11 +210,15 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 			cell->assign_position(position);
 
 			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
-			x_offset += 2. * element_radius;
-			if ((i + 1) % (int)(N / std::sqrt(N)) == 0 && i != 0)
+			x_offset += std::sqrt(3) * element_radius;
+			y_offset += std::pow(-1, col) * element_radius;
+			col++;
+			if ((i + 1) % (int)std::sqrt(N) == 0)
 			{
-				x_offset = 160 - element_radius;
-				y_offset += 2. * element_radius;
+				row++;
+				col = 0;
+				x_offset = x_offset_begin;
+				y_offset = y_offset_begin + 2. * row * element_radius;
 			}
 		}
 	}

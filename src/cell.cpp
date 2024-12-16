@@ -80,10 +80,13 @@ void cell::convert(cell_definition& def)
 	parameters = def.parameters;
 	functions = def.functions;
 
-	data_.intra_equilibrium_distances[index_] = def.phenotype.geometry.radius() * 2;
+	data_.intra_equilibrium_distances[index_] = def.phenotype.geometry.radius() * (type_name == "default" ? 2 : 2);
 	data_.intra_scaling_factors[index_] = def.custom_data["scaling_factor"];
 	data_.intra_stiffnesses[index_] = def.custom_data["stiffness"];
 	data_.viscosities[index_] = def.custom_data["viscosity"];
+
+	data_.spring_constants[index_] = def.custom_data["spring_constant"];
+	data_.dissipation_rates[index_] = def.custom_data["dissipation_rate"];
 
 	def.phenotype.copy_to(phenotype);
 
