@@ -7,7 +7,7 @@
 #include "original/core/standard_models.h"
 #include "solver/host/containers_solver.h"
 #include "solver/host/interactions_solver.h"
-#include "solver/host/position_solver.h"
+#include "solver/host/standard_position_solver.h"
 
 using namespace biofvm;
 using namespace physicell;
