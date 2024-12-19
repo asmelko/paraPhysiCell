@@ -2,8 +2,7 @@
 
 #include <cmath>
 
-#include "src/models/kelvin_voigt_model.h"
-#include "src/models/morse_position_model.h"
+#include "../helpers.h"
 #include "src/original/core/signal_behavior.h"
 #include "src/original/modules/geometry.h"
 #include "src/random.h"
@@ -46,182 +45,17 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 {
 	// fill data according to custom parameters
 
-	for (index_t i = 0; i < e.cell_definitions_count; i++)
-	{
-		index_t N = e.cell_definitions[i]->custom_data["N"];
-		real_t cell_radius = e.cell_definitions[i]->custom_data["cell_radius"];
-
-		real_t element_radius;
-
-		if (e.cell_definitions[i]->custom_data["shape"] == 1) // circle
-		{
-			real_t packing_fraction = 0.9;
-			element_radius = cell_radius * std::sqrt(packing_fraction / N);
-		}
-		else // square
-		{
-			element_radius = cell_radius / std::sqrt(N);
-		}
-
-		e.cell_definitions[i]->phenotype.geometry.radius() = element_radius;
-
-		std::cout << "element_radius: " << element_radius << std::endl;
-	}
-
-	for (index_t i = 0; i < e.cell_definitions_count; i++)
-	{
-		for (index_t j = 0; j < e.cell_definitions_count; j++)
-		{
-			index_t min = std::min(i, j);
-			index_t max = std::max(i, j);
-
-			e.inter_scaling_factors[i * e.cell_definitions_count + j] =
-				parameters.doubles("scaling_factor_" + std::to_string(min) + "_" + std::to_string(max));
-
-			e.inter_stiffnesses[i * e.cell_definitions_count + j] =
-				parameters.doubles("stiffness_" + std::to_string(min) + "_" + std::to_string(max));
-
-			e.inter_equilibrium_distances[i * e.cell_definitions_count + j] =
-				parameters.doubles("equilibrium_distance_multiplier_" + std::to_string(min) + "_" + std::to_string(max))
-				* (e.cell_definitions[i]->phenotype.geometry.radius()
-				   + e.cell_definitions[j]->phenotype.geometry.radius());
-		}
-	}
-
-	if (parameters.strings("potential") == "morse")
-	{
-		e.position = std::make_unique<morse_position_model>();
-	}
-	else if (parameters.strings("potential") == "kelvin_voigt")
-	{
-		e.position = std::make_unique<kelvin_voigt_model>();
-	}
+	setup_potential_parameters(e, parameters);
 
 	e.cell_definitions[1]->functions.custom_cell_rule = [](cell& c) {
 		// forced to move in a direction
 		c.velocity()[1] -= 1;
 	};
 
-	{
-		index_t N = e.cell_definitions[0]->custom_data["N"];
-		real_t element_radius = e.cell_definitions[0]->phenotype.geometry.radius();
+	make_packed_square(e, e.cell_definitions[0].get(), 0, { 0, 100 });
+	make_packed_square(e, e.cell_definitions[0].get(), 1, { 170, 100 });
 
-
-		// e.cell_definitions[0]->phenotype.mechanics.attachment_elastic_constant();
-
-		// create a rectangle of cells
-		real_t x_offset_begin = 0;
-		real_t y_offset_begin = 100;
-		real_t x_offset = x_offset_begin;
-		real_t y_offset = y_offset_begin;
-		index_t row = 0;
-		index_t col = 0;
-		for (index_t i = 0; i < N; i++)
-		{
-			auto cell = e.get_container().create_cell(e.cell_defaults());
-			cell->residency() = 1;
-
-			point_t<real_t, 3> position = { 0, 0, 0 };
-
-			position[0] = x_offset;
-			position[1] = y_offset;
-			position[2] = 0;
-
-			cell->assign_position(position);
-
-			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
-			x_offset += std::sqrt(3) * element_radius;
-			y_offset += std::pow(-1, col) * element_radius;
-			col++;
-			if ((i + 1) % (int)std::sqrt(N) == 0)
-			{
-				row++;
-				col = 0;
-				x_offset = x_offset_begin;
-				y_offset = y_offset_begin + 2. * row * element_radius;
-			}
-		}
-	}
-
-	{
-		index_t N = e.cell_definitions[0]->custom_data["N"];
-		real_t element_radius = e.cell_definitions[0]->phenotype.geometry.radius();
-
-
-		// e.cell_definitions[0]->phenotype.mechanics.attachment_elastic_constant();
-
-		// create a rectangle of cells
-		real_t x_offset_begin = 170;
-		real_t y_offset_begin = 100;
-		real_t x_offset = x_offset_begin;
-		real_t y_offset = y_offset_begin;
-		index_t row = 0;
-		index_t col = 0;
-		for (index_t i = 0; i < N; i++)
-		{
-			auto cell = e.get_container().create_cell(e.cell_defaults());
-			cell->residency() = 2;
-
-			point_t<real_t, 3> position = { 0, 0, 0 };
-
-			position[0] = x_offset;
-			position[1] = y_offset;
-			position[2] = 0;
-
-			cell->assign_position(position);
-
-			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
-			x_offset += std::sqrt(3) * element_radius;
-			y_offset += std::pow(-1, col) * element_radius;
-			col++;
-			if ((i + 1) % (int)std::sqrt(N) == 0)
-			{
-				row++;
-				col = 0;
-				x_offset = x_offset_begin;
-				y_offset = y_offset_begin + 2. * row * element_radius;
-			}
-		}
-	}
-
-	{
-		index_t N = e.cell_definitions[1]->custom_data["N"];
-		real_t element_radius = e.cell_definitions[1]->phenotype.geometry.radius();
-
-
-		// create a rectangle of cells
-		real_t x_offset_begin = 160 - element_radius;
-		real_t y_offset_begin = 400;
-		real_t x_offset = x_offset_begin;
-		real_t y_offset = y_offset_begin;
-		index_t row = 0;
-		index_t col = 0;
-		for (index_t i = 0; i < N; i++)
-		{
-			auto cell = e.get_container().create_cell(*e.cell_definitions[1]);
-			cell->residency() = 3;
-
-			point_t<real_t, 3> position = { 0, 0, 0 };
-
-			position[0] = x_offset;
-			position[1] = y_offset;
-			position[2] = 0;
-
-			cell->assign_position(position);
-
-			std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
-			x_offset += std::sqrt(3) * element_radius;
-			y_offset += std::pow(-1, col) * element_radius;
-			col++;
-			if ((i + 1) % (int)std::sqrt(N) == 0)
-			{
-				row++;
-				col = 0;
-				x_offset = x_offset_begin;
-				y_offset = y_offset_begin + 2. * row * element_radius;
-			}
-		}
-	}
+	make_packed_square(e, e.cell_definitions[1].get(), 2, { 150, 400 });
 }
 
 cell_coloring_funct_t get_my_coloring_function(User_Parameters&) { return paint_by_number_cell_coloring; }

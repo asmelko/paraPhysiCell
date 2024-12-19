@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE src_files "*")
-add_executable(sem-contact ${src_files})
+add_executable(sem-contact ${src_files} ${CMAKE_CURRENT_SOURCE_DIR}/../helpers.cpp)
 target_include_directories(sem-contact PRIVATE "../..")
 target_link_libraries(sem-contact PRIVATE PhysiCellCore)
 
