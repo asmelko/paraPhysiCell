@@ -291,6 +291,8 @@ void cell_data::add()
 	spring_constants.resize(agents_count);
 	dissipation_rates.resize(agents_count);
 	rest_lengths.resize(agents_count);
+
+	membrane_neighbors.resize(agents_count);
 }
 
 void cell_data::remove(index_t index)
@@ -332,4 +334,6 @@ void cell_data::remove(index_t index)
 	move_scalar(spring_constants.data() + index, spring_constants.data() + agents_count);
 	move_scalar(dissipation_rates.data() + index, dissipation_rates.data() + agents_count);
 	move_scalar(rest_lengths.data() + index, rest_lengths.data() + agents_count);
+
+	move_scalar(membrane_neighbors.data() + index, membrane_neighbors.data() + agents_count);
 }

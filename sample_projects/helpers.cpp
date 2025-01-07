@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "src/models/kelvin_voigt_model.h"
+#include "src/models/morse_kv_membrane_model.h"
 #include "src/models/morse_position_model.h"
 
 using namespace biofvm;
@@ -70,7 +71,7 @@ void physicell::make_circle(environment& e, cell_definition* cd, index_t residen
 				auto cell = e.get_container().create_cell(*cd);
 				cell->residency() = residency;
 
-				position[1] = starting_position[1] + pos * row * 2 * element_radius;
+				position[1] = starting_position[1] + pos * row * 1.7 * element_radius;
 
 				cell->assign_position(position);
 				std::cout << "placing cell " << i << " at position " << position[0] << " " << position[1] << std::endl;
@@ -81,7 +82,7 @@ void physicell::make_circle(environment& e, cell_definition* cd, index_t residen
 				}
 			}
 
-			position[0] += 2. * element_radius;
+			position[0] += 1.99 * element_radius;
 		}
 
 		row++;
@@ -130,6 +131,10 @@ void physicell::setup_potential_parameters(environment& e, User_Parameters& para
 				* (e.cell_definitions[i]->phenotype.geometry.radius()
 				   + e.cell_definitions[j]->phenotype.geometry.radius());
 		}
+
+		e.membrane_stretching_factors[i] = e.cell_definitions[i]->custom_data["membrane_stretching_factor"];
+		e.membrane_stretched_spring_stepup[i] =
+			e.cell_definitions[i]->custom_data["membrane_stretched_spring_stepup"];
 	}
 
 	if (parameters.strings("potential") == "morse")
@@ -139,5 +144,9 @@ void physicell::setup_potential_parameters(environment& e, User_Parameters& para
 	else if (parameters.strings("potential") == "kelvin_voigt")
 	{
 		e.position = std::make_unique<kelvin_voigt_model>();
+	}
+	else if (parameters.strings("potential") == "morse_kv_membrane")
+	{
+		e.position = std::make_unique<morse_kv_membrane_position_model>();
 	}
 }

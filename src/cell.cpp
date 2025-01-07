@@ -273,3 +273,5 @@ std::vector<index_t>& cell::cells_in_my_mechanics_voxel()
 
 	return e().cells_in_mechanics_voxels[idx];
 }
+
+bool cell::is_membrane() { return data_.membrane_neighbors[index_] == 1; }

@@ -26,6 +26,9 @@ environment::environment(microenvironment& m, index_t cell_definitions_count,
 	inter_scaling_factors.resize(cell_definitions_count * cell_definitions_count);
 	inter_equilibrium_distances.resize(cell_definitions_count * cell_definitions_count);
 	inter_stiffnesses.resize(cell_definitions_count * cell_definitions_count);
+
+	membrane_stretching_factors.resize(cell_definitions_count);
+	membrane_stretched_spring_stepup.resize(cell_definitions_count);
 }
 
 cell_container_base& environment::container_base() { return get_container<cell_container_base&>(); }

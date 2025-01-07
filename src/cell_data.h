@@ -197,6 +197,9 @@ struct cell_data
 	std::vector<biofvm::real_t> dissipation_rates;
 	std::vector<std::vector<biofvm::real_t>> rest_lengths;
 
+	// membrane
+	std::vector<biofvm::index_t> membrane_neighbors;
+
 	environment& e;
 
 	cell_data(environment& e);

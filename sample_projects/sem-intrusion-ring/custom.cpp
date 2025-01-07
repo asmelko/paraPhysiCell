@@ -49,13 +49,16 @@ void setup_tissue(environment& e, User_Parameters& parameters, const pugi::xml_n
 
 	e.cell_definitions[1]->functions.custom_cell_rule = [](cell& c) {
 		// forced to move in a direction
-		c.velocity()[1] -= 1;
+		if (!c.is_membrane())
+			c.velocity()[1] -= 1;
 	};
 
 	make_packed_square(e, e.cell_definitions[0].get(), 0, { 0, 100 });
-	make_packed_square(e, e.cell_definitions[0].get(), 1, { 170, 100 });
+	make_packed_square(e, e.cell_definitions[0].get(), 1, { 40, 100 });
+	make_packed_square(e, e.cell_definitions[0].get(), 2, { 130, 100 });
+	make_packed_square(e, e.cell_definitions[0].get(), 3, { 170, 100 });
 
-	make_circle(e, e.cell_definitions[1].get(), 2, { 150, 400 });
+	make_circle(e, e.cell_definitions[1].get(), 4, { 20, 250 });
 }
 
 cell_coloring_funct_t get_my_coloring_function(User_Parameters&)

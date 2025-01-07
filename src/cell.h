@@ -62,6 +62,8 @@ public:
 
 	biofvm::index_t& residency();
 
+	bool is_membrane();
+
 	void set_default(cell_definition& def);
 	void convert(cell_definition& def);
 	void copy_from(cell& source);

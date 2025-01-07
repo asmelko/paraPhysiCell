@@ -53,6 +53,9 @@ struct environment
 	// morse 
 	std::vector<biofvm::real_t> inter_scaling_factors, inter_equilibrium_distances, inter_stiffnesses;
 
+	// membrane
+	std::vector<biofvm::real_t> membrane_stretching_factors, membrane_stretched_spring_stepup;
+
 	cell_definition& create_cell_definition();
 
 	cell_definition& cell_defaults();
