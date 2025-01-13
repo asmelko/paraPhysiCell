@@ -3,7 +3,7 @@
     <domain>
         <x_min>-10</x_min>
         <x_max>220</x_max>
-        <y_min>-600</y_min>
+        <y_min>-400</y_min>
         <y_max>400</y_max>
         <z_min>-10</z_min>
         <z_max>10</z_max>
@@ -221,6 +221,8 @@
                 <shape conserved="false" units="" description="">0.0</shape>
                 <spring_constant conserved="false" units="" description="">20.0</spring_constant>
                 <dissipation_rate conserved="false" units="" description="">0.</dissipation_rate>
+                <membrane_stretching_factor conserved="false" units="" description="">1.0</membrane_stretching_factor>
+                <membrane_stretched_spring_stepup conserved="false" units="" description="">0.0</membrane_stretched_spring_stepup>
             </custom_data>
             <initial_parameter_distributions enabled="false">
           </initial_parameter_distributions>
@@ -299,7 +301,7 @@
                     <persistence_time units="min">0.01</persistence_time>
                     <migration_bias units="dimensionless">0.0</migration_bias>
                     <options>
-                        <enabled>true</enabled>
+                        <enabled>false</enabled>
                         <use_2D>true</use_2D>
                         <chemotaxis>
                             <enabled>false</enabled>
@@ -362,6 +364,8 @@
                 <shape conserved="false" units="" description="">1</shape>
                 <spring_constant conserved="false" units="" description="">5.0</spring_constant>
                 <dissipation_rate conserved="false" units="" description="">0.</dissipation_rate>
+                <membrane_stretching_factor conserved="false" units="" description="">1.2</membrane_stretching_factor>
+                <membrane_stretched_spring_stepup conserved="false" units="" description="">10.0</membrane_stretched_spring_stepup>
             </custom_data>
             <initial_parameter_distributions enabled="false">
           </initial_parameter_distributions>
