@@ -1,5 +1,7 @@
 #include "position_solver.h"
 
+#include <algorithm>
+
 #include <BioFVM/microenvironment.h>
 
 #include "../../random.h"

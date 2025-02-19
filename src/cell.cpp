@@ -1,5 +1,7 @@
 #include "cell.h"
 
+#include <algorithm>
+
 #include <BioFVM/microenvironment.h>
 
 #include "cell_data.h"

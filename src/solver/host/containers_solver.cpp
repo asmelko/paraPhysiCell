@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "BioFVM/solver.h"
-#include "solver_helper.h"
 
 using namespace biofvm;
 using namespace physicell;

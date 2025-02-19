@@ -1,5 +1,6 @@
 #include "builder.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -1293,14 +1294,12 @@ void builder::construct_single_cell_definition(const pugi::xml_node& cd_node)
 
 			std::cout << "Cells of type " << pCD->name << " use normalized advanced chemotaxis: " << std::endl
 					  << "\t d_bias (before normalization) = " << pMot->chemotactic_sensitivities()[0] << " * grad("
-					  << e_->m.substrates_names[0] << ")"
-					  << " / ||grad(" << e_->m.substrates_names[0] << ")||";
+					  << e_->m.substrates_names[0] << ")" << " / ||grad(" << e_->m.substrates_names[0] << ")||";
 
 			for (index_t n = 1; n < number_of_substrates; n++)
 			{
 				std::cout << " + " << pMot->chemotactic_sensitivities()[n] << " * grad(" << e_->m.substrates_names[n]
-						  << ")"
-						  << " / ||grad(" << e_->m.substrates_names[n] << ")||";
+						  << ")" << " / ||grad(" << e_->m.substrates_names[n] << ")||";
 			}
 			std::cout << std::endl;
 		}

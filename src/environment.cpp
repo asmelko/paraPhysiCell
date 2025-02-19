@@ -1,5 +1,7 @@
 #include "environment.h"
 
+#include <algorithm>
+
 using namespace biofvm;
 using namespace physicell;
 
@@ -96,8 +98,8 @@ void environment::display_cell_definitions_info()
 		for (std::size_t k = 0; k < pCD->phenotype.death.models.size(); k++)
 		{
 			std::cout << "\t\t" << k << " : " << pCD->phenotype.death.models[k]->name
-					  << " (code=" << pCD->phenotype.death.models[k]->code << ")"
-					  << " with rate " << pCD->phenotype.death.rates[k] << " 1/min" << std::endl;
+					  << " (code=" << pCD->phenotype.death.models[k]->code << ")" << " with rate "
+					  << pCD->phenotype.death.rates[k] << " 1/min" << std::endl;
 
 			Cycle_Model* pCM = (pCD->phenotype.death.models[k]);
 			Cycle_Data* pCMD = &(pCD->phenotype.death.models[k]->data);
