@@ -1,5 +1,65 @@
 # paraPhysiCell: the optimized parallel implementation of PhysiCell core features
 
+## SEM documentation
+
+Here we briefly describe what this branch offers wrt. subcellular-elements (SCE) model.
+
+First of all, phenotype-dt functions are skipped. As of now, cell growth and division is not implemented.
+
+Further, all newly added parameters altering the behaviour of SCE cell are accessible thru *the custom data of cell definition* (for cell specific parameters) and *user params* (for global parameters). This is the intended way of changing the parameter values, conveniently modifiable in PhysiCell-Studio.
+
+The most important User Param:
+- `potential` - string parameter, which changes the potential functions of SCEs, altering the cell rhenology. currently we have these variants:
+    - `morse` - Morse Potential (similar to the original physicell one, where elements of cell can potentially detach)
+    - `kelvin_voigt` - Kelvin-voigt-inspired potential (similar to the springs, where elements can not detach)
+    - `morse_kv_membrane` - combination, where "cytoplasm" SCEs use morse and "membrane" SCEs use kelvin-voigt
+
+According to the selected potential, other custom data / user params are required to be specified. 
+
+Let us first start with the general custom data params, which should be present in each cell definition:
+- `N` - number of SCEs that shall form a cell
+- `cell_radius` - prefered radius of a cell
+- `viscosity` - viscosity of a cell. simply, an inverse multiplier for velocity
+
+According to `N` and `cell_radius`, the radius of SCE is automatically computed.
+Further, SCEs have a hidden parameter called `equilibrium_distance`, the distance between twho SCEs with 0 forces (the rest distance). It is set to be 2 SCE radiuses, i.e., the distance where SCEs touch.
+
+Now lets describe parameters of each potential (to get the deeper understanding of the underlying parameters, consider reading the related publications / wiki):
+1. `morse`:
+    - Custom Data:
+        - `scaling factor` - typical range 1.5 - 3. It alters the "elasticity" of a cell. the lower the scaling factor, the more elastic the cell gets. In detail, it changes the ratio between repulsive and adhesive forces. As the scaling factor decreases, the repulsive force decreases its dominance in the overall force.
+        - `stiffness` - typical range 1 - 20. magnitude multiplier for both repulsive and adhesive forces. The stiffer the cell, the bigger force is required to deform it.
+    - User Param:
+        - Here we define 3 parameters per each *cell definition pair*, `scaling_factor`, `stiffness` and `equilibrium_distance_multiplier`. So far in Custom Data, we specified potential properties for SCEs in one cell of a specific cell definition. Here, specify potential properties of interacting SCEs between *distinct cells*. I.e., between cells of *different cell definitions* **and** also different cells of *the same cell definition*. Scaling factor and stiffness parameters act the same as those in Custom Data, equilibrium distance multiplier allows to specify a gap between cells. To specify to *which cell definition pair* the parameters shall relate, we add suffix to parameter names. E.g., `scaling_factor_0_1` is a scaling factor between 0th and 1st cell definition.
+2. `kelvin_voigt`:
+    - (self describing) Custom Data:
+        - `spring_constant`
+        - `dissipation_rate`
+
+    It only makes sense to reason about kelvin_voigt being appliet between SCEs of the same cells. So for SCEs of disticst cells, we still use morse (therefore User Params should be set accordingly). 
+3. `morse_kv_membrane`:
+    - Custom Data:
+        - `membrane_stretching_factor` - how much do we allow membrane to stretch. Value 1 means not at all, value 1.2 means 20%. The stretching is represented as including some cytoplasm SCEs into membrane SCEs set.
+        - `membrane_stretched_spring_stepup` - linear stepup of spring constant or by how much we will increase the spring constant as the membrane stretches.
+
+        Since this is a combination of previous 2 potentials, both custom data and user params should contain aforementioned parameters as well.
+        
+
+#### How to create a cell with subcellular elements.
+
+In `sample_projects/helpers.h`, we have helper functions `make_circle` and `make_packed_square`. The notable parameter of the functions is `residency`. This is a nasty hack that allows us to tell to which cell a SEM belongs, i.e. to tell SEM's residency. Each call of these function should therefore contain a unique residency "identifier".
+
+#### Examples
+
+All the described parameters and functions can be found in 3 sample projects: sem-contact, sem-intrusion and sem-intrusion-ring. The latter is the most complex one including all the parameters.
+
+#### Code
+
+The classes representing various potentials (including the original one) are located in `src/models`. Their implementations are located in the respective files in `src/solver/host`.  
+
+---
+---
+
 This repository contains the parallel CPU implementation of PhysiCell. The BioFVM part is implemented using the optimized [paraBioFVM library](https://github.com/asmelko/paraBioFVM). The goal of this project is twofold:
  - implement optimized cell mechanics (their interactions, forces, motility, spring attachments, ...)
  - and propose architectural changes for better sustainability and extendability of the code.
