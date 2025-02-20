@@ -51,7 +51,7 @@ In `sample_projects/helpers.h`, we have helper functions `make_circle` and `make
 
 #### Examples
 
-All the described parameters and functions can be found in 3 sample projects: sem-contact, sem-intrusion and sem-intrusion-ring. The latter is the most complex one including all the parameters.
+All the described parameters and functions can be found in 3 sample projects: sem-contact, sem-intrusion and sem-intrusion-ring. Open then with the included settings xml file in the PhysiCell-Studio and observe (and play with) the parameter and their values in the GUI. The latter is the most complex one including all the parameters.
 
 #### Code
 
